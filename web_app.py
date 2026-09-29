@@ -31,8 +31,13 @@ from autocapcut import (
     parse_srt,
     load_sorted_media,
     align_scenes_with_srt,
-    format_time_ms
+    format_time_ms,
+    launch_capcut_app,
+    open_path_in_os,
+    ensure_macos_path
 )
+
+ensure_macos_path()
 
 app = FastAPI(title="AutoCapCut Studio Web")
 
@@ -48,7 +53,17 @@ class PreviewRequest(BaseModel):
 @app.get("/api/defaults")
 def get_defaults():
     draft_root = get_default_capcut_draft_path()
-    sample_dir = r"C:\Users\vutru\OneDrive\Desktop\New folder (2)"
+    sample_dirs = [
+        r"C:\Users\vutru\OneDrive\Desktop\New folder (2)",
+        os.path.expanduser("~/Desktop"),
+        os.path.expanduser("~/Movies")
+    ]
+    sample_dir = ""
+    for sd in sample_dirs:
+        if os.path.isdir(sd):
+            sample_dir = sd
+            break
+
     defaults = {
         "draft_root": draft_root or "",
         "capcut_installed": bool(draft_root and os.path.exists(draft_root)),
@@ -58,7 +73,7 @@ def get_defaults():
         "images_dir": "",
         "bgm_path": ""
     }
-    if os.path.exists(sample_dir):
+    if sample_dir and os.path.exists(sample_dir):
         files = os.listdir(sample_dir)
         for f in files:
             p = os.path.join(sample_dir, f)
@@ -122,14 +137,10 @@ def preview_alignment(req: PreviewRequest):
 
 @app.post("/api/launch-capcut")
 def launch_capcut():
-    exe = get_capcut_exe_path()
-    if exe and os.path.exists(exe):
-        try:
-            subprocess.Popen([exe])
-            return {"status": "success", "message": f"Đã khởi chạy CapCut: {exe}"}
-        except Exception as e:
-            return {"status": "error", "message": str(e)}
-    return {"status": "error", "message": "Không tìm thấy CapCut.exe"}
+    ok = launch_capcut_app()
+    if ok:
+        return {"status": "success", "message": "Đã khởi chạy CapCut thành công!"}
+    return {"status": "error", "message": "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn."}
 
 
 @app.websocket("/ws/build")

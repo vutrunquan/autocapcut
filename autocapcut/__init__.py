@@ -18,7 +18,10 @@ from .utils import (
     get_default_capcut_draft_path,
     get_capcut_exe_path,
     get_audio_duration_ms,
-    format_time_ms
+    format_time_ms,
+    open_path_in_os,
+    launch_capcut_app,
+    ensure_macos_path
 )
 
 __all__ = [
@@ -36,5 +39,8 @@ __all__ = [
     'get_default_capcut_draft_path',
     'get_capcut_exe_path',
     'get_audio_duration_ms',
-    'format_time_ms'
+    'format_time_ms',
+    'open_path_in_os',
+    'launch_capcut_app',
+    'ensure_macos_path'
 ]

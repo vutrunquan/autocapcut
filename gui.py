@@ -26,8 +26,13 @@ import customtkinter as ctk
 from autocapcut import (
     run_autocapcut,
     get_default_capcut_draft_path,
-    get_capcut_exe_path
+    get_capcut_exe_path,
+    open_path_in_os,
+    launch_capcut_app,
+    ensure_macos_path
 )
+
+ensure_macos_path()
 
 
 SCENES_PLACEHOLDER = (
@@ -151,9 +156,17 @@ class AutoCapCutApp(ctk.CTk):
         self.is_running = False
         self.last_draft_dir = None
 
-        self.default_init_dir = r"C:\Users\vutru\OneDrive\Desktop\New folder (2)"
-        if not os.path.exists(self.default_init_dir):
-            self.default_init_dir = os.path.expanduser("~")
+        sample_dirs = [
+            r"C:\Users\vutru\OneDrive\Desktop\New folder (2)",
+            os.path.expanduser("~/Desktop"),
+            os.path.expanduser("~/Movies"),
+            os.path.expanduser("~")
+        ]
+        self.default_init_dir = os.path.expanduser("~")
+        for sd in sample_dirs:
+            if os.path.isdir(sd):
+                self.default_init_dir = sd
+                break
 
         self._build_layout()
         self._auto_detect_sample_files()
@@ -1156,12 +1169,11 @@ class AutoCapCutApp(ctk.CTk):
         self.console_textbox.see("end")
 
     def _launch_capcut(self):
-        exe = get_capcut_exe_path()
-        if exe and os.path.exists(exe):
-            self._log(f"[Action] Khởi chạy CapCut: {exe}")
-            subprocess.Popen([exe])
+        ok = launch_capcut_app()
+        if ok:
+            self._log("[Action] Đã khởi chạy CapCut.")
         else:
-            messagebox.showinfo("Khởi chạy CapCut", "Không tìm thấy CapCut.exe tự động. Vui lòng mở CapCut từ Desktop của bạn.")
+            messagebox.showinfo("Khởi chạy CapCut", "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn.")
 
     def _open_settings_dialog(self):
         dlg = ctk.CTkToplevel(self)
@@ -1208,16 +1220,13 @@ class AutoCapCutApp(ctk.CTk):
         btn_row.pack(pady=4)
 
         def _open_f():
-            if os.path.exists(data['draft_dir']):
-                os.startfile(data['draft_dir'])
+            open_path_in_os(data['draft_dir'])
             dlg.destroy()
 
         def _open_cc():
-            exe = get_capcut_exe_path()
-            if exe and os.path.exists(exe):
-                subprocess.Popen([exe])
-            else:
-                os.startfile(data['draft_dir'])
+            ok = launch_capcut_app()
+            if not ok:
+                open_path_in_os(data['draft_dir'])
             dlg.destroy()
 
         ctk.CTkButton(btn_row, text="Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, corner_radius=6, width=140, height=34, command=_open_f).pack(side="left", padx=6)

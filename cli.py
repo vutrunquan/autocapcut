@@ -9,7 +9,8 @@ import argparse
 from autocapcut import (
     run_autocapcut,
     get_default_capcut_draft_path,
-    get_capcut_exe_path
+    get_capcut_exe_path,
+    launch_capcut_app
 )
 
 # Ensure console supports UTF-8
@@ -136,12 +137,10 @@ def main():
         print("\n👉 Bạn hãy mở phần mềm CapCut Desktop lên, project sẽ xuất hiện ngay ở đầu danh sách!")
 
         if args.open_capcut:
-            capcut_exe = get_capcut_exe_path()
-            if capcut_exe and os.path.exists(capcut_exe):
-                print(f"[+] Đang khởi chạy CapCut: {capcut_exe}")
-                os.startfile(capcut_exe)
+            if launch_capcut_app():
+                print("[+] Đang khởi chạy CapCut...")
             else:
-                print("[!] Không tìm thấy CapCut.exe tự động.")
+                print("[!] Không tìm thấy CapCut tự động.")
 
     except Exception as e:
         print(f"\n\n[X] ĐÃ XẢY RA LỖI: {e}")

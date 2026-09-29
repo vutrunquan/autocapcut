@@ -112,15 +112,16 @@ Chỉ cần chọn 1 preset trong dropdown, hệ thống sẽ tự động cấu
 
 ## 🖥️ Cách Khởi Chạy
 
-### 1. Giao diện Desktop App
-Nhấp đúp chuột vào shortcut **`AutoCapCut Pro`** trên màn hình Desktop hoặc chạy file:
-```bat
-Chay_AutoCapCut_GUI.bat
-```
+### Trên Windows 🪟:
+1. **Desktop App**: Nhấp đúp chuột vào file `Chay_AutoCapCut_GUI.bat`
+2. **Web App**: Nhấp đúp chuột vào file `Chay_AutoCapCut_Web.bat` (mở trình duyệt tại `http://localhost:8000`)
 
-### 2. Giao diện Web Trình Duyệt (Web UI)
-Chạy file:
-```bat
-Chay_AutoCapCut_Web.bat
-```
-Truy cập tại: `http://localhost:8000`
+### Trên macOS (Hỗ trợ cả Apple Silicon M1/M2/M3/M4 & Intel) 🍏:
+1. **Cài đặt lần đầu**:
+   ```bash
+   chmod +x setup_macos.sh
+   ./setup_macos.sh
+   ```
+2. **Desktop App**: Nhấp đúp chuột vào file `Chay_AutoCapCut_GUI.command` trong Finder
+3. **Web App**: Nhấp đúp chuột vào file `Chay_AutoCapCut_Web.command` trong Finder
+*(Xem hướng dẫn chi tiết tại [README_MACOS.md](file:///d:/autocapcut/README_MACOS.md))*

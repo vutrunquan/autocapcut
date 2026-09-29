@@ -13,56 +13,142 @@ from typing import Optional, Tuple
 from pymediainfo import MediaInfo
 
 
+def ensure_macos_path():
+    """Ensure Homebrew bin directories are in PATH on macOS (both Apple Silicon arm64 and Intel x86_64)."""
+    if sys.platform == 'darwin':
+        extra_paths = ['/opt/homebrew/bin', '/usr/local/bin', os.path.expanduser('~/.nvm/current/bin')]
+        current_path = os.environ.get('PATH', '')
+        for ep in extra_paths:
+            if os.path.exists(ep) and ep not in current_path:
+                os.environ['PATH'] = f"{ep}:{os.environ.get('PATH', '')}"
+
+
+# Run once on import
+ensure_macos_path()
+
+
+def open_path_in_os(path: str):
+    """Open a file or directory in native Explorer (Windows) or Finder (macOS)."""
+    if not path or not os.path.exists(path):
+        return
+    if sys.platform == 'win32':
+        os.startfile(path)
+    elif sys.platform == 'darwin':
+        subprocess.Popen(['open', path])
+    else:
+        subprocess.Popen(['xdg-open', path])
+
+
+def launch_capcut_app() -> bool:
+    """Launch CapCut application across macOS (Intel/M-series) and Windows."""
+    exe = get_capcut_exe_path()
+    if sys.platform == 'darwin':
+        if exe and os.path.exists(exe):
+            subprocess.Popen(['open', exe])
+            return True
+        for app_name in ['CapCut', 'JianyingPro']:
+            try:
+                res = subprocess.run(['open', '-a', app_name], capture_output=True)
+                if res.returncode == 0:
+                    return True
+            except Exception:
+                pass
+        return False
+    elif sys.platform == 'win32':
+        if exe and os.path.exists(exe):
+            subprocess.Popen([exe])
+            return True
+    return False
+
+
 def get_default_capcut_draft_path() -> Optional[str]:
     """
-    Detect the default CapCut PC drafts directory on Windows.
-    Usually: %LOCALAPPDATA%\\CapCut\\User Data\\Projects\\com.lveditor.draft
+    Detect the default CapCut drafts directory across Windows and macOS.
+    Supports both Intel and Apple Silicon Macs.
     """
-    local_app_data = os.environ.get('LOCALAPPDATA', '')
-    if not local_app_data:
-        user_profile = os.environ.get('USERPROFILE', '')
-        local_app_data = os.path.join(user_profile, 'AppData', 'Local')
+    home = os.path.expanduser('~')
 
-    candidates = [
-        os.path.join(local_app_data, 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
-        os.path.join(local_app_data, 'JianyingPro', 'User Data', 'Projects', 'com.lveditor.draft'),
-    ]
+    if sys.platform == 'darwin':
+        # macOS paths (Intel & Apple Silicon M1/M2/M3/M4)
+        candidates = [
+            os.path.join(home, 'Movies', 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(home, 'Library', 'Containers', 'com.lemon.lvoverseas', 'Data', 'Movies', 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(home, 'Library', 'Containers', 'com.lemon.cuteditor', 'Data', 'Movies', 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(home, 'Library', 'Application Support', 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(home, 'Movies', 'JianyingPro', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(home, 'Library', 'Containers', 'com.lemon.jianying', 'Data', 'Movies', 'JianyingPro', 'User Data', 'Projects', 'com.lveditor.draft'),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        return candidates[0]
 
-    for p in candidates:
-        if os.path.exists(p):
-            return p
+    elif sys.platform == 'win32':
+        local_app_data = os.environ.get('LOCALAPPDATA', '')
+        if not local_app_data:
+            user_profile = os.environ.get('USERPROFILE', '')
+            local_app_data = os.path.join(user_profile, 'AppData', 'Local')
 
-    # Default fallback path even if folder not yet created
-    return candidates[0]
+        candidates = [
+            os.path.join(local_app_data, 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft'),
+            os.path.join(local_app_data, 'JianyingPro', 'User Data', 'Projects', 'com.lveditor.draft'),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        return candidates[0]
+
+    return os.path.join(home, 'CapCut', 'User Data', 'Projects', 'com.lveditor.draft')
 
 
 def get_capcut_exe_path() -> Optional[str]:
-    """Detect CapCut executable location."""
-    local_app_data = os.environ.get('LOCALAPPDATA', '')
-    if not local_app_data:
+    """
+    Detect CapCut application location on Windows and macOS.
+    Supports both Intel (x86_64) and Apple Silicon (arm64).
+    """
+    if sys.platform == 'darwin':
+        candidates = [
+            '/Applications/CapCut.app',
+            os.path.expanduser('~/Applications/CapCut.app'),
+            '/Applications/JianyingPro.app',
+            os.path.expanduser('~/Applications/JianyingPro.app'),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        return '/Applications/CapCut.app' if os.path.exists('/Applications/CapCut.app') else None
+
+    elif sys.platform == 'win32':
+        local_app_data = os.environ.get('LOCALAPPDATA', '')
+        if not local_app_data:
+            return None
+
+        capcut_app = os.path.join(local_app_data, 'CapCut', 'Apps', 'CapCut.exe')
+        if os.path.exists(capcut_app):
+            return capcut_app
+
+        apps_dir = os.path.join(local_app_data, 'CapCut', 'Apps')
+        if os.path.isdir(apps_dir):
+            for root, dirs, files in os.walk(apps_dir):
+                if 'CapCut.exe' in files:
+                    return os.path.join(root, 'CapCut.exe')
         return None
-
-    capcut_app = os.path.join(local_app_data, 'CapCut', 'Apps', 'CapCut.exe')
-    if os.path.exists(capcut_app):
-        return capcut_app
-
-    # Search in version subfolders
-    apps_dir = os.path.join(local_app_data, 'CapCut', 'Apps')
-    if os.path.isdir(apps_dir):
-        for root, dirs, files in os.walk(apps_dir):
-            if 'CapCut.exe' in files:
-                return os.path.join(root, 'CapCut.exe')
     return None
 
 
 def get_audio_duration_ms(audio_path: str) -> int:
     """
-    Extract accurate audio duration in milliseconds using MediaInfo.
-    Fallback to wave module if WAV format.
+    Extract accurate audio duration in milliseconds across Windows, macOS, and Linux.
+    Tries:
+    1. MediaInfo (via pymediainfo)
+    2. afinfo (native built-in CoreAudio tool on macOS - Intel & Apple Silicon M)
+    3. wave module (standard library for WAV)
+    4. ffprobe (if installed)
     """
     if not os.path.exists(audio_path):
         raise FileNotFoundError(f"File audio không tồn tại: {audio_path}")
 
+    # 1. MediaInfo
     try:
         media_info = MediaInfo.parse(audio_path)
         for track in media_info.tracks:
@@ -73,13 +159,39 @@ def get_audio_duration_ms(audio_path: str) -> int:
     except Exception:
         pass
 
-    # Fallback for WAV files
+    # 2. Native macOS CoreAudio tool: afinfo (available out-of-the-box on all Macs: Intel + M1/M2/M3/M4)
+    if sys.platform == 'darwin':
+        try:
+            res = subprocess.run(['afinfo', audio_path], capture_output=True, text=True, timeout=5)
+            if res.returncode == 0:
+                import re
+                match = re.search(r'duration:\s*([0-9.]+)\s*sec', res.stdout, re.IGNORECASE)
+                if match:
+                    return int(float(match.group(1)) * 1000)
+        except Exception:
+            pass
+
+    # 3. Fallback for WAV files (Python built-in standard library)
     if audio_path.lower().endswith('.wav'):
-        import wave
-        with wave.open(audio_path, 'rb') as w:
-            frames = w.getnframes()
-            rate = w.getframerate()
-            return int((frames / float(rate)) * 1000)
+        try:
+            import wave
+            with wave.open(audio_path, 'rb') as w:
+                frames = w.getnframes()
+                rate = w.getframerate()
+                return int((frames / float(rate)) * 1000)
+        except Exception:
+            pass
+
+    # 4. Fallback for ffprobe if available
+    try:
+        res = subprocess.run(
+            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', audio_path],
+            capture_output=True, text=True, timeout=5
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            return int(float(res.stdout.strip()) * 1000)
+    except Exception:
+        pass
 
     raise ValueError(f"Không thể đọc thời lượng của file âm thanh: {audio_path}")
 
