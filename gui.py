@@ -92,22 +92,43 @@ class AutoCapCutApp(ctk.CTk):
         self.preset_var = tk.StringVar(value="⚙️ Tùy Chỉnh Thủ Công (Custom)")
         self.aspect_ratio_var = tk.StringVar(value="16:9 (Ngang - YouTube, Facebook)")
 
-        # Card 2: Config & Transitions
+        # Card 2: Config, Subtitles & Transitions
         self.subtitles_var = tk.BooleanVar(value=True)
         self.subtitle_color_var = tk.StringVar(value="Vàng Nổi Bật (TikTok / Viral)")
+        self.sub_anim_var = tk.StringVar(value="Nảy chữ lên (Bounce Pop)")
+        self.sub_size_var = tk.StringVar(value="8.5")
+        self.sub_pos_var = tk.StringVar(value="Dưới cùng (Chuẩn Shorts/Reels)")
         self.watermark_var = tk.BooleanVar(value=True)
         self.sort_mode_var = tk.StringVar(value="Sắp xếp media theo ABC (Số tự nhiên)")
-        self.transition_var = tk.StringVar(value="Không transition")
 
-        # Card 3: Pro Features
+        # Transitions
+        self.transition_var = tk.StringVar(value="Không transition")
+        self.trans_dur_var = tk.StringVar(value="0.5")
+        self.trans_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+
+        # Card 3: Clip In-Animation, Scene Effects, Filters & Audio
+        self.clip_intro_var = tk.StringVar(value="Không animation")
+        self.clip_intro_dur_var = tk.StringVar(value="0.8")
+        self.clip_intro_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+
+        self.video_effect_var = tk.StringVar(value="Không dùng hiệu ứng")
+        self.video_effect_scope_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+
+        self.filter_var = tk.StringVar(value="Không dùng filter")
+        self.filter_intensity_var = tk.StringVar(value="60")
+
         self.sfx_var = tk.BooleanVar(value=True)
+        self.sfx_name_var = tk.StringVar(value="Ngẫu nhiên phối hợp (Random)")
         self.sfx_vol_var = tk.StringVar(value="50")
         self.ducking_var = tk.BooleanVar(value=True)
         self.fade_var = tk.BooleanVar(value=True)
         self.blur_var = tk.BooleanVar(value=True)
-        self.smart_pacing_var = tk.BooleanVar(value=True)
         self.cta_sub_var = tk.BooleanVar(value=True)
-        self.filter_var = tk.StringVar(value="Không dùng filter")
+
+        # Card 4: Camera Motion & Ken Burns
+        self.camera_motion_var = tk.StringVar(value="Smart Pacing AI (Tự phân tích nhịp câu)")
+        self.zoom_scale_var = tk.StringVar(value="112")
+        self.smart_pacing_var = tk.BooleanVar(value=True)
 
         # Card 4: Motions
         self.m_zoom_in_var = tk.BooleanVar(value=True)
@@ -398,170 +419,230 @@ class AutoCapCutApp(ctk.CTk):
         self.preset_combo.pack(side="left", fill="x", expand=True)
 
         # ------------------------------------------------------------------
-        # CARD 2: ⚙️  2. CẤU HÌNH & CHUYỂN CẢNH (TRANSITIONS)
+        # CARD 2: ⚙️  2. PHỤ ĐỀ, CHUYỂN CẢNH & KHUNG HÌNH (SUBTITLES & TRANSITIONS)
         # ------------------------------------------------------------------
-        card_cfg = self._create_card(content, title="⚙️  2. CẤU HÌNH & CHUYỂN CẢNH")
+        card_cfg = self._create_card(content, title="⚙️  2. PHỤ ĐỀ, CHUYỂN CẢNH & KHUNG HÌNH")
 
         cfg_grid = ctk.CTkFrame(card_cfg, fg_color="transparent")
         cfg_grid.pack(fill="x")
 
-        # Left Column: Checkboxes & Subtitle Color
+        # Left Column: Subtitles & Watermark
         col_cb = ctk.CTkFrame(cfg_grid, fg_color="transparent")
-        col_cb.pack(side="left", fill="x", expand=True)
+        col_cb.pack(side="left", fill="both", expand=True, padx=(0, 10))
 
         cb1 = ctk.CTkCheckBox(
             col_cb, text=" Tự động chèn phụ đề SRT vào video",
-            variable=self.subtitles_var, font=("Segoe UI", 12), corner_radius=6,
+            variable=self.subtitles_var, font=("Segoe UI", 12, "bold"), corner_radius=6,
             fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
         )
-        cb1.pack(anchor="w", pady=3)
+        cb1.pack(anchor="w", pady=(0, 4))
 
-        # Subtitle Color Palette dropdown
-        sub_col_row = ctk.CTkFrame(col_cb, fg_color="transparent")
-        sub_col_row.pack(anchor="w", pady=3)
-        ctk.CTkLabel(sub_col_row, text="Màu sắc phụ đề:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(24, 6))
+        # Subtitle Color Palette & Font Size
+        sub_style_row = ctk.CTkFrame(col_cb, fg_color="transparent")
+        sub_style_row.pack(fill="x", pady=2)
+        ctk.CTkLabel(sub_style_row, text="Màu chữ:", font=("Segoe UI", 11), text_color=self.c_sub, width=60, anchor="w").pack(side="left")
         sub_col_opts = [
             "Vàng Nổi Bật (TikTok / Viral)",
             "Trắng Truyền Thống (Classic White)",
             "Xanh Công Nghệ (Cyan Modern)",
-            "Xanh Lá Tài Chính (Finance Green)"
+            "Xanh Lá Tài Chính (Finance Green)",
+            "Đỏ Ruby (Dramatic Red)",
+            "Tím Neon (Neon Purple)"
         ]
         ctk.CTkComboBox(
-            sub_col_row, variable=self.subtitle_color_var, values=sub_col_opts, width=240, height=28, corner_radius=6,
+            sub_style_row, variable=self.subtitle_color_var, values=sub_col_opts, width=200, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 6))
+
+        ctk.CTkLabel(sub_style_row, text="Cỡ:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 2))
+        ctk.CTkEntry(
+            sub_style_row, textvariable=self.sub_size_var, width=38, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left")
+
+        # Subtitle In-Animation & Position
+        sub_anim_row = ctk.CTkFrame(col_cb, fg_color="transparent")
+        sub_anim_row.pack(fill="x", pady=2)
+        ctk.CTkLabel(sub_anim_row, text="Hiệu ứng:", font=("Segoe UI", 11), text_color=self.c_sub, width=60, anchor="w").pack(side="left")
+        sub_anim_opts = [
+            "Nảy chữ lên (Bounce Pop)",
+            "Chạy từng chữ (Karaoke Reveal)",
+            "Nhịp điệu vui nhộn (Playful Bounce)",
+            "Trượt mượt lên (Slide Up)",
+            "Quét từ trái sang (Slide Right)",
+            "Tĩnh (Không animation)"
+        ]
+        ctk.CTkComboBox(
+            sub_anim_row, variable=self.sub_anim_var, values=sub_anim_opts, width=200, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 6))
+
+        sub_pos_opts = [
+            "Dưới cùng (Chuẩn Shorts/Reels)",
+            "Chính giữa màn hình",
+            "Phía trên cùng"
+        ]
+        ctk.CTkComboBox(
+            sub_anim_row, variable=self.sub_pos_var, values=sub_pos_opts, width=150, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border
         ).pack(side="left")
 
         cb2 = ctk.CTkCheckBox(
             col_cb, text=" Xóa watermark Gemini AI (Reverse Alpha Blending - Lossless)",
-            variable=self.watermark_var, font=("Segoe UI", 12), corner_radius=6,
+            variable=self.watermark_var, font=("Segoe UI", 11), corner_radius=6,
             fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
         )
-        cb2.pack(anchor="w", pady=3)
+        cb2.pack(anchor="w", pady=(6, 2))
 
-        # Right Column: Dropdowns
+        # Right Column: Format & Transitions
         col_dd = ctk.CTkFrame(cfg_grid, fg_color="transparent")
-        col_dd.pack(side="right")
+        col_dd.pack(side="right", fill="both", expand=True, padx=(10, 0))
 
-        # Tỉ lệ khung hình (Aspect Ratio)
+        # Tỉ lệ khung hình (Aspect Ratio) & Sắp xếp
         ar_row = ctk.CTkFrame(col_dd, fg_color="transparent")
         ar_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(ar_row, text="Tỉ lệ video:", font=("Segoe UI", 12), text_color=self.c_sub, width=120, anchor="e").pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(ar_row, text="Tỉ lệ & Sắp xếp:", font=("Segoe UI", 11), text_color=self.c_sub, width=95, anchor="w").pack(side="left")
         ar_opts = [
             "16:9 (Ngang - YouTube, Facebook)",
             "9:16 (Dọc - TikTok, Reels, Shorts)",
             "1:1 (Vuông - Instagram, Post)"
         ]
         ctk.CTkComboBox(
-            ar_row, variable=self.aspect_ratio_var, values=ar_opts, width=280, height=32, corner_radius=8,
+            ar_row, variable=self.aspect_ratio_var, values=ar_opts, width=175, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 6))
 
-        # Sắp xếp
-        sort_row = ctk.CTkFrame(col_dd, fg_color="transparent")
-        sort_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(sort_row, text="Sắp xếp media:", font=("Segoe UI", 12), text_color=self.c_sub, width=120, anchor="e").pack(side="left", padx=(0, 8))
         sort_opts = [
             "Sắp xếp media theo ABC (Số tự nhiên)",
             "Sắp xếp media theo thời gian Cũ đến Mới",
             "Sắp xếp media theo thời gian Mới đến Cũ"
         ]
         ctk.CTkComboBox(
-            sort_row, variable=self.sort_mode_var, values=sort_opts, width=280, height=32, corner_radius=8,
+            ar_row, variable=self.sort_mode_var, values=sort_opts, width=195, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
         ).pack(side="left")
 
-        # Transition
+        # Transition Type & Duration
         tr_row = ctk.CTkFrame(col_dd, fg_color="transparent")
-        tr_row.pack(fill="x", pady=4)
-        ctk.CTkLabel(tr_row, text="Chuyển cảnh:", font=("Segoe UI", 12), text_color=self.c_sub, width=120, anchor="e").pack(side="left", padx=(0, 8))
+        tr_row.pack(fill="x", pady=2)
+        ctk.CTkLabel(tr_row, text="Chuyển cảnh:", font=("Segoe UI", 11), text_color=self.c_sub, width=95, anchor="w").pack(side="left")
         trans_opts = [
             "Không transition",
-            "Black Fade",
-            "Slow Fade",
-            "Fade Swipe",
-            "Fade Wipe",
-            "Fade Shift",
-            "Basic Black",
-            "Blink Fade"
+            "Ngẫu nhiên (Random)",
+            "Mờ chồng (Dissolve)",
+            "Mờ đen (Black Fade)",
+            "Chớp trắng (White Flash)",
+            "Gạt sang trái (Swipe Left)",
+            "Trượt góc (Corner Slide)",
+            "Lật thu phóng (Flip Zoom)",
+            "Thu phóng nhanh (Zoom)",
+            "Nhiễu sóng (Signal Glitch)",
+            "Rơi trượt (Slide Drop)",
+            "Trượt giao diện (Slide Interface)",
+            "Búng zoom (Snap Zoom)",
+            "Vệt sáng quét (Light Wipe)"
         ]
         ctk.CTkComboBox(
-            tr_row, variable=self.transition_var, values=trans_opts, width=280, height=32, corner_radius=8,
+            tr_row, variable=self.transition_var, values=trans_opts, width=225, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
-        ).pack(side="left")
+        ).pack(side="left", padx=(0, 6))
 
-        # ------------------------------------------------------------------
-        # CARD 3: ✨  3. TÍNH NĂNG NÂNG CAO (PRO FEATURES)
-        # ------------------------------------------------------------------
-        card_pro = self._create_card(content, title="✨  3. TÍNH NĂNG BIÊN TẬP NÂNG CAO (PRO VIDEO EFFECTS)")
-
-        pro_grid = ctk.CTkFrame(card_pro, fg_color="transparent")
-        pro_grid.pack(fill="x")
-
-        # Left Column Pro Toggles
-        pro_left = ctk.CTkFrame(pro_grid, fg_color="transparent")
-        pro_left.pack(side="left", fill="both", expand=True, padx=(0, 14))
-
-        # SFX Row
-        sfx_box = ctk.CTkFrame(pro_left, fg_color="transparent")
-        sfx_box.pack(anchor="w", pady=4)
-
-        ctk.CTkCheckBox(
-            sfx_box, text=" Âm thanh chuyển cảnh (SFX Whoosh/Swoosh)",
-            variable=self.sfx_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(side="left")
-
-        ctk.CTkLabel(sfx_box, text="Âm lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(10, 4))
+        ctk.CTkLabel(tr_row, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 2))
         ctk.CTkEntry(
-            sfx_box, textvariable=self.sfx_vol_var, width=44, height=26, corner_radius=6,
+            tr_row, textvariable=self.trans_dur_var, width=38, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left", padx=2)
-        ctk.CTkLabel(sfx_box, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
+        ).pack(side="left")
+        ctk.CTkLabel(tr_row, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 0))
 
-        # Canvas Blur (Chống viền đen)
-        ctk.CTkCheckBox(
-            pro_left, text=" Tự động làm mờ nền khi ảnh không vừa khung (Canvas Blur - Chống viền đen)",
-            variable=self.blur_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=4)
+        # Transition Mode
+        tr_mode_row = ctk.CTkFrame(col_dd, fg_color="transparent")
+        tr_mode_row.pack(fill="x", pady=2)
+        ctk.CTkLabel(tr_mode_row, text="Áp dụng chuyển cảnh:", font=("Segoe UI", 11), text_color=self.c_sub, width=125, anchor="w").pack(side="left")
+        trans_mode_opts = [
+            "Tất cả phân cảnh (All)",
+            "Ngẫu nhiên đổi hiệu ứng (Random)",
+            "Xen kẽ các cảnh (Alternate)"
+        ]
+        ctk.CTkComboBox(
+            tr_mode_row, variable=self.trans_mode_var, values=trans_mode_opts, width=245, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left")
 
-        # Smart Pacing
-        ctk.CTkCheckBox(
-            pro_left, text=" Điều nhịp thông minh (Smart Pacing: câu ngắn zoom nhanh, câu dài lia chậm)",
-            variable=self.smart_pacing_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=4)
+        # ------------------------------------------------------------------
+        # CARD 3: ✨  3. HIỆU ỨNG CAPCUT, HOẠT ẢNH & BỘ LỌC ĐIỆN ẢNH (EFFECTS & FILTERS)
+        # ------------------------------------------------------------------
+        card_pro = self._create_card(content, title="✨  3. HIỆU ỨNG CAPCUT, HOẠT ẢNH & BỘ LỌC ĐIỆN ẢNH")
 
-        # Right Column Pro Toggles
-        pro_right = ctk.CTkFrame(pro_grid, fg_color="transparent")
-        pro_right.pack(side="left", fill="both", expand=True)
+        # Row 1: Clip In-Animation (Intro)
+        r_intro = ctk.CTkFrame(card_pro, fg_color="transparent")
+        r_intro.pack(fill="x", pady=3)
+        ctk.CTkLabel(r_intro, text="Hoạt ảnh mở đầu (Intro):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
+        intro_opts = [
+            "Không animation",
+            "Ngẫu nhiên (Random)",
+            "Thu phóng vào (Zoom In)",
+            "Phóng to năng động (Dynamic Zoom In)",
+            "Thu nhỏ năng động (Dynamic Zoom Out)",
+            "Mờ dần xuất hiện (Fade In)",
+            "Mờ ảo tỏ dần (Blur Fade In)",
+            "Lắc ngang nảy (Horizontal Shake)",
+            "Lắc dọc nảy (Vertical Shake)",
+            "Trượt từ dưới lên (Slide Up)",
+            "Trượt từ trên xuống (Slide Down)",
+            "Trượt từ trái sang (Slide Right)",
+            "Trượt từ phải sang (Slide Left)",
+            "Xoay mở màn (Spin Open)"
+        ]
+        ctk.CTkComboBox(
+            r_intro, variable=self.clip_intro_var, values=intro_opts, width=260, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 10))
 
-        # Audio Ducking
-        ctk.CTkCheckBox(
-            pro_right, text=" Audio Ducking (Tự hạ nhạc nền khi có tiếng giọng đọc)",
-            variable=self.ducking_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=4)
+        ctk.CTkLabel(r_intro, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkEntry(
+            r_intro, textvariable=self.clip_intro_dur_var, width=40, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left")
+        ctk.CTkLabel(r_intro, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
 
-        # Audio Fade In & Out
-        ctk.CTkCheckBox(
-            pro_right, text=" Audio Fade In & Fade Out cho nhạc nền (Mở & tắt êm ái)",
-            variable=self.fade_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=4)
+        intro_mode_opts = ["Tất cả phân cảnh (All)", "Ngẫu nhiên xen kẽ (Random)", "Chỉ cảnh đầu tiên (Intro)"]
+        ctk.CTkComboBox(
+            r_intro, variable=self.clip_intro_mode_var, values=intro_mode_opts, width=200, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left")
 
-        # CTA Subscribe
-        ctk.CTkCheckBox(
-            pro_right, text=" Tự động chèn CTA Đăng ký kênh (Subscribe) & tiếng chuông ở cuối video",
-            variable=self.cta_sub_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=4)
+        # Row 2: Video Scene Effect
+        r_eff = ctk.CTkFrame(card_pro, fg_color="transparent")
+        r_eff.pack(fill="x", pady=3)
+        ctk.CTkLabel(r_eff, text="Hiệu ứng video (Effect):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
+        effect_opts = [
+            "Không dùng hiệu ứng",
+            "Ngẫu nhiên (Random)",
+            "Rung lắc tiêu điểm (Focus Shake)",
+            "Rung tách màu RGB (RGB Shake)",
+            "Nhiễu hạt Pixel (Pixel Glitch)",
+            "Giật sóng mở màn (Glitch Intro)",
+            "Hào quang nhấp nháy (Bouncing Glow)",
+            "Chớp sáng kịch tính (Flash)",
+            "Ánh đèn Neon (Neon Flash)",
+            "Chớp phim cổ điển (Vintage Flash)"
+        ]
+        ctk.CTkComboBox(
+            r_eff, variable=self.video_effect_var, values=effect_opts, width=260, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 10))
 
-        # Cinematic Filter dropdown
-        filt_row = ctk.CTkFrame(card_pro, fg_color="transparent")
-        filt_row.pack(fill="x", pady=(10, 0))
+        ctk.CTkLabel(r_eff, text="Phạm vi:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
+        effect_scope_opts = ["Tất cả phân cảnh (All)", "Ngẫu nhiên một số cảnh (Random)", "Chỉ cảnh mở đầu & kết thúc"]
+        ctk.CTkComboBox(
+            r_eff, variable=self.video_effect_scope_var, values=effect_scope_opts, width=250, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left")
 
-        ctk.CTkLabel(filt_row, text="Bộ lọc màu điện ảnh (Cinematic Filter):", font=("Segoe UI", 12, "bold"), text_color=self.c_text).pack(side="left", padx=(0, 10))
+        # Row 3: Cinematic Filter & Intensity
+        r_filt = ctk.CTkFrame(card_pro, fg_color="transparent")
+        r_filt.pack(fill="x", pady=3)
+        ctk.CTkLabel(r_filt, text="Bộ lọc màu (Filter):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
         filt_opts = [
             "Không dùng filter",
             "Soft Grain (Hạt phim điện ảnh)",
@@ -572,34 +653,114 @@ class AutoCapCutApp(ctk.CTk):
             "BW Retro (Trắng đen cổ điển)"
         ]
         ctk.CTkComboBox(
-            filt_row, variable=self.filter_var, values=filt_opts, width=280, height=32, corner_radius=8,
-            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+            r_filt, variable=self.filter_var, values=filt_opts, width=260, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkLabel(r_filt, text="Độ đậm:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkEntry(
+            r_filt, textvariable=self.filter_intensity_var, width=40, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left")
+        ctk.CTkLabel(r_filt, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
+
+        # Row 4: SFX Suite
+        r_sfx = ctk.CTkFrame(card_pro, fg_color="transparent")
+        r_sfx.pack(fill="x", pady=4)
+        ctk.CTkCheckBox(
+            r_sfx, text=" Âm thanh chuyển cảnh (SFX):",
+            variable=self.sfx_var, font=("Segoe UI", 12), corner_radius=6,
+            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text, width=180
         ).pack(side="left")
 
+        sfx_opts = [
+            "Ngẫu nhiên phối hợp (Random)",
+            "Whoosh (Lướt gió điện ảnh)",
+            "Swoosh (Vút nhanh)",
+            "Pop (Nảy vui nhộn)",
+            "Ding (Keng chuông)"
+        ]
+        ctk.CTkComboBox(
+            r_sfx, variable=self.sfx_name_var, values=sfx_opts, width=260, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkLabel(r_sfx, text="Âm lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkEntry(
+            r_sfx, textvariable=self.sfx_vol_var, width=40, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left")
+        ctk.CTkLabel(r_sfx, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
+
+        # Row 5: Pro Audio & Visual Toggles (2 columns)
+        r_toggles = ctk.CTkFrame(card_pro, fg_color="transparent")
+        r_toggles.pack(fill="x", pady=(4, 0))
+
+        tog_left = ctk.CTkFrame(r_toggles, fg_color="transparent")
+        tog_left.pack(side="left", fill="x", expand=True)
+        ctk.CTkCheckBox(
+            tog_left, text=" Canvas Blur (Làm mờ nền khi ảnh không vừa khung - chống viền đen)",
+            variable=self.blur_var, font=("Segoe UI", 11), corner_radius=6,
+            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+        ctk.CTkCheckBox(
+            tog_left, text=" Audio Ducking (Tự động hạ nhạc nền khi có tiếng voice đọc)",
+            variable=self.ducking_var, font=("Segoe UI", 11), corner_radius=6,
+            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+
+        tog_right = ctk.CTkFrame(r_toggles, fg_color="transparent")
+        tog_right.pack(side="left", fill="x", expand=True)
+        ctk.CTkCheckBox(
+            tog_right, text=" Audio Fade In & Fade Out cho nhạc nền (Mở & tắt êm ái)",
+            variable=self.fade_var, font=("Segoe UI", 11), corner_radius=6,
+            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+        ctk.CTkCheckBox(
+            tog_right, text=" Chèn CTA Kêu gọi Đăng ký (Subscribe) & tiếng chuông ở cuối",
+            variable=self.cta_sub_var, font=("Segoe UI", 11), corner_radius=6,
+            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+
         # ------------------------------------------------------------------
-        # CARD 4: 🎥  4. KEYFRAME CHUYỂN ĐỘNG (PAN & ZOOM TÙY CHỈNH)
+        # CARD 4: 🎥  4. GÓC QUAY & CHUYỂN ĐỘNG CAMERA (CAMERA MOTION & KEN BURNS)
         # ------------------------------------------------------------------
-        card_kf = self._create_card(content, title="🎥  4. KEYFRAME CHUYỂN ĐỘNG (PAN & ZOOM TÙY CHỈNH)")
+        card_kf = self._create_card(content, title="🎥  4. GÓC QUAY & CHUYỂN ĐỘNG CAMERA (CAMERA MOTION & KEN BURNS)")
 
-        kf_bar = ctk.CTkFrame(card_kf, fg_color="transparent")
-        kf_bar.pack(fill="x", pady=(0, 8))
+        cam_bar = ctk.CTkFrame(card_kf, fg_color="transparent")
+        cam_bar.pack(fill="x", pady=(0, 8))
 
-        kf_desc = ctk.CTkLabel(
-            kf_bar,
-            text="Tùy chỉnh thông số chi tiết cho từng loại chuyển động. Các chuyển động được chọn sẽ phân bổ luân phiên giữa các cảnh.",
-            font=("Segoe UI", 11), text_color=self.c_sub, justify="left"
-        )
-        kf_desc.pack(side="left")
+        ctk.CTkLabel(cam_bar, text="Chế độ camera:", font=("Segoe UI", 12, "bold"), text_color=self.c_text).pack(side="left", padx=(0, 8))
+        cam_opts = [
+            "Smart Pacing AI (Tự phân tích nhịp câu)",
+            "Zoom In (Phóng to dần)",
+            "Zoom Out (Thu nhỏ dần)",
+            "Pan Left (Lia sang trái)",
+            "Pan Right (Lia sang phải)",
+            "Pan Up (Lia lên trên)",
+            "Pan Down (Lia xuống dưới)",
+            "Ngẫu nhiên góc quay (Dynamic Ken Burns)",
+            "Cố định (Không chuyển động)"
+        ]
+        ctk.CTkComboBox(
+            cam_bar, variable=self.camera_motion_var, values=cam_opts, width=310, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 14))
 
-        kf_tools = ctk.CTkFrame(kf_bar, fg_color="transparent")
+        ctk.CTkLabel(cam_bar, text="Tỷ lệ zoom:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
+        ctk.CTkEntry(
+            cam_bar, textvariable=self.zoom_scale_var, width=44, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left")
+        ctk.CTkLabel(cam_bar, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
+
+        kf_tools = ctk.CTkFrame(cam_bar, fg_color="transparent")
         kf_tools.pack(side="right")
-
         ctk.CTkButton(
             kf_tools, text="✓ Chọn Tất Cả", width=95, height=26, corner_radius=6,
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10, "bold"),
             command=lambda: self._select_all_motions(True)
         ).pack(side="left", padx=2)
-
         ctk.CTkButton(
             kf_tools, text="✕ Bỏ Chọn", width=75, height=26, corner_radius=6,
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
@@ -847,61 +1008,102 @@ class AutoCapCutApp(ctk.CTk):
             self.aspect_ratio_var.set("9:16 (Dọc - TikTok, Reels, Shorts)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
-            self.transition_var.set("Fade Swipe")
+            self.sub_anim_var.set("Nảy chữ lên (Bounce Pop)")
+            self.sub_size_var.set("9.5")
+            self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
+            self.transition_var.set("Lật thu phóng (Flip Zoom)")
+            self.trans_dur_var.set("0.4")
+            self.trans_mode_var.set("Tất cả phân cảnh (All)")
+            self.clip_intro_var.set("Phóng to năng động (Dynamic Zoom In)")
+            self.clip_intro_dur_var.set("0.5")
+            self.clip_intro_mode_var.set("Tất cả phân cảnh (All)")
+            self.video_effect_var.set("Rung lắc tiêu điểm (Focus Shake)")
+            self.video_effect_scope_var.set("Ngẫu nhiên một số cảnh (Random)")
+            self.filter_var.set("Không dùng filter")
+            self.camera_motion_var.set("Smart Pacing AI (Tự phân tích nhịp câu)")
+            self.zoom_scale_var.set("115")
             self.sfx_var.set(True)
+            self.sfx_name_var.set("Whoosh (Lướt gió điện ảnh)")
             self.sfx_vol_var.set("60")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
-            self.filter_var.set("Không dùng filter")
             self._select_all_motions(True)
             self._log("[🎯] Đã áp dụng Preset: TikTok / Reels / Shorts Siêu Cuốn (9:16, Nhanh, SFX, Chữ Vàng)!")
         elif "Điện Ảnh" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
-            self.transition_var.set("Slow Fade")
+            self.sub_anim_var.set("Trượt mượt lên (Slide Up)")
+            self.sub_size_var.set("8.5")
+            self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
+            self.transition_var.set("Mờ chồng (Dissolve)")
+            self.trans_dur_var.set("0.8")
+            self.trans_mode_var.set("Tất cả phân cảnh (All)")
+            self.clip_intro_var.set("Mờ dần xuất hiện (Fade In)")
+            self.clip_intro_dur_var.set("1.0")
+            self.clip_intro_mode_var.set("Tất cả phân cảnh (All)")
+            self.video_effect_var.set("Không dùng hiệu ứng")
+            self.filter_var.set("Soft Grain (Hạt phim điện ảnh)")
+            self.filter_intensity_var.set("65")
+            self.camera_motion_var.set("Smart Pacing AI (Tự phân tích nhịp câu)")
+            self.zoom_scale_var.set("110")
             self.sfx_var.set(True)
+            self.sfx_name_var.set("Swoosh (Vút nhanh)")
             self.sfx_vol_var.set("35")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
-            self.filter_var.set("Soft Grain (Hạt phim điện ảnh)")
             self._select_all_motions(True)
             self._log("[🎯] Đã áp dụng Preset: YouTube Kể Chuyện Điện Ảnh (16:9, Tông Ấm, Hạt Phim, Chữ Trắng)!")
         elif "Tài Chính" in choice or "Tin Tức" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Xanh Lá Tài Chính (Finance Green)")
-            self.transition_var.set("Fade Wipe")
+            self.sub_anim_var.set("Chạy từng chữ (Karaoke Reveal)")
+            self.sub_size_var.set("8.5")
+            self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
+            self.transition_var.set("Trượt góc (Corner Slide)")
+            self.trans_dur_var.set("0.5")
+            self.trans_mode_var.set("Tất cả phân cảnh (All)")
+            self.clip_intro_var.set("Trượt từ trái sang (Slide Right)")
+            self.clip_intro_dur_var.set("0.6")
+            self.clip_intro_mode_var.set("Tất cả phân cảnh (All)")
+            self.video_effect_var.set("Không dùng hiệu ứng")
+            self.filter_var.set("Không dùng filter")
+            self.camera_motion_var.set("Pan Left (Lia sang trái)")
+            self.zoom_scale_var.set("108")
             self.sfx_var.set(True)
+            self.sfx_name_var.set("Ding (Keng chuông)")
             self.sfx_vol_var.set("25")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
-            self.filter_var.set("Không dùng filter")
             self._select_all_motions(True)
             self._log("[🎯] Đã áp dụng Preset: Tin Tức & Phân Tích Tài Chính (16:9, Chữ Xanh Lá)!")
         elif "Tối Giản" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
+            self.sub_anim_var.set("Tĩnh (Không animation)")
             self.transition_var.set("Không transition")
+            self.clip_intro_var.set("Không animation")
+            self.video_effect_var.set("Không dùng hiệu ứng")
+            self.filter_var.set("Không dùng filter")
+            self.camera_motion_var.set("Cố định (Không chuyển động)")
             self.sfx_var.set(False)
             self.blur_var.set(True)
             self.smart_pacing_var.set(False)
             self.ducking_var.set(True)
             self.fade_var.set(True)
             self.cta_sub_var.set(False)
-            self.filter_var.set("Không dùng filter")
             self._select_all_motions(False)
-            self.m_zoom_in_var.set(True)
             self._log("[🎯] Đã áp dụng Preset: Tối Giản Siêu Tốc (16:9, Không SFX, Không Filter)!")
 
     def _browse_audio(self):
@@ -1115,6 +1317,42 @@ class AutoCapCutApp(ctk.CTk):
             sort_mode = "abc"
 
         trans_label = self.transition_var.get()
+        try:
+            trans_dur = float(self.trans_dur_var.get() or 0.5)
+        except ValueError:
+            trans_dur = 0.5
+        trans_mode = 'all' if 'Tất cả' in self.trans_mode_var.get() else ('random' if 'Ngẫu nhiên' in self.trans_mode_var.get() else 'alternate')
+
+        clip_intro = self.clip_intro_var.get()
+        try:
+            clip_intro_dur = float(self.clip_intro_dur_var.get() or 0.8)
+        except ValueError:
+            clip_intro_dur = 0.8
+        clip_intro_mode = 'all' if 'Tất cả' in self.clip_intro_mode_var.get() else ('random' if 'Ngẫu nhiên' in self.clip_intro_mode_var.get() else 'first_only')
+
+        video_effect = self.video_effect_var.get()
+        video_effect_scope = 'all' if 'Tất cả' in self.video_effect_scope_var.get() else ('random' if 'Ngẫu nhiên' in self.video_effect_scope_var.get() else 'intro_outro')
+
+        filter_name = self.filter_var.get()
+        try:
+            filter_intensity = float(self.filter_intensity_var.get() or 60.0)
+        except ValueError:
+            filter_intensity = 60.0
+
+        cam_motion = self.camera_motion_var.get()
+        try:
+            zoom_scale = float(self.zoom_scale_var.get() or 112.0)
+        except ValueError:
+            zoom_scale = 112.0
+
+        sub_anim = self.sub_anim_var.get()
+        try:
+            sub_size = float(self.sub_size_var.get() or 8.5)
+        except ValueError:
+            sub_size = 8.5
+        sub_pos = 'bottom' if 'Dưới' in self.sub_pos_var.get() else ('center' if 'giữa' in self.sub_pos_var.get() else 'top')
+
+        sfx_name = self.sfx_name_var.get()
 
         # Map subtitle color
         sub_col = "yellow"
@@ -1124,6 +1362,10 @@ class AutoCapCutApp(ctk.CTk):
             sub_col = "cyan"
         elif "Xanh Lá" in self.subtitle_color_var.get():
             sub_col = "green"
+        elif "Đỏ" in self.subtitle_color_var.get() or "Red" in self.subtitle_color_var.get():
+            sub_col = "red"
+        elif "Tím" in self.subtitle_color_var.get() or "Purple" in self.subtitle_color_var.get():
+            sub_col = "purple"
 
         sfx_vol = float(self.sfx_vol_var.get() or 50) / 100.0
         bgm_vol = float(self.bgm_vol_var.get() or 15) / 100.0
@@ -1147,20 +1389,32 @@ class AutoCapCutApp(ctk.CTk):
             target=self._worker_thread,
             args=(
                 srt_path, scenes_content, voice_files, media_dir, capcut_name, draft_root,
-                bgm_files, sort_mode, trans_label, keyframe_config,
-                aspect_ratio, self.smart_pacing_var.get(), self.blur_var.get(), self.filter_var.get(),
-                self.sfx_var.get(), sfx_vol, bgm_vol, self.ducking_var.get(), self.fade_var.get(),
-                self.cta_sub_var.get(), sub_col, self.watermark_var.get(), self.subtitles_var.get()
+                bgm_files, sort_mode,
+                trans_label, trans_dur, trans_mode,
+                clip_intro, clip_intro_dur, clip_intro_mode,
+                video_effect, video_effect_scope,
+                filter_name, filter_intensity,
+                cam_motion, zoom_scale, keyframe_config,
+                aspect_ratio, self.smart_pacing_var.get(), self.blur_var.get(),
+                self.sfx_var.get(), sfx_name, sfx_vol, bgm_vol, self.ducking_var.get(), self.fade_var.get(),
+                self.cta_sub_var.get(), sub_col, sub_anim, sub_size, sub_pos,
+                self.watermark_var.get(), self.subtitles_var.get()
             ),
             daemon=True
         ).start()
 
     def _worker_thread(
         self, srt_path, script_source, voice_files, media_dir, capcut_name, draft_root,
-        bgm_files, sort_mode, trans_label, keyframe_config,
-        aspect_ratio, smart_pacing, canvas_blur, filter_name,
-        enable_sfx, sfx_volume, bgm_volume, audio_ducking, audio_fade,
-        enable_cta, sub_col, remove_wm, import_subs
+        bgm_files, sort_mode,
+        trans_label, trans_dur, trans_mode,
+        clip_intro, clip_intro_dur, clip_intro_mode,
+        video_effect, video_effect_scope,
+        filter_name, filter_intensity,
+        cam_motion, zoom_scale, keyframe_config,
+        aspect_ratio, smart_pacing, canvas_blur,
+        enable_sfx, sfx_name, sfx_volume, bgm_volume, audio_ducking, audio_fade,
+        enable_cta, sub_col, sub_anim, sub_size, sub_pos,
+        remove_wm, import_subs
     ):
         def on_progress(msg, pct):
             self.msg_queue.put(('progress', (msg, pct)))
@@ -1175,21 +1429,42 @@ class AutoCapCutApp(ctk.CTk):
                 draft_root=draft_root or None,
                 bgm_paths=bgm_files,
                 sort_mode=sort_mode,
+                # Transitions
                 transition=trans_label,
+                transition_duration=trans_dur,
+                transition_mode=trans_mode,
+                # Clip In-Animations
+                clip_intro=clip_intro,
+                clip_intro_duration=clip_intro_dur,
+                clip_intro_mode=clip_intro_mode,
+                # Video Scene Effects
+                video_effect=video_effect,
+                video_effect_scope=video_effect_scope,
+                # Filters
+                filter_name=filter_name,
+                filter_intensity=filter_intensity,
+                # Camera Motions
+                camera_motion=cam_motion,
+                zoom_scale=zoom_scale,
                 keyframe_config=keyframe_config,
-                aspect_ratio=aspect_ratio,
                 smart_pacing=smart_pacing,
                 canvas_blur=canvas_blur,
-                filter_name=filter_name,
+                # Subtitles
+                import_subtitles=import_subs,
+                subtitle_style=sub_col,
+                subtitle_animation=sub_anim,
+                subtitle_font_size=sub_size,
+                subtitle_position=sub_pos,
+                # Audio Suite
                 enable_sfx=enable_sfx,
+                sfx_name=sfx_name,
                 sfx_volume=sfx_volume,
                 bgm_volume=bgm_volume,
                 audio_ducking=audio_ducking,
                 audio_fade=audio_fade,
                 enable_cta_subscribe=enable_cta,
-                subtitle_style=sub_col,
                 remove_gemini_watermark=remove_wm,
-                import_subtitles=import_subs,
+                aspect_ratio=aspect_ratio,
                 progress_callback=on_progress
             )
             self.msg_queue.put(('success', res))

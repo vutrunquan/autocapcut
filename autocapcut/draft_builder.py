@@ -25,33 +25,135 @@ from .image_loader import remove_gemini_watermark_from_image, batch_remove_gemin
 TRANSITIONS_MAP = {
     "none": None,
     "không transition": None,
+    "random": "RANDOM",
+    "ngẫu nhiên": "RANDOM",
+    "dissolve": getattr(cc.TransitionType, "叠化", None),
+    "mờ chồng (dissolve)": getattr(cc.TransitionType, "叠化", None),
     "black fade": getattr(cc.TransitionType, "闪黑", None),
-    "slow fade": getattr(cc.TransitionType, "叠化", None),
-    "fade swipe": getattr(cc.TransitionType, "Swipe_Left", getattr(cc.TransitionType, "叠化", None)),
-    "fade wipe": getattr(cc.TransitionType, "阳光擦拭", getattr(cc.TransitionType, "叠化", None)),
-    "fade shift": getattr(cc.TransitionType, "Push_Away_2", getattr(cc.TransitionType, "叠化", None)),
-    "basic black": getattr(cc.TransitionType, "闪黑_II", getattr(cc.TransitionType, "闪黑", None)),
-    "blink fade": getattr(cc.TransitionType, "频闪_II", getattr(cc.TransitionType, "叠化", None)),
+    "mờ đen (black fade)": getattr(cc.TransitionType, "闪黑", None),
+    "white flash": getattr(cc.TransitionType, "闪白", None),
+    "chớp trắng (white flash)": getattr(cc.TransitionType, "闪白", None),
+    "swipe left": getattr(cc.TransitionType, "Swipe_Left", None),
+    "gạt sang trái (swipe left)": getattr(cc.TransitionType, "Swipe_Left", None),
+    "corner slide": getattr(cc.TransitionType, "Corner_Slide", None),
+    "trượt góc (corner slide)": getattr(cc.TransitionType, "Corner_Slide", None),
+    "flip zoom": getattr(cc.TransitionType, "Flip_Zoom", None),
+    "lật thu phóng (flip zoom)": getattr(cc.TransitionType, "Flip_Zoom", None),
+    "zoom transition": getattr(cc.TransitionType, "Zoom_Transition", None),
+    "thu phóng nhanh (zoom)": getattr(cc.TransitionType, "Zoom_Transition", None),
+    "signal glitch": getattr(cc.TransitionType, "Signal_Glitch_2", None),
+    "nhiễu sóng (signal glitch)": getattr(cc.TransitionType, "Signal_Glitch_2", None),
+    "slide drop": getattr(cc.TransitionType, "Slide_Drop", None),
+    "rơi trượt (slide drop)": getattr(cc.TransitionType, "Slide_Drop", None),
+    "slide interface": getattr(cc.TransitionType, "Slide_Interface", None),
+    "trượt giao diện (slide interface)": getattr(cc.TransitionType, "Slide_Interface", None),
+    "snap zoom": getattr(cc.TransitionType, "Snap_Zoom", None),
+    "búng zoom (snap zoom)": getattr(cc.TransitionType, "Snap_Zoom", None),
+    "light wipe": getattr(cc.TransitionType, "阳光擦拭", None),
+    "vệt sáng quét (light wipe)": getattr(cc.TransitionType, "阳光擦拭", None),
 }
+AVAILABLE_TRANSITIONS = [v for k, v in TRANSITIONS_MAP.items() if v and v != "RANDOM"]
+
+# Mapping Clip In-Animation names
+INTROS_MAP = {
+    "none": None,
+    "không animation": None,
+    "random": "RANDOM",
+    "ngẫu nhiên": "RANDOM",
+    "zoom in": getattr(cc.IntroType, "放大", None),
+    "thu phóng vào (zoom in)": getattr(cc.IntroType, "放大", None),
+    "dynamic zoom in": getattr(cc.IntroType, "动感放大", None),
+    "phóng to năng động (dynamic zoom in)": getattr(cc.IntroType, "动感放大", None),
+    "dynamic zoom out": getattr(cc.IntroType, "动感缩小", None),
+    "thu nhỏ năng động (dynamic zoom out)": getattr(cc.IntroType, "动感缩小", None),
+    "fade in": getattr(cc.IntroType, "渐显", None),
+    "mờ dần xuất hiện (fade in)": getattr(cc.IntroType, "渐显", None),
+    "blur fade in": getattr(cc.IntroType, "模糊渐显", None),
+    "mờ ảo tỏ dần (blur fade in)": getattr(cc.IntroType, "模糊渐显", None),
+    "shake horizontal": getattr(cc.IntroType, "左右抖动", None),
+    "lắc ngang nảy (horizontal shake)": getattr(cc.IntroType, "左右抖动", None),
+    "shake vertical": getattr(cc.IntroType, "上下抖动", None),
+    "lắc dọc nảy (vertical shake)": getattr(cc.IntroType, "上下抖动", None),
+    "slide up": getattr(cc.IntroType, "向上滑动", None),
+    "trượt từ dưới lên (slide up)": getattr(cc.IntroType, "向上滑动", None),
+    "slide down": getattr(cc.IntroType, "向下滑动", None),
+    "trượt từ trên xuống (slide down)": getattr(cc.IntroType, "向下滑动", None),
+    "slide right": getattr(cc.IntroType, "向右滑动", None),
+    "trượt từ trái sang (slide right)": getattr(cc.IntroType, "向右滑动", None),
+    "slide left": getattr(cc.IntroType, "向左滑动", None),
+    "trượt từ phải sang (slide left)": getattr(cc.IntroType, "向左滑动", None),
+    "spin open": getattr(cc.IntroType, "旋转开幕", None),
+    "xoay mở màn (spin open)": getattr(cc.IntroType, "旋转开幕", None),
+}
+AVAILABLE_INTROS = [v for k, v in INTROS_MAP.items() if v and v != "RANDOM"]
+
+# Mapping Video Scene Effects
+EFFECTS_MAP = {
+    "none": None,
+    "không dùng hiệu ứng": None,
+    "random": "RANDOM",
+    "ngẫu nhiên": "RANDOM",
+    "focus shake": getattr(cc.VideoSceneEffectType, "Focus_Shake", None),
+    "rung lắc tiêu điểm (focus shake)": getattr(cc.VideoSceneEffectType, "Focus_Shake", None),
+    "rgb shake": getattr(cc.VideoSceneEffectType, "RGB_Shake", None),
+    "rung tách màu rgb (rgb shake)": getattr(cc.VideoSceneEffectType, "RGB_Shake", None),
+    "pixel glitch": getattr(cc.VideoSceneEffectType, "Pixel_Glitch", None),
+    "nhiễu hạt pixel (pixel glitch)": getattr(cc.VideoSceneEffectType, "Pixel_Glitch", None),
+    "glitch intro": getattr(cc.VideoSceneEffectType, "Glitch_Intro", None),
+    "giật sóng mở màn (glitch intro)": getattr(cc.VideoSceneEffectType, "Glitch_Intro", None),
+    "bouncing glow": getattr(cc.VideoSceneEffectType, "Bouncing_Glow", None),
+    "hào quang nhấp nháy (bouncing glow)": getattr(cc.VideoSceneEffectType, "Bouncing_Glow", None),
+    "flash": getattr(cc.VideoSceneEffectType, "Flash", None),
+    "chớp sáng kịch tính (flash)": getattr(cc.VideoSceneEffectType, "Flash", None),
+    "neon flash": getattr(cc.VideoSceneEffectType, "Neon_Flash", None),
+    "ánh đèn neon (neon flash)": getattr(cc.VideoSceneEffectType, "Neon_Flash", None),
+    "vintage flash": getattr(cc.VideoSceneEffectType, "Vintage_Flash", None),
+    "chớp phim cổ điển (vintage flash)": getattr(cc.VideoSceneEffectType, "Vintage_Flash", None),
+}
+AVAILABLE_EFFECTS = [v for k, v in EFFECTS_MAP.items() if v and v != "RANDOM"]
 
 # Mapping filter names to pycapcut FilterType enums
 FILTERS_MAP = {
     "none": None,
     "không dùng filter": None,
+    "soft grain": getattr(cc.FilterType, "Soft_Grain", None),
     "soft grain (hạt phim điện ảnh)": getattr(cc.FilterType, "Soft_Grain", None),
+    "vintage 1980": getattr(cc.FilterType, "_1980", None),
     "vintage 1980 (tông màu cổ điển)": getattr(cc.FilterType, "_1980", None),
+    "vhs": getattr(cc.FilterType, "VHS_I", None),
     "vhs retro (băng từ vhs)": getattr(cc.FilterType, "VHS_I", None),
+    "peach": getattr(cc.FilterType, "Peach_Fuzz", None),
     "peach fuzz (tông ấm điện ảnh)": getattr(cc.FilterType, "Peach_Fuzz", None),
+    "lover blue": getattr(cc.FilterType, "Lover_Blue", None),
     "lover blue (tông lạnh điện ảnh)": getattr(cc.FilterType, "Lover_Blue", None),
+    "bw": getattr(cc.FilterType, "BW_2", None),
     "bw retro (trắng đen cổ điển)": getattr(cc.FilterType, "BW_2", None),
+}
+
+# Subtitle In-Animation
+TEXT_INTROS_MAP = {
+    "none": None,
+    "tĩnh (không animation)": None,
+    "bounce": getattr(cc.TextIntro, "向上弹入", None),
+    "nảy chữ lên (bounce pop)": getattr(cc.TextIntro, "向上弹入", None),
+    "karaoke": getattr(cc.TextIntro, "卡拉OK", None),
+    "chạy từng chữ (karaoke reveal)": getattr(cc.TextIntro, "卡拉OK", None),
+    "playful": getattr(cc.TextIntro, "可爱悦动", None),
+    "nhịp điệu vui nhộn (playful bounce)": getattr(cc.TextIntro, "可爱悦动", None),
+    "slide up": getattr(cc.TextIntro, "向上滑动", None),
+    "trượt mượt lên (slide up)": getattr(cc.TextIntro, "向上滑动", None),
+    "slide right": getattr(cc.TextIntro, "向右滑动", None),
+    "quét từ trái sang (slide right)": getattr(cc.TextIntro, "向右滑动", None),
 }
 
 # Subtitle color palettes (R, G, B in 0.0 - 1.0)
 SUBTITLE_COLORS = {
     "yellow": (0.99, 0.85, 0.21),  # Viral Yellow (#fbbf24)
-    "white": (1.0, 1.0, 1.0),      # Classic White
+    "white": (1.0, 1.0, 1.0),      # Classic White (#ffffff)
     "cyan": (0.22, 0.74, 0.97),    # Tech Cyan (#38bdf8)
     "green": (0.29, 0.87, 0.50),   # Finance Green (#4ade80)
+    "red": (0.94, 0.27, 0.27),     # Ruby Red (#ef4444)
+    "purple": (0.66, 0.33, 0.97),  # Neon Purple (#a855f7)
 }
 
 
@@ -115,15 +217,35 @@ def build_capcut_draft(
     width: int = 1920,
     height: int = 1080,
     fps: int = 30,
-    # New Advanced Options
-    import_subtitles: bool = True,
-    subtitle_style: str = "yellow",
+    # Transitions
     transition_name: str = "none",
+    transition_duration: float = 0.5,
+    transition_mode: str = "all",       # 'all', 'random', 'alternate'
+    # Clip In-Animations (Intros)
+    clip_intro: str = "none",
+    clip_intro_duration: float = 0.8,
+    clip_intro_mode: str = "all",       # 'all', 'random', 'first_only'
+    # Video Scene Effects
+    video_effect: str = "none",
+    video_effect_scope: str = "all",    # 'all', 'random', 'intro_outro'
+    # Cinematic Filters
+    filter_name: str = "none",
+    filter_intensity: float = 60.0,
+    # Camera Motions (Ken Burns)
+    camera_motion: str = "smart_pacing", # 'smart_pacing', 'zoom_in', 'zoom_out', 'pan_left', 'pan_right', 'pan_up', 'pan_down', 'random', 'none'
+    zoom_scale: float = 112.0,
     keyframe_config: Optional[Dict[str, Any]] = None,
     smart_pacing: bool = True,
     canvas_blur: bool = True,
-    filter_name: str = "none",
+    # Subtitles & Typography
+    import_subtitles: bool = True,
+    subtitle_style: str = "yellow",
+    subtitle_animation: str = "bounce",
+    subtitle_font_size: float = 8.5,
+    subtitle_position: str = "bottom",  # 'bottom', 'center', 'top'
+    # Audio Suite
     enable_sfx: bool = True,
+    sfx_name: str = "random",           # 'random', 'whoosh', 'swoosh', 'pop', 'ding'
     sfx_volume: float = 0.50,
     bgm_volume: float = 0.15,
     audio_ducking: bool = True,
@@ -133,7 +255,7 @@ def build_capcut_draft(
     progress_callback: Optional[Callable[[str, float], None]] = None
 ) -> Dict[str, Any]:
     """
-    Build complete CapCut draft project with full pro features.
+    Build complete CapCut draft project with full pro features and extensive effect controls.
     """
     def report(msg: str, pct: float):
         if progress_callback:
@@ -203,10 +325,19 @@ def build_capcut_draft(
     sfx_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'sfx')
     sfx_files = []
     if enable_sfx and os.path.isdir(sfx_dir):
-        sfx_files = [
+        all_sfx = [
             os.path.join(sfx_dir, f) for f in os.listdir(sfx_dir)
-            if f.lower().endswith(('.wav', '.mp3')) and not f.startswith('ding')
+            if f.lower().endswith(('.wav', '.mp3'))
         ]
+        s_target = sfx_name.strip().lower()
+        if s_target in ('none', 'không dùng sfx'):
+            sfx_files = []
+        elif s_target in ('random', 'ngẫu nhiên', ''):
+            sfx_files = [f for f in all_sfx if not os.path.basename(f).lower().startswith('ding')]
+        else:
+            # Filter by keyword (e.g. whoosh, swoosh, pop, ding)
+            matched = [f for f in all_sfx if s_target in os.path.basename(f).lower()]
+            sfx_files = matched if matched else all_sfx
 
     if enable_sfx and sfx_files:
         report("Đang nạp hiệu ứng âm thanh chuyển cảnh (SFX)...", 0.22)
@@ -222,24 +353,34 @@ def build_capcut_draft(
     # Resolve transition
     t_key = transition_name.strip().lower()
     transition_type = TRANSITIONS_MAP.get(t_key)
+    is_trans_random = t_key in ('random', 'ngẫu nhiên') or transition_mode.lower() == 'random'
+    trans_dur_target_us = int(max(0.2, min(2.5, transition_duration)) * 1000000)
+
+    # Resolve clip intro animation
+    intro_key = clip_intro.strip().lower()
+    intro_anim_type = INTROS_MAP.get(intro_key)
+    is_intro_random = intro_key in ('random', 'ngẫu nhiên')
+    intro_dur_target_us = int(max(0.2, min(3.0, clip_intro_duration)) * 1000000)
+
+    # Resolve video scene effect
+    eff_key = video_effect.strip().lower()
+    eff_type = EFFECTS_MAP.get(eff_key)
+    is_eff_random = eff_key in ('random', 'ngẫu nhiên')
 
     # Resolve cinematic filter
     f_key = filter_name.strip().lower()
     cinematic_filter = FILTERS_MAP.get(f_key)
 
-    # Resolve active motions
-    active_motions = []
-    if keyframe_config:
-        for m_name in ['zoom_in', 'zoom_out', 'pan_up', 'pan_down', 'pan_left', 'pan_right']:
-            m_conf = keyframe_config.get(m_name)
-            if m_conf and m_conf.get('enabled', False):
-                active_motions.append((m_name, m_conf))
+    # Motion scale
+    scale_factor = max(1.02, min(1.50, float(zoom_scale) / 100.0))
+    cam_mode = camera_motion.strip().lower()
+    if not smart_pacing and cam_mode == 'smart_pacing':
+        cam_mode = 'zoom_in'
 
     # Clean watermark if requested using GargantuaX/gemini-watermark-remover
     if remove_gemini_watermark and image_paths:
         report("Đang xóa watermark Gemini (Reverse Alpha Blending)...", 0.24)
         cache_dir = os.path.join(draft_root, draft_name, "_wm_clean")
-        # Only clean unique images that are actually used in the scenes
         used_indices = sorted(set(i if i < num_images else (num_images - 1) for i in range(num_scenes)))
         images_to_clean = [image_paths[idx] for idx in used_indices]
         cleaned_subset = batch_remove_gemini_watermarks(
@@ -268,48 +409,131 @@ def build_capcut_draft(
             except Exception:
                 pass
 
-        # 4b. Cinematic Filter
+        # 4b. Clip In-Animation (Intro)
+        apply_intro = False
+        if clip_intro_mode == 'first_only':
+            apply_intro = (i == 0)
+        elif clip_intro_mode == 'random':
+            apply_intro = (i == 0 or random.random() < 0.45)
+        else: # 'all'
+            apply_intro = True
+
+        if apply_intro:
+            cur_intro = random.choice(AVAILABLE_INTROS) if (is_intro_random and AVAILABLE_INTROS) else intro_anim_type
+            if cur_intro:
+                try:
+                    act_intro_dur = min(intro_dur_target_us, dur_us)
+                    v_seg.add_animation(cur_intro, duration=act_intro_dur)
+                except Exception:
+                    pass
+
+        # 4c. Video Scene Effect
+        apply_eff = False
+        if video_effect_scope == 'intro_outro':
+            apply_eff = (i == 0 or i == num_scenes - 1)
+        elif video_effect_scope == 'random':
+            apply_eff = (i == 0 or (i % 3 == 0) or random.random() < 0.35)
+        else: # 'all'
+            apply_eff = True
+
+        if apply_eff:
+            cur_eff = random.choice(AVAILABLE_EFFECTS) if (is_eff_random and AVAILABLE_EFFECTS) else eff_type
+            if cur_eff:
+                try:
+                    v_seg.add_effect(cur_eff)
+                except Exception:
+                    pass
+
+        # 4d. Cinematic Filter
         if cinematic_filter:
             try:
-                v_seg.add_filter(cinematic_filter, intensity=60.0)
+                v_seg.add_filter(cinematic_filter, intensity=float(filter_intensity))
             except Exception:
                 pass
 
-        # 4c. Keyframe Motion (Smart Pacing vs Configured Motions)
-        if smart_pacing:
+        # 4e. Camera Motion / Ken Burns
+        if cam_mode in ('smart_pacing', 'thông minh'):
             if dur_s < 3.0:
-                # Fast zoom-in for high energy
+                # Fast zoom-in for punchy energy
                 v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.12)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
             elif dur_s > 6.0:
-                # Long line: Slow Pan across with slight zoom
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.08)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.08)
+                # Long line: Slow Pan across with zoom
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
                 v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
                 v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
             else:
-                # Medium line: round-robin motion
-                if active_motions:
-                    m_name, m_params = active_motions[i % len(active_motions)]
-                    apply_keyframe_motion(v_seg, m_name, m_params, dur_us, width, height)
-                else:
+                # Alternate zoom in / slow pan
+                if i % 2 == 0:
                     v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.07)
-        elif active_motions:
-            m_name, m_params = active_motions[i % len(active_motions)]
-            apply_keyframe_motion(v_seg, m_name, m_params, dur_us, width, height)
+                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+                else:
+                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
+        elif cam_mode in ('zoom_in', 'phóng to'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+        elif cam_mode in ('zoom_out', 'thu nhỏ'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
+        elif cam_mode in ('pan_left', 'sang trái'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
+        elif cam_mode in ('pan_right', 'sang phải'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -0.05)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, 0.05)
+        elif cam_mode in ('pan_up', 'lên trên'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_y, 0, -0.05)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, 0.05)
+        elif cam_mode in ('pan_down', 'xuống dưới'):
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_y, 0, 0.05)
+            v_seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, -0.05)
+        elif cam_mode in ('random', 'ngẫu nhiên'):
+            rand_m = i % 4
+            if rand_m == 0:
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+            elif rand_m == 1:
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
+            elif rand_m == 2:
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
+                v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
+            else:
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+                v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -0.05)
+                v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, 0.05)
 
-        # 4d. Transition
-        if transition_type and i < num_scenes - 1:
-            trans_dur = min(500000, max(200000, dur_us // 4))
-            try:
-                v_seg.add_transition(transition_type, duration=trans_dur)
-            except Exception:
-                pass
+        # 4f. Transition at scene boundary
+        if i < num_scenes - 1:
+            apply_trans = True
+            if transition_mode == 'alternate' and (i % 2 != 0):
+                apply_trans = False
+
+            if apply_trans:
+                cur_trans = random.choice(AVAILABLE_TRANSITIONS) if (is_trans_random and AVAILABLE_TRANSITIONS) else transition_type
+                if cur_trans:
+                    trans_dur = min(trans_dur_target_us, max(200000, dur_us // 3))
+                    try:
+                        v_seg.add_transition(cur_trans, duration=trans_dur)
+                    except Exception:
+                        pass
 
         script.add_segment(v_seg, 'Images')
 
-        # 4e. SFX Placement at scene boundary
+        # 4g. SFX Placement at scene boundary
         if enable_sfx and sfx_files and i > 0:
             sfx_p = sfx_files[i % len(sfx_files)]
             try:
@@ -330,16 +554,20 @@ def build_capcut_draft(
         if i % 10 == 0 or i == num_scenes - 1:
             report(f"Đã thêm cảnh {i + 1}/{num_scenes} ({os.path.basename(img_p)})", 0.28 + 0.45 * ((i + 1) / num_scenes))
 
-    # 5. SUBTITLE TRACK (With Color Palettes & Stroke)
+    # 5. SUBTITLE TRACK (With Animation, Color Palettes & Stroke)
     if import_subtitles and srt_path and os.path.exists(srt_path):
         report("Đang nạp phụ đề phong cách hiện đại...", 0.78)
         color_rgb = SUBTITLE_COLORS.get(subtitle_style.lower(), SUBTITLE_COLORS['yellow'])
+        pos_y_map = {'bottom': -0.75, 'dưới cùng': -0.75, 'center': 0.0, 'chính giữa': 0.0, 'top': 0.75, 'trên cùng': 0.75}
+        trans_y = pos_y_map.get(subtitle_position.lower(), -0.75)
+        f_size = max(5.0, min(16.0, float(subtitle_font_size)))
+
         try:
             style_template = cc.TextSegment(
                 "Template",
                 cc.trange(0, 1000),
                 style=cc.TextStyle(
-                    size=8.5,
+                    size=f_size,
                     bold=True,
                     color=color_rgb,
                     align=1,
@@ -353,11 +581,20 @@ def build_capcut_draft(
                 )
             )
 
+            # Subtitle In-Animation
+            sub_anim_key = subtitle_animation.strip().lower()
+            text_intro_enum = TEXT_INTROS_MAP.get(sub_anim_key)
+            if text_intro_enum:
+                try:
+                    style_template.add_animation(text_intro_enum, duration=400000)
+                except Exception:
+                    pass
+
             script.import_srt(
                 srt_path,
                 'Subtitles',
                 style_reference=style_template,
-                clip_settings=cc.ClipSettings(transform_y=-0.75)
+                clip_settings=cc.ClipSettings(transform_y=trans_y)
             )
             report("Đã hoàn tất nạp phụ đề!", 0.86)
         except Exception as e:

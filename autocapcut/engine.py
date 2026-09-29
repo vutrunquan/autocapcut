@@ -36,25 +36,45 @@ def run_autocapcut(
     draft_root: Optional[str] = None,
     bgm_paths: Optional[Union[str, List[str]]] = None,
     sort_mode: str = "abc",
+    # Transitions
     transition: str = "none",
+    transition_duration: float = 0.5,
+    transition_mode: str = "all",
+    # Clip In-Animations
+    clip_intro: str = "none",
+    clip_intro_duration: float = 0.8,
+    clip_intro_mode: str = "all",
+    # Video Scene Effects
+    video_effect: str = "none",
+    video_effect_scope: str = "all",
+    # Cinematic Filters
+    filter_name: str = "none",
+    filter_intensity: float = 60.0,
+    # Camera Motions
+    camera_motion: str = "smart_pacing",
+    zoom_scale: float = 112.0,
     keyframe_config: Optional[Dict[str, Any]] = None,
-    # Advanced Pro Options
-    aspect_ratio: str = "16:9",
     smart_pacing: bool = True,
     canvas_blur: bool = True,
-    filter_name: str = "none",
+    # Subtitles
+    import_subtitles: bool = True,
+    subtitle_style: str = "yellow",
+    subtitle_animation: str = "bounce",
+    subtitle_font_size: float = 8.5,
+    subtitle_position: str = "bottom",
+    # Audio Suite
     enable_sfx: bool = True,
+    sfx_name: str = "random",
     sfx_volume: float = 0.50,
     bgm_volume: float = 0.15,
     audio_ducking: bool = True,
     audio_fade: bool = True,
     enable_cta_subscribe: bool = True,
-    subtitle_style: str = "yellow",
     remove_gemini_watermark: bool = False,
     width: Optional[int] = None,
     height: Optional[int] = None,
     fps: int = 30,
-    import_subtitles: bool = True,
+    aspect_ratio: str = "16:9",
     progress_callback: Optional[Callable[[str, float], None]] = None,
     # Fallback aliases
     script_path: Optional[str] = None,
@@ -153,14 +173,35 @@ def run_autocapcut(
         width=width,
         height=height,
         fps=fps,
-        import_subtitles=import_subtitles,
-        subtitle_style=subtitle_style,
+        # Transitions
         transition_name=transition,
+        transition_duration=transition_duration,
+        transition_mode=transition_mode,
+        # Clip In-Animations
+        clip_intro=clip_intro,
+        clip_intro_duration=clip_intro_duration,
+        clip_intro_mode=clip_intro_mode,
+        # Video Scene Effects
+        video_effect=video_effect,
+        video_effect_scope=video_effect_scope,
+        # Filters
+        filter_name=filter_name,
+        filter_intensity=filter_intensity,
+        # Motions
+        camera_motion=camera_motion,
+        zoom_scale=zoom_scale,
         keyframe_config=keyframe_config,
         smart_pacing=smart_pacing,
         canvas_blur=canvas_blur,
-        filter_name=filter_name,
+        # Subtitles
+        import_subtitles=import_subtitles,
+        subtitle_style=subtitle_style,
+        subtitle_animation=subtitle_animation,
+        subtitle_font_size=subtitle_font_size,
+        subtitle_position=subtitle_position,
+        # Audio
         enable_sfx=enable_sfx,
+        sfx_name=sfx_name,
         sfx_volume=sfx_volume,
         bgm_volume=bgm_volume,
         audio_ducking=audio_ducking,
