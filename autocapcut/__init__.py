@@ -1,0 +1,40 @@
+"""
+AutoCapCut Package
+Automate CapCut video editing by synchronizing images/videos with voiceover,
+guided by SRT subtitles and line-divided scene scripts.
+"""
+
+from .engine import run_autocapcut, parse_script_input
+from .srt_parser import parse_srt
+from .image_loader import (
+    load_sorted_media,
+    load_sorted_images,
+    remove_gemini_watermark_from_image,
+    batch_remove_gemini_watermarks
+)
+from .aligner import read_script_lines, align_scenes_with_srt
+from .draft_builder import build_capcut_draft, TRANSITIONS_MAP
+from .utils import (
+    get_default_capcut_draft_path,
+    get_capcut_exe_path,
+    get_audio_duration_ms,
+    format_time_ms
+)
+
+__all__ = [
+    'run_autocapcut',
+    'parse_script_input',
+    'parse_srt',
+    'load_sorted_media',
+    'load_sorted_images',
+    'remove_gemini_watermark_from_image',
+    'batch_remove_gemini_watermarks',
+    'read_script_lines',
+    'align_scenes_with_srt',
+    'build_capcut_draft',
+    'TRANSITIONS_MAP',
+    'get_default_capcut_draft_path',
+    'get_capcut_exe_path',
+    'get_audio_duration_ms',
+    'format_time_ms'
+]
