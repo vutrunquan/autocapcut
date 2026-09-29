@@ -1,7 +1,8 @@
 """
-Desktop GUI for AutoCapCut Pro.
-Built with CustomTkinter for native rounded contours, soothing Obsidian Navy palette,
-balanced visual hierarchy, and an extensive suite of easy-to-use pro video editing features.
+Desktop GUI for AutoCapCut Studio.
+Designed with a professional Graphite Studio Dark aesthetic,
+ergonomic 2-column layout with tabbed effect controls,
+soothing eye-friendly palette, and extensive pro video automation features.
 """
 
 import os
@@ -32,8 +33,8 @@ from autocapcut import (
 SCENES_PLACEHOLDER = (
     "Chia kịch bản thành từng câu, mỗi câu một dòng rồi dán vào đây...\n"
     "• Mỗi dòng tương ứng với 1 ảnh hoặc video.\n"
-    "• Tool sẽ tự động căn thời gian media theo đúng giọng đọc của dòng đó.\n"
-    "• Bạn có thể nhấn 'Đọc File .txt' để nạp file hoặc dán trực tiếp."
+    "• Phần mềm sẽ tự động căn thời gian media theo đúng giọng đọc của dòng đó.\n"
+    "• Bạn có thể nhấn 'Đọc .txt' để nạp file sẵn có hoặc dán trực tiếp."
 )
 
 
@@ -44,42 +45,33 @@ class AutoCapCutApp(ctk.CTk):
         ctk.set_appearance_mode("Dark")
         ctk.set_default_color_theme("blue")
 
-        self.title("AutoCapCut Pro - Tự Động Khớp Media & Âm Thanh Chuyên Nghiệp")
-        self.geometry("1120x920")
-        self.minsize(980, 760)
+        self.title("AutoCapCut Studio - Tự Động Biên Tập Video CapCut")
+        self.geometry("1200x820")
+        self.minsize(1080, 720)
 
         # ------------------------------------------------------------------
-        # HARMONIOUS COLOR SYSTEM (Obsidian Navy & Indigo)
+        # PROFESSIONAL GRAPHITE & COBALT PALETTE (Gentle on the eyes)
         # ------------------------------------------------------------------
-        self.c_bg = "#0b0f19"         # Deep Obsidian (Eye-friendly)
-        self.c_card = "#161f30"       # Dark Slate Card
-        self.c_card_border = "#22314a"# Subtle card border
-        self.c_input = "#0d131f"      # Input field background
-        self.c_input_border = "#2a3b59"
-        self.c_text = "#f8fafc"       # Pure soft white
-        self.c_sub = "#94a3b8"        # Slate 400 muted text
-        
-        # Accents
-        self.c_indigo = "#4f46e5"     # Primary action
-        self.c_indigo_hover = "#4338ca"
-        self.c_amber = "#d97706"      # Audio button
-        self.c_amber_hover = "#b45309"
-        self.c_sky = "#0284c7"        # SRT button
-        self.c_sky_hover = "#0369a1"
-        self.c_emerald = "#059669"    # Media button
-        self.c_emerald_hover = "#047857"
-        self.c_purple = "#7c3aed"     # Script tools
-        self.c_purple_hover = "#6d28d9"
-        self.c_rose = "#e11d48"       # BGM & Delete
-        self.c_btn_sec = "#1e293b"    # Secondary buttons
-        self.c_btn_sec_h = "#334155"
+        self.c_bg = "#121316"           # Dark graphite canvas
+        self.c_card = "#18191e"         # Studio surface card
+        self.c_card_border = "#26272f"  # Subtle 1px border
+        self.c_input = "#111215"        # Inset field background
+        self.c_input_border = "#2e3039" # Field border
+        self.c_text = "#e3e4e8"         # Soft off-white text (no glare)
+        self.c_sub = "#888b96"          # Balanced muted slate text
+        self.c_accent = "#2563eb"       # Refined cobalt accent
+        self.c_accent_hover = "#1d4ed8"
+        self.c_btn_sec = "#202127"      # Neutral secondary button
+        self.c_btn_sec_h = "#2c2d36"    # Neutral hover
+        self.c_success = "#10b981"      # Emerald indicator badge
+        self.c_danger = "#ef4444"
 
         self.configure(fg_color=self.c_bg)
 
         # ------------------------------------------------------------------
         # STATE VARIABLES
         # ------------------------------------------------------------------
-        # Card 1: Data inputs
+        # Data inputs
         self.audio_files_var = tk.StringVar()
         self.srt_file_var = tk.StringVar()
         self.media_folder_var = tk.StringVar()
@@ -89,48 +81,46 @@ class AutoCapCutApp(ctk.CTk):
         self.draft_root_var = tk.StringVar(value=get_default_capcut_draft_path() or "")
 
         # Presets & Format
-        self.preset_var = tk.StringVar(value="⚙️ Tùy Chỉnh Thủ Công (Custom)")
+        self.preset_var = tk.StringVar(value="Tùy chỉnh thủ công (Custom)")
         self.aspect_ratio_var = tk.StringVar(value="16:9 (Ngang - YouTube, Facebook)")
+        self.sort_mode_var = tk.StringVar(value="Sắp xếp media theo ABC (Số tự nhiên)")
 
-        # Card 2: Config, Subtitles & Transitions
+        # Transitions & Clip Intro
+        self.transition_var = tk.StringVar(value="Không transition")
+        self.trans_dur_var = tk.StringVar(value="0.5")
+        self.trans_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+
+        self.clip_intro_var = tk.StringVar(value="Không animation")
+        self.clip_intro_dur_var = tk.StringVar(value="0.8")
+        self.clip_intro_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+
+        # Video Effects & Filters
+        self.video_effect_var = tk.StringVar(value="Không dùng hiệu ứng")
+        self.video_effect_scope_var = tk.StringVar(value="Tất cả phân cảnh (All)")
+        self.filter_var = tk.StringVar(value="Không dùng filter")
+        self.filter_intensity_var = tk.StringVar(value="60")
+        self.blur_var = tk.BooleanVar(value=True)
+        self.watermark_var = tk.BooleanVar(value=True)
+
+        # Subtitles & Audio Suite
         self.subtitles_var = tk.BooleanVar(value=True)
         self.subtitle_color_var = tk.StringVar(value="Vàng Nổi Bật (TikTok / Viral)")
         self.sub_anim_var = tk.StringVar(value="Nảy chữ lên (Bounce Pop)")
         self.sub_size_var = tk.StringVar(value="8.5")
         self.sub_pos_var = tk.StringVar(value="Dưới cùng (Chuẩn Shorts/Reels)")
-        self.watermark_var = tk.BooleanVar(value=True)
-        self.sort_mode_var = tk.StringVar(value="Sắp xếp media theo ABC (Số tự nhiên)")
-
-        # Transitions
-        self.transition_var = tk.StringVar(value="Không transition")
-        self.trans_dur_var = tk.StringVar(value="0.5")
-        self.trans_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
-
-        # Card 3: Clip In-Animation, Scene Effects, Filters & Audio
-        self.clip_intro_var = tk.StringVar(value="Không animation")
-        self.clip_intro_dur_var = tk.StringVar(value="0.8")
-        self.clip_intro_mode_var = tk.StringVar(value="Tất cả phân cảnh (All)")
-
-        self.video_effect_var = tk.StringVar(value="Không dùng hiệu ứng")
-        self.video_effect_scope_var = tk.StringVar(value="Tất cả phân cảnh (All)")
-
-        self.filter_var = tk.StringVar(value="Không dùng filter")
-        self.filter_intensity_var = tk.StringVar(value="60")
 
         self.sfx_var = tk.BooleanVar(value=True)
         self.sfx_name_var = tk.StringVar(value="Ngẫu nhiên phối hợp (Random)")
         self.sfx_vol_var = tk.StringVar(value="50")
         self.ducking_var = tk.BooleanVar(value=True)
         self.fade_var = tk.BooleanVar(value=True)
-        self.blur_var = tk.BooleanVar(value=True)
         self.cta_sub_var = tk.BooleanVar(value=True)
 
-        # Card 4: Camera Motion & Ken Burns
+        # Camera Motion & Ken Burns
         self.camera_motion_var = tk.StringVar(value="Smart Pacing AI (Tự phân tích nhịp câu)")
         self.zoom_scale_var = tk.StringVar(value="112")
         self.smart_pacing_var = tk.BooleanVar(value=True)
 
-        # Card 4: Motions
         self.m_zoom_in_var = tk.BooleanVar(value=True)
         self.m_zoom_in_scale = tk.StringVar(value="110")
 
@@ -170,347 +160,285 @@ class AutoCapCutApp(ctk.CTk):
         self.after(100, self._process_queue)
 
     def _build_layout(self):
-        # 1. TOP HEADER
-        header_frame = ctk.CTkFrame(self, fg_color="transparent", height=60)
-        header_frame.pack(fill="x", padx=24, pady=(16, 12))
+        # ------------------------------------------------------------------
+        # 1. TOP HEADER (Brand & Universal Actions)
+        # ------------------------------------------------------------------
+        header_frame = ctk.CTkFrame(self, fg_color="transparent", height=50)
+        header_frame.pack(fill="x", padx=20, pady=(14, 8))
 
-        # Brand Title & Icon
+        # Brand Badge & Title
         title_box = ctk.CTkFrame(header_frame, fg_color="transparent")
         title_box.pack(side="left")
 
-        app_icon = ctk.CTkLabel(title_box, text="⚡", font=("Segoe UI Emoji", 26))
-        app_icon.pack(side="left", padx=(0, 10))
+        logo_badge = ctk.CTkLabel(
+            title_box, text="AC", font=("Segoe UI", 12, "bold"),
+            fg_color=self.c_accent, text_color="#ffffff", corner_radius=6,
+            width=30, height=30
+        )
+        logo_badge.pack(side="left", padx=(0, 10))
 
         text_sub_box = ctk.CTkFrame(title_box, fg_color="transparent")
         text_sub_box.pack(side="left")
 
         lbl_title = ctk.CTkLabel(
-            text_sub_box, text="AutoCapCut Pro v2.5", font=("Segoe UI", 18, "bold"),
+            text_sub_box, text="AutoCapCut Studio", font=("Segoe UI", 16, "bold"),
             text_color="#ffffff"
         )
         lbl_title.pack(anchor="w")
 
         lbl_sub = ctk.CTkLabel(
-            text_sub_box, text="Hệ thống tự động biên tập video AI chuyên nghiệp cho CapCut PC",
+            text_sub_box, text="Đồng bộ media, phụ đề & biên tập timeline CapCut tự động",
             font=("Segoe UI", 11), text_color=self.c_sub
         )
         lbl_sub.pack(anchor="w")
 
-        # Top Toolbar Actions
+        # Top Right Actions & Quick Preset
         actions_box = ctk.CTkFrame(header_frame, fg_color="transparent")
         actions_box.pack(side="right")
 
+        ctk.CTkLabel(actions_box, text="Mẫu nhanh:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
+
+        preset_opts = [
+            "Tùy chỉnh thủ công (Custom)",
+            "Video ngắn dọc TikTok / Shorts (9:16)",
+            "Video ngang điện ảnh YouTube (16:9)",
+            "Bản tin & Tin tức tài chính (16:9)",
+            "Tối giản nhanh (16:9)"
+        ]
+        self.preset_combo = ctk.CTkComboBox(
+            actions_box, variable=self.preset_var, values=preset_opts, width=270, height=32, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec,
+            font=("Segoe UI", 11), command=self._apply_preset
+        )
+        self.preset_combo.pack(side="left", padx=(0, 10))
+
         btn_auto = ctk.CTkButton(
-            actions_box, text="✨ Tự Động Điền", font=("Segoe UI", 12, "bold"),
+            actions_box, text="Tự động điền", font=("Segoe UI", 11),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=8, width=125, height=34, command=self._auto_detect_sample_files
+            corner_radius=6, width=105, height=32, command=self._auto_detect_sample_files
         )
         btn_auto.pack(side="left", padx=4)
 
         btn_cc = ctk.CTkButton(
-            actions_box, text="🎬 Mở CapCut", font=("Segoe UI", 12, "bold"),
+            actions_box, text="Mở CapCut", font=("Segoe UI", 11),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=8, width=110, height=34, command=self._launch_capcut
+            corner_radius=6, width=95, height=32, command=self._launch_capcut
         )
         btn_cc.pack(side="left", padx=4)
 
         btn_settings = ctk.CTkButton(
-            actions_box, text="⚙️ Cài Đặt", font=("Segoe UI", 12, "bold"),
+            actions_box, text="Cài đặt", font=("Segoe UI", 11),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=8, width=90, height=34, command=self._open_settings_dialog
+            corner_radius=6, width=80, height=32, command=self._open_settings_dialog
         )
         btn_settings.pack(side="left", padx=4)
 
-        # 2. MAIN SCROLLABLE CONTENT (Card containers)
-        self.scroll_frame = ctk.CTkScrollableFrame(
-            self, fg_color="transparent", corner_radius=14
-        )
-        self.scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 10))
+        # ------------------------------------------------------------------
+        # 2. MAIN 2-COLUMN WORKSPACE
+        # ------------------------------------------------------------------
+        main_body = ctk.CTkFrame(self, fg_color="transparent")
+        main_body.pack(fill="both", expand=True, padx=20, pady=(4, 12))
 
-        content = self.scroll_frame
+        # LEFT COLUMN: Inputs & Script (46% width)
+        left_col = ctk.CTkFrame(main_body, fg_color="transparent")
+        left_col.pack(side="left", fill="both", expand=True, padx=(0, 8))
+
+        # RIGHT COLUMN: Studio Controls Tabview & Run Box (54% width)
+        right_col = ctk.CTkFrame(main_body, fg_color="transparent")
+        right_col.pack(side="right", fill="both", expand=True, padx=(8, 0))
 
         # ------------------------------------------------------------------
-        # CARD 1: 📁  1. NGUỒN DỮ LIỆU ĐẦU VÀO
+        # LEFT COLUMN CONTENT:
+        # Card 1: Dữ liệu đầu vào
+        # Card 2: Kịch bản phân cảnh
         # ------------------------------------------------------------------
-        card_data = self._create_card(content, title="📁  1. NGUỒN DỮ LIỆU ĐẦU VÀO")
+        card_data = self._create_card(left_col, title="1. DỮ LIỆU ĐẦU VÀO")
 
-        # Voice Audio
         self._add_row(
             card_data, label="File Voice (Âm thanh):", var=self.audio_files_var,
-            placeholder="Chọn 1 hoặc nhiều file audio (.wav, .mp3, .m4a)...",
-            btn_text="🎵 Chọn Audio", btn_color=self.c_amber, btn_hover=self.c_amber_hover,
-            cmd=self._browse_audio
+            placeholder="Chọn 1 hoặc nhiều file audio (.wav, .mp3)...",
+            btn_text="Chọn audio", cmd=self._browse_audio
         )
 
-        # SRT File
         self._add_row(
             card_data, label="File Phụ Đề (.srt):", var=self.srt_file_var,
             placeholder="Chọn file phụ đề SRT khớp với giọng đọc...",
-            btn_text="📄 Chọn SRT", btn_color=self.c_sky, btn_hover=self.c_sky_hover,
-            cmd=self._browse_srt
+            btn_text="Chọn SRT", cmd=self._browse_srt
         )
 
-        # Scenes Textarea
-        sc_container = ctk.CTkFrame(card_data, fg_color="transparent")
-        sc_container.pack(fill="x", pady=(8, 10))
-
-        sc_bar = ctk.CTkFrame(sc_container, fg_color="transparent")
-        sc_bar.pack(fill="x", pady=(0, 6))
-
-        sc_lbl = ctk.CTkLabel(
-            sc_bar, text="Kịch Bản Phân Cảnh (Mỗi dòng 1 ảnh/video):",
-            font=("Segoe UI", 12, "bold"), text_color="#ffffff"
-        )
-        sc_lbl.pack(side="left")
-
-        # Line counter pill badge
-        self.lbl_scenes_count = ctk.CTkLabel(
-            sc_bar, text="0 dòng", font=("Segoe UI", 10, "bold"),
-            fg_color="#1e293b", text_color=self.c_sub, corner_radius=12, padx=10, pady=2
-        )
-        self.lbl_scenes_count.pack(side="left", padx=8)
-
-        sc_tools = ctk.CTkFrame(sc_bar, fg_color="transparent")
-        sc_tools.pack(side="right")
-
-        btn_paste = ctk.CTkButton(
-            sc_tools, text="📋 Dán", width=55, height=28, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
-            command=self._paste_scenes
-        )
-        btn_paste.pack(side="left", padx=2)
-
-        btn_copy = ctk.CTkButton(
-            sc_tools, text="📄 Copy", width=55, height=28, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
-            command=self._copy_scenes
-        )
-        btn_copy.pack(side="left", padx=2)
-
-        btn_split = ctk.CTkButton(
-            sc_tools, text="✂️ Tách Câu", width=80, height=28, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
-            command=self._split_scenes_into_sentences
-        )
-        btn_split.pack(side="left", padx=2)
-
-        btn_clean = ctk.CTkButton(
-            sc_tools, text="🧹 Dọn Dòng", width=80, height=28, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
-            command=self._clean_empty_lines
-        )
-        btn_clean.pack(side="left", padx=2)
-
-        btn_load = ctk.CTkButton(
-            sc_tools, text="📂 Đọc File .txt", width=100, height=28, corner_radius=6,
-            fg_color=self.c_purple, hover_color=self.c_purple_hover, font=("Segoe UI", 11, "bold"),
-            command=self._browse_scenes_file
-        )
-        btn_load.pack(side="left", padx=2)
-
-        btn_clear_sc = ctk.CTkButton(
-            sc_tools, text="✕", width=30, height=28, corner_radius=6,
-            fg_color="#334155", hover_color="#475569", font=("Segoe UI", 11, "bold"),
-            command=self._clear_scenes
-        )
-        btn_clear_sc.pack(side="left", padx=(2, 0))
-
-        # Modern Textbox
-        self.scenes_textbox = ctk.CTkTextbox(
-            sc_container, height=110, corner_radius=10,
-            fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
-            text_color=self.c_text, font=("Segoe UI", 12)
-        )
-        self.scenes_textbox.pack(fill="x")
-        self.scenes_textbox.insert("1.0", SCENES_PLACEHOLDER)
-        self.scenes_textbox.bind("<FocusIn>", self._on_scenes_focus_in)
-        self.scenes_textbox.bind("<FocusOut>", self._on_scenes_focus_out)
-        self.scenes_textbox.bind("<KeyRelease>", self._update_scenes_count)
-
-        # Media Folder
         self._add_row(
-            card_data, label="Thư Mục Chứa Media:", var=self.media_folder_var,
-            placeholder="Thư mục chứa ảnh hoặc video (001.jpg, 002.jpg...)...",
-            btn_text="📁 Chọn Thư Mục", btn_color=self.c_emerald, btn_hover=self.c_emerald_hover,
-            cmd=self._browse_media_folder
+            card_data, label="Thư Mục Media:", var=self.media_folder_var,
+            placeholder="Thư mục chứa ảnh hoặc video...",
+            btn_text="Chọn thư mục", cmd=self._browse_media_folder
         )
 
-        # BGM (Nhạc Nền)
+        # BGM (Nhạc nền) row
         bgm_row = ctk.CTkFrame(card_data, fg_color="transparent")
-        bgm_row.pack(fill="x", pady=4)
+        bgm_row.pack(fill="x", pady=3)
 
         lbl_bgm = ctk.CTkLabel(
-            bgm_row, text="Nhạc Nền (BGM - Tùy chọn):", font=("Segoe UI", 12),
-            text_color=self.c_text, width=190, anchor="w"
+            bgm_row, text="Nhạc Nền (Tùy chọn):", font=("Segoe UI", 11),
+            text_color=self.c_text, width=140, anchor="w"
         )
         lbl_bgm.pack(side="left")
 
         e_bgm = ctk.CTkEntry(
-            bgm_row, textvariable=self.bgm_files_var, placeholder_text="Có thể chọn 1 hoặc nhiều file nhạc nền...",
-            corner_radius=8, fg_color=self.c_input, border_color=self.c_input_border, text_color=self.c_text,
-            height=34
+            bgm_row, textvariable=self.bgm_files_var, placeholder_text="File nhạc nền (nếu có)...",
+            corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border, text_color=self.c_text,
+            height=30, font=("Segoe UI", 11)
         )
         e_bgm.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
-        # BGM Volume
-        ctk.CTkLabel(bgm_row, text="Âm lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(bgm_row, text="Vol:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
         ctk.CTkEntry(
-            bgm_row, textvariable=self.bgm_vol_var, width=38, height=34, corner_radius=8,
-            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+            bgm_row, textvariable=self.bgm_vol_var, width=36, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center", font=("Segoe UI", 11)
         ).pack(side="left", padx=(0, 2))
         ctk.CTkLabel(bgm_row, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
 
         btn_bgm_clear = ctk.CTkButton(
-            bgm_row, text="✕ Xóa", width=60, height=34, corner_radius=8,
-            fg_color="#334155", hover_color="#475569", font=("Segoe UI", 11),
+            bgm_row, text="✕", width=28, height=30, corner_radius=6,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
             command=lambda: self.bgm_files_var.set("")
         )
         btn_bgm_clear.pack(side="left", padx=(0, 6))
 
         btn_bgm = ctk.CTkButton(
-            bgm_row, text="🎵 Chọn BGM", width=115, height=34, corner_radius=8,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11, "bold"),
+            bgm_row, text="Chọn BGM", width=95, height=30, corner_radius=6,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
             command=self._browse_bgm
         )
         btn_bgm.pack(side="right")
-        btn_bgm.pack(side="right")
 
-        # CapCut Name
+        # CapCut Project Name
         name_row = ctk.CTkFrame(card_data, fg_color="transparent")
-        name_row.pack(fill="x", pady=4)
+        name_row.pack(fill="x", pady=3)
 
         lbl_name = ctk.CTkLabel(
-            name_row, text="Tên Dự Án CapCut:", font=("Segoe UI", 12),
-            text_color=self.c_text, width=190, anchor="w"
+            name_row, text="Tên Dự Án CapCut:", font=("Segoe UI", 11),
+            text_color=self.c_text, width=140, anchor="w"
         )
         lbl_name.pack(side="left")
 
         e_name = ctk.CTkEntry(
-            name_row, textvariable=self.capcut_name_var, corner_radius=8,
+            name_row, textvariable=self.capcut_name_var, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, text_color=self.c_text,
-            height=34
+            height=30, font=("Segoe UI", 11)
         )
         e_name.pack(side="left", fill="x", expand=True)
 
-        # ------------------------------------------------------------------
-        # PRESET BANNER (1-CLICK QUICK SETUP)
-        # ------------------------------------------------------------------
-        preset_card = ctk.CTkFrame(content, fg_color="#131c2e", corner_radius=12, border_color="#2b3d5b", border_width=1)
-        preset_card.pack(fill="x", pady=(0, 14), padx=2, ipady=4)
+        # Card 2: Kịch bản phân cảnh (Script)
+        card_script = self._create_card(left_col, title="2. KỊCH BẢN PHÂN CẢNH (Mỗi dòng 1 media)")
 
-        p_row = ctk.CTkFrame(preset_card, fg_color="transparent")
-        p_row.pack(fill="x", padx=14, pady=6)
+        sc_bar = ctk.CTkFrame(card_script, fg_color="transparent")
+        sc_bar.pack(fill="x", pady=(0, 6))
 
-        p_icon_lbl = ctk.CTkLabel(p_row, text="🎯  BỘ THIẾT LẬP NHANH (1-CLICK PRO PRESETS):", font=("Segoe UI", 12, "bold"), text_color="#ffffff")
-        p_icon_lbl.pack(side="left", padx=(0, 12))
-
-        preset_opts = [
-            "⚙️ Tùy Chỉnh Thủ Công (Custom)",
-            "🔥 TikTok / Reels / Shorts Siêu Cuốn (9:16, Nhanh, SFX, Chữ Vàng)",
-            "🎬 YouTube Kể Chuyện Điện Ảnh (16:9, Tông Ấm, Hạt Phim, Chữ Trắng)",
-            "💼 Tin Tức & Phân Tích Tài Chính (16:9, Chữ Xanh Lá, Fade Wipe)",
-            "⚡ Tối Giản Siêu Tốc (16:9, Không SFX, Không Filter)"
-        ]
-        self.preset_combo = ctk.CTkComboBox(
-            p_row, variable=self.preset_var, values=preset_opts, width=480, height=34, corner_radius=8,
-            fg_color=self.c_input, border_color=self.c_indigo, button_color=self.c_indigo,
-            command=self._apply_preset
+        self.lbl_scenes_count = ctk.CTkLabel(
+            sc_bar, text="0 cảnh đã nạp", font=("Segoe UI", 10, "bold"),
+            fg_color="#1d2027", text_color=self.c_sub, corner_radius=10, padx=8, pady=2
         )
-        self.preset_combo.pack(side="left", fill="x", expand=True)
+        self.lbl_scenes_count.pack(side="left")
+
+        sc_tools = ctk.CTkFrame(sc_bar, fg_color="transparent")
+        sc_tools.pack(side="right")
+
+        btn_split = ctk.CTkButton(
+            sc_tools, text="Tách câu", width=68, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._split_scenes_into_sentences
+        )
+        btn_split.pack(side="left", padx=2)
+
+        btn_clean = ctk.CTkButton(
+            sc_tools, text="Dọn dòng", width=68, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._clean_empty_lines
+        )
+        btn_clean.pack(side="left", padx=2)
+
+        btn_paste = ctk.CTkButton(
+            sc_tools, text="Dán", width=48, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._paste_scenes
+        )
+        btn_paste.pack(side="left", padx=2)
+
+        btn_copy = ctk.CTkButton(
+            sc_tools, text="Copy", width=48, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._copy_scenes
+        )
+        btn_copy.pack(side="left", padx=2)
+
+        btn_load = ctk.CTkButton(
+            sc_tools, text="Đọc .txt", width=68, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._browse_scenes_file
+        )
+        btn_load.pack(side="left", padx=2)
+
+        btn_clear_sc = ctk.CTkButton(
+            sc_tools, text="✕", width=26, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            command=self._clear_scenes
+        )
+        btn_clear_sc.pack(side="left", padx=(2, 0))
+
+        self.scenes_textbox = ctk.CTkTextbox(
+            card_script, height=190, corner_radius=8,
+            fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
+            text_color=self.c_text, font=("Segoe UI", 11)
+        )
+        self.scenes_textbox.pack(fill="both", expand=True)
+        self.scenes_textbox.insert("1.0", SCENES_PLACEHOLDER)
+        self.scenes_textbox.bind("<FocusIn>", self._on_scenes_focus_in)
+        self.scenes_textbox.bind("<FocusOut>", self._on_scenes_focus_out)
+        self.scenes_textbox.bind("<KeyRelease>", self._update_scenes_count)
 
         # ------------------------------------------------------------------
-        # CARD 2: ⚙️  2. PHỤ ĐỀ, CHUYỂN CẢNH & KHUNG HÌNH (SUBTITLES & TRANSITIONS)
+        # RIGHT COLUMN CONTENT:
+        # Tabview (Studio Controls) + Run Box + Progress + Log
         # ------------------------------------------------------------------
-        card_cfg = self._create_card(content, title="⚙️  2. PHỤ ĐỀ, CHUYỂN CẢNH & KHUNG HÌNH")
-
-        cfg_grid = ctk.CTkFrame(card_cfg, fg_color="transparent")
-        cfg_grid.pack(fill="x")
-
-        # Left Column: Subtitles & Watermark
-        col_cb = ctk.CTkFrame(cfg_grid, fg_color="transparent")
-        col_cb.pack(side="left", fill="both", expand=True, padx=(0, 10))
-
-        cb1 = ctk.CTkCheckBox(
-            col_cb, text=" Tự động chèn phụ đề SRT vào video",
-            variable=self.subtitles_var, font=("Segoe UI", 12, "bold"), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
+        self.tabview = ctk.CTkTabview(
+            right_col,
+            fg_color=self.c_card,
+            segmented_button_fg_color=self.c_input,
+            segmented_button_selected_color=self.c_accent,
+            segmented_button_selected_hover_color=self.c_accent_hover,
+            segmented_button_unselected_color=self.c_input,
+            segmented_button_unselected_hover_color=self.c_btn_sec_h,
+            text_color=self.c_text,
+            corner_radius=10,
+            border_color=self.c_card_border,
+            border_width=1
         )
-        cb1.pack(anchor="w", pady=(0, 4))
+        self.tabview.pack(fill="both", expand=True, pady=(0, 10))
 
-        # Subtitle Color Palette & Font Size
-        sub_style_row = ctk.CTkFrame(col_cb, fg_color="transparent")
-        sub_style_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(sub_style_row, text="Màu chữ:", font=("Segoe UI", 11), text_color=self.c_sub, width=60, anchor="w").pack(side="left")
-        sub_col_opts = [
-            "Vàng Nổi Bật (TikTok / Viral)",
-            "Trắng Truyền Thống (Classic White)",
-            "Xanh Công Nghệ (Cyan Modern)",
-            "Xanh Lá Tài Chính (Finance Green)",
-            "Đỏ Ruby (Dramatic Red)",
-            "Tím Neon (Neon Purple)"
-        ]
-        ctk.CTkComboBox(
-            sub_style_row, variable=self.subtitle_color_var, values=sub_col_opts, width=200, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 6))
+        tab_tr = self.tabview.add("Chuyển cảnh & Mở đầu")
+        tab_eff = self.tabview.add("Hiệu ứng & Bộ lọc")
+        tab_cam = self.tabview.add("Chuyển động Camera")
+        tab_sub = self.tabview.add("Phụ đề & Âm thanh")
 
-        ctk.CTkLabel(sub_style_row, text="Cỡ:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 2))
-        ctk.CTkEntry(
-            sub_style_row, textvariable=self.sub_size_var, width=38, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
+        # ------------------------------------------------------------------
+        # TAB 1: CHUYỂN CẢNH & MỞ ĐẦU
+        # ------------------------------------------------------------------
+        # Khung hình & Sắp xếp
+        fmt_box = ctk.CTkFrame(tab_tr, fg_color="transparent")
+        fmt_box.pack(fill="x", pady=(4, 8))
 
-        # Subtitle In-Animation & Position
-        sub_anim_row = ctk.CTkFrame(col_cb, fg_color="transparent")
-        sub_anim_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(sub_anim_row, text="Hiệu ứng:", font=("Segoe UI", 11), text_color=self.c_sub, width=60, anchor="w").pack(side="left")
-        sub_anim_opts = [
-            "Nảy chữ lên (Bounce Pop)",
-            "Chạy từng chữ (Karaoke Reveal)",
-            "Nhịp điệu vui nhộn (Playful Bounce)",
-            "Trượt mượt lên (Slide Up)",
-            "Quét từ trái sang (Slide Right)",
-            "Tĩnh (Không animation)"
-        ]
-        ctk.CTkComboBox(
-            sub_anim_row, variable=self.sub_anim_var, values=sub_anim_opts, width=200, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(fmt_box, text="Khung hình & Sắp xếp:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(anchor="w", pady=(0, 4))
+        fmt_row = ctk.CTkFrame(fmt_box, fg_color="transparent")
+        fmt_row.pack(fill="x")
 
-        sub_pos_opts = [
-            "Dưới cùng (Chuẩn Shorts/Reels)",
-            "Chính giữa màn hình",
-            "Phía trên cùng"
-        ]
-        ctk.CTkComboBox(
-            sub_anim_row, variable=self.sub_pos_var, values=sub_pos_opts, width=150, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left")
-
-        cb2 = ctk.CTkCheckBox(
-            col_cb, text=" Xóa watermark Gemini AI (Reverse Alpha Blending - Lossless)",
-            variable=self.watermark_var, font=("Segoe UI", 11), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        )
-        cb2.pack(anchor="w", pady=(6, 2))
-
-        # Right Column: Format & Transitions
-        col_dd = ctk.CTkFrame(cfg_grid, fg_color="transparent")
-        col_dd.pack(side="right", fill="both", expand=True, padx=(10, 0))
-
-        # Tỉ lệ khung hình (Aspect Ratio) & Sắp xếp
-        ar_row = ctk.CTkFrame(col_dd, fg_color="transparent")
-        ar_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(ar_row, text="Tỉ lệ & Sắp xếp:", font=("Segoe UI", 11), text_color=self.c_sub, width=95, anchor="w").pack(side="left")
         ar_opts = [
             "16:9 (Ngang - YouTube, Facebook)",
             "9:16 (Dọc - TikTok, Reels, Shorts)",
             "1:1 (Vuông - Instagram, Post)"
         ]
         ctk.CTkComboBox(
-            ar_row, variable=self.aspect_ratio_var, values=ar_opts, width=175, height=28, corner_radius=6,
+            fmt_row, variable=self.aspect_ratio_var, values=ar_opts, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
-        ).pack(side="left", padx=(0, 6))
+        ).pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         sort_opts = [
             "Sắp xếp media theo ABC (Số tự nhiên)",
@@ -518,407 +446,428 @@ class AutoCapCutApp(ctk.CTk):
             "Sắp xếp media theo thời gian Mới đến Cũ"
         ]
         ctk.CTkComboBox(
-            ar_row, variable=self.sort_mode_var, values=sort_opts, width=195, height=28, corner_radius=6,
+            fmt_row, variable=self.sort_mode_var, values=sort_opts, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
-        ).pack(side="left")
+        ).pack(side="left", fill="x", expand=True)
 
-        # Transition Type & Duration
-        tr_row = ctk.CTkFrame(col_dd, fg_color="transparent")
-        tr_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(tr_row, text="Chuyển cảnh:", font=("Segoe UI", 11), text_color=self.c_sub, width=95, anchor="w").pack(side="left")
+        # Chuyển cảnh (Transitions)
+        tr_box = ctk.CTkFrame(tab_tr, fg_color="transparent")
+        tr_box.pack(fill="x", pady=6)
+        ctk.CTkLabel(tr_box, text="Hiệu ứng chuyển cảnh giữa các phân cảnh:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(anchor="w", pady=(0, 4))
+
+        tr_row = ctk.CTkFrame(tr_box, fg_color="transparent")
+        tr_row.pack(fill="x")
+
         trans_opts = [
-            "Không transition",
-            "Ngẫu nhiên (Random)",
-            "Mờ chồng (Dissolve)",
-            "Mờ đen (Black Fade)",
-            "Chớp trắng (White Flash)",
-            "Gạt sang trái (Swipe Left)",
-            "Trượt góc (Corner Slide)",
-            "Lật thu phóng (Flip Zoom)",
-            "Thu phóng nhanh (Zoom)",
-            "Nhiễu sóng (Signal Glitch)",
-            "Rơi trượt (Slide Drop)",
-            "Trượt giao diện (Slide Interface)",
-            "Búng zoom (Snap Zoom)",
+            "Không transition", "Ngẫu nhiên (Random)", "Mờ chồng (Dissolve)", "Mờ đen (Black Fade)",
+            "Chớp trắng (White Flash)", "Gạt sang trái (Swipe Left)", "Trượt góc (Corner Slide)",
+            "Lật thu phóng (Flip Zoom)", "Thu phóng nhanh (Zoom)", "Nhiễu sóng (Signal Glitch)",
+            "Rơi trượt (Slide Drop)", "Trượt giao diện (Slide Interface)", "Búng zoom (Snap Zoom)",
             "Vệt sáng quét (Light Wipe)"
         ]
         ctk.CTkComboBox(
-            tr_row, variable=self.transition_var, values=trans_opts, width=225, height=28, corner_radius=6,
+            tr_row, variable=self.transition_var, values=trans_opts, width=220, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
-        ).pack(side="left", padx=(0, 6))
+        ).pack(side="left", padx=(0, 8))
 
-        ctk.CTkLabel(tr_row, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 2))
+        ctk.CTkLabel(tr_row, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
         ctk.CTkEntry(
-            tr_row, textvariable=self.trans_dur_var, width=38, height=28, corner_radius=6,
+            tr_row, textvariable=self.trans_dur_var, width=38, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
-        ctk.CTkLabel(tr_row, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 0))
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(tr_row, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 8))
 
-        # Transition Mode
-        tr_mode_row = ctk.CTkFrame(col_dd, fg_color="transparent")
-        tr_mode_row.pack(fill="x", pady=2)
-        ctk.CTkLabel(tr_mode_row, text="Áp dụng chuyển cảnh:", font=("Segoe UI", 11), text_color=self.c_sub, width=125, anchor="w").pack(side="left")
-        trans_mode_opts = [
-            "Tất cả phân cảnh (All)",
-            "Ngẫu nhiên đổi hiệu ứng (Random)",
-            "Xen kẽ các cảnh (Alternate)"
-        ]
+        trans_mode_opts = ["Tất cả phân cảnh (All)", "Ngẫu nhiên đổi hiệu ứng (Random)", "Xen kẽ các cảnh (Alternate)"]
         ctk.CTkComboBox(
-            tr_mode_row, variable=self.trans_mode_var, values=trans_mode_opts, width=245, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left")
+            tr_row, variable=self.trans_mode_var, values=trans_mode_opts, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", fill="x", expand=True)
 
-        # ------------------------------------------------------------------
-        # CARD 3: ✨  3. HIỆU ỨNG CAPCUT, HOẠT ẢNH & BỘ LỌC ĐIỆN ẢNH (EFFECTS & FILTERS)
-        # ------------------------------------------------------------------
-        card_pro = self._create_card(content, title="✨  3. HIỆU ỨNG CAPCUT, HOẠT ẢNH & BỘ LỌC ĐIỆN ẢNH")
+        # Hoạt ảnh mở đầu Clip Intro
+        intro_box = ctk.CTkFrame(tab_tr, fg_color="transparent")
+        intro_box.pack(fill="x", pady=6)
+        ctk.CTkLabel(intro_box, text="Hoạt ảnh mở đầu phân cảnh (Clip In-Animation):", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(anchor="w", pady=(0, 4))
 
-        # Row 1: Clip In-Animation (Intro)
-        r_intro = ctk.CTkFrame(card_pro, fg_color="transparent")
-        r_intro.pack(fill="x", pady=3)
-        ctk.CTkLabel(r_intro, text="Hoạt ảnh mở đầu (Intro):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
+        intro_row = ctk.CTkFrame(intro_box, fg_color="transparent")
+        intro_row.pack(fill="x")
+
         intro_opts = [
-            "Không animation",
-            "Ngẫu nhiên (Random)",
-            "Thu phóng vào (Zoom In)",
-            "Phóng to năng động (Dynamic Zoom In)",
-            "Thu nhỏ năng động (Dynamic Zoom Out)",
-            "Mờ dần xuất hiện (Fade In)",
-            "Mờ ảo tỏ dần (Blur Fade In)",
-            "Lắc ngang nảy (Horizontal Shake)",
-            "Lắc dọc nảy (Vertical Shake)",
-            "Trượt từ dưới lên (Slide Up)",
-            "Trượt từ trên xuống (Slide Down)",
-            "Trượt từ trái sang (Slide Right)",
-            "Trượt từ phải sang (Slide Left)",
+            "Không animation", "Ngẫu nhiên (Random)", "Thu phóng vào (Zoom In)", "Phóng to năng động (Dynamic Zoom In)",
+            "Thu nhỏ năng động (Dynamic Zoom Out)", "Mờ dần xuất hiện (Fade In)", "Mờ ảo tỏ dần (Blur Fade In)",
+            "Lắc ngang nảy (Horizontal Shake)", "Lắc dọc nảy (Vertical Shake)", "Trượt từ dưới lên (Slide Up)",
+            "Trượt từ trên xuống (Slide Down)", "Trượt từ trái sang (Slide Right)", "Trượt từ phải sang (Slide Left)",
             "Xoay mở màn (Spin Open)"
         ]
         ctk.CTkComboBox(
-            r_intro, variable=self.clip_intro_var, values=intro_opts, width=260, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 10))
+            intro_row, variable=self.clip_intro_var, values=intro_opts, width=220, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", padx=(0, 8))
 
-        ctk.CTkLabel(r_intro, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(intro_row, text="Thời lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
         ctk.CTkEntry(
-            r_intro, textvariable=self.clip_intro_dur_var, width=40, height=28, corner_radius=6,
+            intro_row, textvariable=self.clip_intro_dur_var, width=38, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
-        ctk.CTkLabel(r_intro, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(intro_row, text="s", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 8))
 
         intro_mode_opts = ["Tất cả phân cảnh (All)", "Ngẫu nhiên xen kẽ (Random)", "Chỉ cảnh đầu tiên (Intro)"]
         ctk.CTkComboBox(
-            r_intro, variable=self.clip_intro_mode_var, values=intro_mode_opts, width=200, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left")
+            intro_row, variable=self.clip_intro_mode_var, values=intro_mode_opts, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", fill="x", expand=True)
 
-        # Row 2: Video Scene Effect
-        r_eff = ctk.CTkFrame(card_pro, fg_color="transparent")
-        r_eff.pack(fill="x", pady=3)
-        ctk.CTkLabel(r_eff, text="Hiệu ứng video (Effect):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
+        # ------------------------------------------------------------------
+        # TAB 2: HIỆU ỨNG & BỘ LỌC
+        # ------------------------------------------------------------------
+        eff_box = ctk.CTkFrame(tab_eff, fg_color="transparent")
+        eff_box.pack(fill="x", pady=(4, 6))
+
+        ctk.CTkLabel(eff_box, text="Hiệu ứng video CapCut (Scene Effects):", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(anchor="w", pady=(0, 4))
+        eff_row = ctk.CTkFrame(eff_box, fg_color="transparent")
+        eff_row.pack(fill="x")
+
         effect_opts = [
-            "Không dùng hiệu ứng",
-            "Ngẫu nhiên (Random)",
-            "Rung lắc tiêu điểm (Focus Shake)",
-            "Rung tách màu RGB (RGB Shake)",
-            "Nhiễu hạt Pixel (Pixel Glitch)",
-            "Giật sóng mở màn (Glitch Intro)",
-            "Hào quang nhấp nháy (Bouncing Glow)",
-            "Chớp sáng kịch tính (Flash)",
-            "Ánh đèn Neon (Neon Flash)",
-            "Chớp phim cổ điển (Vintage Flash)"
+            "Không dùng hiệu ứng", "Ngẫu nhiên (Random)", "Rung lắc tiêu điểm (Focus Shake)", "Rung tách màu RGB (RGB Shake)",
+            "Nhiễu hạt Pixel (Pixel Glitch)", "Giật sóng mở màn (Glitch Intro)", "Hào quang nhấp nháy (Bouncing Glow)",
+            "Chớp sáng kịch tính (Flash)", "Ánh đèn Neon (Neon Flash)", "Chớp phim cổ điển (Vintage Flash)"
         ]
         ctk.CTkComboBox(
-            r_eff, variable=self.video_effect_var, values=effect_opts, width=260, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 10))
+            eff_row, variable=self.video_effect_var, values=effect_opts, width=240, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", padx=(0, 8))
 
-        ctk.CTkLabel(r_eff, text="Phạm vi:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
+        ctk.CTkLabel(eff_row, text="Phạm vi:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
         effect_scope_opts = ["Tất cả phân cảnh (All)", "Ngẫu nhiên một số cảnh (Random)", "Chỉ cảnh mở đầu & kết thúc"]
         ctk.CTkComboBox(
-            r_eff, variable=self.video_effect_scope_var, values=effect_scope_opts, width=250, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left")
+            eff_row, variable=self.video_effect_scope_var, values=effect_scope_opts, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", fill="x", expand=True)
 
-        # Row 3: Cinematic Filter & Intensity
-        r_filt = ctk.CTkFrame(card_pro, fg_color="transparent")
-        r_filt.pack(fill="x", pady=3)
-        ctk.CTkLabel(r_filt, text="Bộ lọc màu (Filter):", font=("Segoe UI", 12), text_color=self.c_text, width=180, anchor="w").pack(side="left")
+        # Bộ lọc màu Filter
+        filt_box = ctk.CTkFrame(tab_eff, fg_color="transparent")
+        filt_box.pack(fill="x", pady=6)
+
+        ctk.CTkLabel(filt_box, text="Bộ lọc màu điện ảnh (Filters):", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(anchor="w", pady=(0, 4))
+        filt_row = ctk.CTkFrame(filt_box, fg_color="transparent")
+        filt_row.pack(fill="x")
+
         filt_opts = [
-            "Không dùng filter",
-            "Soft Grain (Hạt phim điện ảnh)",
-            "Vintage 1980 (Tông màu cổ điển)",
-            "VHS Retro (Băng từ VHS)",
-            "Peach Fuzz (Tông ấm điện ảnh)",
-            "Lover Blue (Tông lạnh điện ảnh)",
-            "BW Retro (Trắng đen cổ điển)"
+            "Không dùng filter", "Soft Grain (Hạt phim điện ảnh)", "Vintage 1980 (Tông màu cổ điển)", "VHS Retro (Băng từ VHS)",
+            "Peach Fuzz (Tông ấm điện ảnh)", "Lover Blue (Tông lạnh điện ảnh)", "BW Retro (Trắng đen cổ điển)"
         ]
         ctk.CTkComboBox(
-            r_filt, variable=self.filter_var, values=filt_opts, width=260, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 10))
+            filt_row, variable=self.filter_var, values=filt_opts, width=240, height=30, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec
+        ).pack(side="left", padx=(0, 8))
 
-        ctk.CTkLabel(r_filt, text="Độ đậm:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(filt_row, text="Độ đậm:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
         ctk.CTkEntry(
-            r_filt, textvariable=self.filter_intensity_var, width=40, height=28, corner_radius=6,
+            filt_row, textvariable=self.filter_intensity_var, width=44, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
-        ctk.CTkLabel(r_filt, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(filt_row, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
 
-        # Row 4: SFX Suite
-        r_sfx = ctk.CTkFrame(card_pro, fg_color="transparent")
-        r_sfx.pack(fill="x", pady=4)
+        # Tùy chọn nâng cao (Canvas Blur & Gemini Watermark Remover)
+        adv_box = ctk.CTkFrame(tab_eff, fg_color="transparent")
+        adv_box.pack(fill="x", pady=(10, 0))
+
         ctk.CTkCheckBox(
-            r_sfx, text=" Âm thanh chuyển cảnh (SFX):",
-            variable=self.sfx_var, font=("Segoe UI", 12), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text, width=180
-        ).pack(side="left")
+            adv_box, text=" Làm mờ nền Canvas Blur khi ảnh không vừa khung hình (tránh viền đen)",
+            variable=self.blur_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=3)
 
-        sfx_opts = [
-            "Ngẫu nhiên phối hợp (Random)",
-            "Whoosh (Lướt gió điện ảnh)",
-            "Swoosh (Vút nhanh)",
-            "Pop (Nảy vui nhộn)",
-            "Ding (Keng chuông)"
-        ]
-        ctk.CTkComboBox(
-            r_sfx, variable=self.sfx_name_var, values=sfx_opts, width=260, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 10))
-
-        ctk.CTkLabel(r_sfx, text="Âm lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
-        ctk.CTkEntry(
-            r_sfx, textvariable=self.sfx_vol_var, width=40, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
-        ctk.CTkLabel(r_sfx, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
-
-        # Row 5: Pro Audio & Visual Toggles (2 columns)
-        r_toggles = ctk.CTkFrame(card_pro, fg_color="transparent")
-        r_toggles.pack(fill="x", pady=(4, 0))
-
-        tog_left = ctk.CTkFrame(r_toggles, fg_color="transparent")
-        tog_left.pack(side="left", fill="x", expand=True)
         ctk.CTkCheckBox(
-            tog_left, text=" Canvas Blur (Làm mờ nền khi ảnh không vừa khung - chống viền đen)",
-            variable=self.blur_var, font=("Segoe UI", 11), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=2)
-        ctk.CTkCheckBox(
-            tog_left, text=" Audio Ducking (Tự động hạ nhạc nền khi có tiếng voice đọc)",
-            variable=self.ducking_var, font=("Segoe UI", 11), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=2)
-
-        tog_right = ctk.CTkFrame(r_toggles, fg_color="transparent")
-        tog_right.pack(side="left", fill="x", expand=True)
-        ctk.CTkCheckBox(
-            tog_right, text=" Audio Fade In & Fade Out cho nhạc nền (Mở & tắt êm ái)",
-            variable=self.fade_var, font=("Segoe UI", 11), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=2)
-        ctk.CTkCheckBox(
-            tog_right, text=" Chèn CTA Kêu gọi Đăng ký (Subscribe) & tiếng chuông ở cuối",
-            variable=self.cta_sub_var, font=("Segoe UI", 11), corner_radius=6,
-            fg_color=self.c_indigo, hover_color=self.c_indigo_hover, text_color=self.c_text
-        ).pack(anchor="w", pady=2)
+            adv_box, text=" Xóa watermark ảnh Gemini AI tự động (Lossless Reverse Alpha Blending)",
+            variable=self.watermark_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=3)
 
         # ------------------------------------------------------------------
-        # CARD 4: 🎥  4. GÓC QUAY & CHUYỂN ĐỘNG CAMERA (CAMERA MOTION & KEN BURNS)
+        # TAB 3: CHUYỂN ĐỘNG CAMERA & KEYFRAMES
         # ------------------------------------------------------------------
-        card_kf = self._create_card(content, title="🎥  4. GÓC QUAY & CHUYỂN ĐỘNG CAMERA (CAMERA MOTION & KEN BURNS)")
+        cam_bar = ctk.CTkFrame(tab_cam, fg_color="transparent")
+        cam_bar.pack(fill="x", pady=(4, 8))
 
-        cam_bar = ctk.CTkFrame(card_kf, fg_color="transparent")
-        cam_bar.pack(fill="x", pady=(0, 8))
-
-        ctk.CTkLabel(cam_bar, text="Chế độ camera:", font=("Segoe UI", 12, "bold"), text_color=self.c_text).pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(cam_bar, text="Chế độ chuyển động:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(side="left", padx=(0, 6))
         cam_opts = [
-            "Smart Pacing AI (Tự phân tích nhịp câu)",
-            "Zoom In (Phóng to dần)",
-            "Zoom Out (Thu nhỏ dần)",
-            "Pan Left (Lia sang trái)",
-            "Pan Right (Lia sang phải)",
-            "Pan Up (Lia lên trên)",
-            "Pan Down (Lia xuống dưới)",
-            "Ngẫu nhiên góc quay (Dynamic Ken Burns)",
-            "Cố định (Không chuyển động)"
+            "Smart Pacing AI (Tự phân tích nhịp câu)", "Zoom In (Phóng to dần)", "Zoom Out (Thu nhỏ dần)",
+            "Pan Left (Lia sang trái)", "Pan Right (Lia sang phải)", "Pan Up (Lia lên trên)", "Pan Down (Lia xuống dưới)",
+            "Ngẫu nhiên góc quay (Dynamic Ken Burns)", "Cố định (Không chuyển động)"
         ]
         ctk.CTkComboBox(
-            cam_bar, variable=self.camera_motion_var, values=cam_opts, width=310, height=30, corner_radius=6,
+            cam_bar, variable=self.camera_motion_var, values=cam_opts, width=260, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border
-        ).pack(side="left", padx=(0, 14))
+        ).pack(side="left", padx=(0, 8))
 
-        ctk.CTkLabel(cam_bar, text="Tỷ lệ zoom:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
+        ctk.CTkLabel(cam_bar, text="Zoom:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
         ctk.CTkEntry(
-            cam_bar, textvariable=self.zoom_scale_var, width=44, height=30, corner_radius=6,
+            cam_bar, textvariable=self.zoom_scale_var, width=42, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, justify="center"
-        ).pack(side="left")
-        ctk.CTkLabel(cam_bar, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 10))
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(cam_bar, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 8))
 
-        kf_tools = ctk.CTkFrame(cam_bar, fg_color="transparent")
-        kf_tools.pack(side="right")
         ctk.CTkButton(
-            kf_tools, text="✓ Chọn Tất Cả", width=95, height=26, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10, "bold"),
+            cam_bar, text="Chọn tất cả", width=75, height=26, corner_radius=5,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
             command=lambda: self._select_all_motions(True)
-        ).pack(side="left", padx=2)
+        ).pack(side="right", padx=2)
+
         ctk.CTkButton(
-            kf_tools, text="✕ Bỏ Chọn", width=75, height=26, corner_radius=6,
+            cam_bar, text="Bỏ chọn", width=65, height=26, corner_radius=5,
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
             command=lambda: self._select_all_motions(False)
-        ).pack(side="left", padx=2)
+        ).pack(side="right", padx=2)
 
-        kf_grid = ctk.CTkFrame(card_kf, fg_color="transparent")
-        kf_grid.pack(fill="x")
+        # 2 Sub-columns for 6 motion keyframes
+        kf_grid = ctk.CTkFrame(tab_cam, fg_color="transparent")
+        kf_grid.pack(fill="both", expand=True)
 
-        # Column 1
-        col_k1 = ctk.CTkFrame(kf_grid, fg_color="#101726", corner_radius=10, border_color="#1f2c42", border_width=1)
-        col_k1.pack(side="left", fill="both", expand=True, padx=(0, 10), pady=4, ipady=4)
-
+        col_k1 = ctk.CTkFrame(kf_grid, fg_color="#14151a", corner_radius=8, border_color=self.c_card_border, border_width=1)
+        col_k1.pack(side="left", fill="both", expand=True, padx=(0, 5), pady=2)
         self._add_motion_zoom(col_k1, "Zoom In (Phóng to)", self.m_zoom_in_var, self.m_zoom_in_scale)
         self._add_motion_pan(col_k1, "Pan Up (Lia lên)", self.m_pan_up_var, self.m_pan_up_x, self.m_pan_up_y, self.m_pan_up_scale)
         self._add_motion_pan(col_k1, "Pan Left (Lia trái)", self.m_pan_left_var, self.m_pan_left_x, self.m_pan_left_y, self.m_pan_left_scale)
 
-        # Column 2
-        col_k2 = ctk.CTkFrame(kf_grid, fg_color="#101726", corner_radius=10, border_color="#1f2c42", border_width=1)
-        col_k2.pack(side="left", fill="both", expand=True, padx=(10, 0), pady=4, ipady=4)
-
+        col_k2 = ctk.CTkFrame(kf_grid, fg_color="#14151a", corner_radius=8, border_color=self.c_card_border, border_width=1)
+        col_k2.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=2)
         self._add_motion_zoom(col_k2, "Zoom Out (Thu nhỏ)", self.m_zoom_out_var, self.m_zoom_out_scale)
         self._add_motion_pan(col_k2, "Pan Down (Lia xuống)", self.m_pan_down_var, self.m_pan_down_x, self.m_pan_down_y, self.m_pan_down_scale)
         self._add_motion_pan(col_k2, "Pan Right (Lia phải)", self.m_pan_right_var, self.m_pan_right_x, self.m_pan_right_y, self.m_pan_right_scale)
 
         # ------------------------------------------------------------------
-        # CENTER ACTION BUTTON & PROGRESS BAR
+        # TAB 4: PHỤ ĐỀ & ÂM THANH
         # ------------------------------------------------------------------
-        act_box = ctk.CTkFrame(content, fg_color="transparent")
-        act_box.pack(fill="x", pady=(18, 12))
+        sub_top = ctk.CTkFrame(tab_sub, fg_color="transparent")
+        sub_top.pack(fill="x", pady=(4, 4))
+
+        ctk.CTkCheckBox(
+            sub_top, text=" Tự động chèn phụ đề SRT vào timeline",
+            variable=self.subtitles_var, font=("Segoe UI", 11, "bold"), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(side="left")
+
+        sub_row1 = ctk.CTkFrame(tab_sub, fg_color="transparent")
+        sub_row1.pack(fill="x", pady=2)
+
+        ctk.CTkLabel(sub_row1, text="Màu chữ:", font=("Segoe UI", 11), text_color=self.c_sub, width=65, anchor="w").pack(side="left")
+        sub_col_opts = [
+            "Vàng Nổi Bật (TikTok / Viral)", "Trắng Truyền Thống (Classic White)", "Xanh Công Nghệ (Cyan Modern)",
+            "Xanh Lá Tài Chính (Finance Green)", "Đỏ Ruby (Dramatic Red)", "Tím Neon (Neon Purple)"
+        ]
+        ctk.CTkComboBox(
+            sub_row1, variable=self.subtitle_color_var, values=sub_col_opts, width=200, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 8))
+
+        ctk.CTkLabel(sub_row1, text="Cỡ:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkEntry(
+            sub_row1, textvariable=self.sub_size_var, width=38, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left", padx=(0, 8))
+
+        sub_pos_opts = ["Dưới cùng (Chuẩn Shorts/Reels)", "Chính giữa màn hình", "Phía trên cùng"]
+        ctk.CTkComboBox(
+            sub_row1, variable=self.sub_pos_var, values=sub_pos_opts, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", fill="x", expand=True)
+
+        sub_row2 = ctk.CTkFrame(tab_sub, fg_color="transparent")
+        sub_row2.pack(fill="x", pady=2)
+
+        ctk.CTkLabel(sub_row2, text="Hiệu ứng:", font=("Segoe UI", 11), text_color=self.c_sub, width=65, anchor="w").pack(side="left")
+        sub_anim_opts = [
+            "Nảy chữ lên (Bounce Pop)", "Chạy từng chữ (Karaoke Reveal)", "Nhịp điệu vui nhộn (Playful Bounce)",
+            "Trượt mượt lên (Slide Up)", "Quét từ trái sang (Slide Right)", "Tĩnh (Không animation)"
+        ]
+        ctk.CTkComboBox(
+            sub_row2, variable=self.sub_anim_var, values=sub_anim_opts, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", fill="x", expand=True)
+
+        # SFX Row
+        sfx_row = ctk.CTkFrame(tab_sub, fg_color="transparent")
+        sfx_row.pack(fill="x", pady=(8, 4))
+
+        ctk.CTkCheckBox(
+            sfx_row, text=" Âm thanh chuyển cảnh (SFX):",
+            variable=self.sfx_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(side="left", padx=(0, 6))
+
+        sfx_opts = ["Ngẫu nhiên phối hợp (Random)", "Whoosh (Lướt gió điện ảnh)", "Swoosh (Vút nhanh)", "Pop (Nảy vui nhộn)", "Ding (Keng chuông)"]
+        ctk.CTkComboBox(
+            sfx_row, variable=self.sfx_name_var, values=sfx_opts, width=200, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border
+        ).pack(side="left", padx=(0, 8))
+
+        ctk.CTkLabel(sfx_row, text="Âm lượng:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
+        ctk.CTkEntry(
+            sfx_row, textvariable=self.sfx_vol_var, width=38, height=28, corner_radius=6,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+        ).pack(side="left", padx=(0, 2))
+        ctk.CTkLabel(sfx_row, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
+
+        # Audio enhancements checkboxes
+        aud_box = ctk.CTkFrame(tab_sub, fg_color="transparent")
+        aud_box.pack(fill="x", pady=(4, 0))
+
+        ctk.CTkCheckBox(
+            aud_box, text=" Audio Ducking (Tự động hạ nhỏ nhạc nền khi có tiếng voice)",
+            variable=self.ducking_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+
+        ctk.CTkCheckBox(
+            aud_box, text=" Audio Fade In & Fade Out cho nhạc nền (Mở và tắt êm ái)",
+            variable=self.fade_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+
+        ctk.CTkCheckBox(
+            aud_box, text=" Chèn CTA Kêu gọi Đăng ký (Subscribe) & chuông kết thúc video",
+            variable=self.cta_sub_var, font=("Segoe UI", 11), corner_radius=5,
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
+        ).pack(anchor="w", pady=2)
+
+        # ------------------------------------------------------------------
+        # ACTION BOX & RUN BUTTON
+        # ------------------------------------------------------------------
+        run_card = ctk.CTkFrame(right_col, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
+        run_card.pack(fill="x", pady=(0, 8), padx=2, ipady=4)
+
+        run_inner = ctk.CTkFrame(run_card, fg_color="transparent")
+        run_inner.pack(fill="x", padx=12, pady=8)
 
         self.btn_run = ctk.CTkButton(
-            act_box,
-            text="🚀  TẠO PROJECT CAPCUT NGAY",
-            font=("Segoe UI", 14, "bold"),
-            fg_color=self.c_indigo,
-            hover_color=self.c_indigo_hover,
-            corner_radius=12,
-            height=48,
-            width=340,
+            run_inner,
+            text="Bắt đầu tạo dự án CapCut",
+            font=("Segoe UI", 13, "bold"),
+            fg_color=self.c_accent,
+            hover_color=self.c_accent_hover,
+            corner_radius=8,
+            height=40,
             command=self._start_processing
         )
-        self.btn_run.pack(anchor="center")
-
-        # Smooth Progress Bar
-        p_frame = ctk.CTkFrame(act_box, fg_color="transparent")
-        p_frame.pack(fill="x", padx=10, pady=(12, 0))
+        self.btn_run.pack(fill="x", pady=(0, 6))
 
         self.progress_bar = ctk.CTkProgressBar(
-            p_frame, corner_radius=8, height=8, fg_color="#1e293b", progress_color=self.c_indigo
+            run_inner, corner_radius=6, height=6, fg_color="#121316", progress_color=self.c_accent
         )
         self.progress_bar.pack(fill="x")
         self.progress_bar.set(0)
 
         self.lbl_status = ctk.CTkLabel(
-            p_frame, text="Hệ thống sẵn sàng. Nhấn nút để bắt đầu tạo project CapCut.",
-            font=("Segoe UI", 11), text_color=self.c_sub
+            run_inner, text="Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.",
+            font=("Segoe UI", 10), text_color=self.c_sub
         )
-        self.lbl_status.pack(anchor="w", pady=(4, 0))
+        self.lbl_status.pack(anchor="w", pady=(3, 0))
 
         # ------------------------------------------------------------------
-        # CARD 5: 📊 NHẬT KÝ TIẾN TRÌNH CHI TIẾT
+        # CONSOLE LOG (Compact & Clean)
         # ------------------------------------------------------------------
-        card_log = self._create_card(content, title="📊  5. NHẬT KÝ TIẾN TRÌNH CHI TIẾT")
+        log_card = ctk.CTkFrame(right_col, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
+        log_card.pack(fill="both", expand=True, padx=2)
+
+        log_head = ctk.CTkFrame(log_card, fg_color="transparent")
+        log_head.pack(fill="x", padx=12, pady=(6, 2))
+        ctk.CTkLabel(log_head, text="Nhật ký tiến trình:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(side="left")
+
+        btn_clear_log = ctk.CTkButton(
+            log_head, text="Xóa log", width=55, height=22, corner_radius=4,
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 9),
+            command=lambda: self.console_textbox.delete("1.0", "end")
+        )
+        btn_clear_log.pack(side="right")
 
         self.console_textbox = ctk.CTkTextbox(
-            card_log, height=130, corner_radius=10,
+            log_card, height=100, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
-            text_color="#94a3b8", font=("Consolas", 11)
+            text_color="#888b96", font=("Consolas", 10)
         )
-        self.console_textbox.pack(fill="both", expand=True)
-        self._log("AutoCapCut Pro v2.5 sẵn sàng hoạt động với trọn bộ tính năng nâng cao.")
-        self._log("Vui lòng nạp thông tin và nhấn 'TẠO PROJECT CAPCUT NGAY'.")
+        self.console_textbox.pack(fill="both", expand=True, padx=12, pady=(0, 10))
+        self._log("AutoCapCut Studio sẵn sàng hoạt động.")
 
     # ------------------------------------------------------------------
     # CARD & ROW HELPERS
     # ------------------------------------------------------------------
     def _create_card(self, parent, title: str) -> ctk.CTkFrame:
         card = ctk.CTkFrame(
-            parent, fg_color=self.c_card, corner_radius=14,
+            parent, fg_color=self.c_card, corner_radius=10,
             border_color=self.c_card_border, border_width=1
         )
-        card.pack(fill="x", pady=(0, 14), padx=4, ipadx=14, ipady=12)
+        card.pack(fill="x", pady=(0, 10), ipadx=10, ipady=8)
 
         lbl = ctk.CTkLabel(
-            card, text=title, font=("Segoe UI", 13, "bold"), text_color="#ffffff"
+            card, text=title, font=("Segoe UI", 12, "bold"), text_color="#ffffff"
         )
-        lbl.pack(anchor="w", pady=(0, 8))
+        lbl.pack(anchor="w", padx=4, pady=(0, 6))
         return card
 
-    def _add_row(self, parent, label, var, placeholder, btn_text, btn_color, btn_hover, cmd):
+    def _add_row(self, parent, label, var, placeholder, btn_text, cmd):
         row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", pady=4)
+        row.pack(fill="x", pady=3)
 
         lbl = ctk.CTkLabel(
-            row, text=label, font=("Segoe UI", 12), text_color=self.c_text, width=190, anchor="w"
+            row, text=label, font=("Segoe UI", 11), text_color=self.c_text, width=140, anchor="w"
         )
         lbl.pack(side="left")
 
         entry = ctk.CTkEntry(
-            row, textvariable=var, placeholder_text=placeholder, corner_radius=8,
+            row, textvariable=var, placeholder_text=placeholder, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, text_color=self.c_text,
-            height=34
+            height=30, font=("Segoe UI", 11)
         )
         entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         btn = ctk.CTkButton(
-            row, text=btn_text, font=("Segoe UI", 11, "bold"), fg_color=btn_color,
-            hover_color=btn_hover, corner_radius=8, width=125, height=34, command=cmd
+            row, text=btn_text, font=("Segoe UI", 11), fg_color=self.c_btn_sec,
+            hover_color=self.c_btn_sec_h, corner_radius=6, width=110, height=30, command=cmd
         )
         btn.pack(side="right")
 
     def _add_motion_zoom(self, parent, title, var, scale_var):
         row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", padx=12, pady=6)
+        row.pack(fill="x", padx=10, pady=4)
 
         cb = ctk.CTkCheckBox(
-            row, text=f" {title}", variable=var, font=("Segoe UI", 12),
-            corner_radius=6, fg_color=self.c_indigo, hover_color=self.c_indigo_hover,
-            text_color=self.c_text, width=170
+            row, text=f" {title}", variable=var, font=("Segoe UI", 11),
+            corner_radius=5, fg_color=self.c_accent, hover_color=self.c_accent_hover,
+            text_color=self.c_text, width=150
         )
         cb.pack(side="left")
 
-        ctk.CTkLabel(row, text="Scale:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(4, 2))
+        ctk.CTkLabel(row, text="Scale:", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left", padx=(4, 2))
         e = ctk.CTkEntry(
-            row, textvariable=scale_var, width=54, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border, justify="center"
+            row, textvariable=scale_var, width=44, height=24, corner_radius=5,
+            fg_color=self.c_input, border_color=self.c_input_border, justify="center", font=("Segoe UI", 10)
         )
         e.pack(side="left", padx=2)
-        ctk.CTkLabel(row, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
+        ctk.CTkLabel(row, text="%", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left")
 
     def _add_motion_pan(self, parent, title, var, x_var, y_var, scale_var):
         row = ctk.CTkFrame(parent, fg_color="transparent")
-        row.pack(fill="x", padx=12, pady=6)
+        row.pack(fill="x", padx=10, pady=4)
 
         cb = ctk.CTkCheckBox(
-            row, text=f" {title}", variable=var, font=("Segoe UI", 12),
-            corner_radius=6, fg_color=self.c_indigo, hover_color=self.c_indigo_hover,
-            text_color=self.c_text, width=170
+            row, text=f" {title}", variable=var, font=("Segoe UI", 11),
+            corner_radius=5, fg_color=self.c_accent, hover_color=self.c_accent_hover,
+            text_color=self.c_text, width=150
         )
         cb.pack(side="left")
 
-        # X
-        ctk.CTkLabel(row, text="X:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(2, 2))
-        e_x = ctk.CTkEntry(row, textvariable=x_var, width=44, height=28, corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border, justify="center")
-        e_x.pack(side="left", padx=2)
+        ctk.CTkLabel(row, text="X:", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left", padx=(2, 2))
+        e_x = ctk.CTkEntry(row, textvariable=x_var, width=38, height=24, corner_radius=5, fg_color=self.c_input, border_color=self.c_input_border, justify="center", font=("Segoe UI", 10))
+        e_x.pack(side="left", padx=1)
 
-        # Y
-        ctk.CTkLabel(row, text="Y:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(4, 2))
-        e_y = ctk.CTkEntry(row, textvariable=y_var, width=44, height=28, corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border, justify="center")
-        e_y.pack(side="left", padx=2)
+        ctk.CTkLabel(row, text="Y:", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left", padx=(3, 2))
+        e_y = ctk.CTkEntry(row, textvariable=y_var, width=38, height=24, corner_radius=5, fg_color=self.c_input, border_color=self.c_input_border, justify="center", font=("Segoe UI", 10))
+        e_y.pack(side="left", padx=1)
 
-        # Scale
-        ctk.CTkLabel(row, text="Scale:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(4, 2))
-        e_s = ctk.CTkEntry(row, textvariable=scale_var, width=48, height=28, corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border, justify="center")
-        e_s.pack(side="left", padx=2)
-
-        ctk.CTkLabel(row, text="%", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left")
+        ctk.CTkLabel(row, text="S:", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left", padx=(3, 2))
+        e_s = ctk.CTkEntry(row, textvariable=scale_var, width=42, height=24, corner_radius=5, fg_color=self.c_input, border_color=self.c_input_border, justify="center", font=("Segoe UI", 10))
+        e_s.pack(side="left", padx=1)
+        ctk.CTkLabel(row, text="%", font=("Segoe UI", 10), text_color=self.c_sub).pack(side="left")
 
     # ------------------------------------------------------------------
     # ACTIONS & EVENT HANDLERS
@@ -943,7 +892,7 @@ class AutoCapCutApp(ctk.CTk):
             )
         else:
             self.lbl_scenes_count.configure(
-                text="0 cảnh", text_color=self.c_sub, fg_color="#1e293b"
+                text="0 cảnh", text_color=self.c_sub, fg_color="#1d2027"
             )
 
     def _copy_scenes(self):
@@ -951,9 +900,9 @@ class AutoCapCutApp(ctk.CTk):
         if text and text != SCENES_PLACEHOLDER.strip():
             self.clipboard_clear()
             self.clipboard_append(text)
-            self._log("[✓] Đã copy kịch bản vào clipboard!")
+            self._log("[Info] Đã sao chép kịch bản vào clipboard.")
         else:
-            self._log("[!] Kịch bản hiện đang rỗng.")
+            self._log("[Warn] Kịch bản hiện đang rỗng.")
 
     def _paste_scenes(self):
         try:
@@ -963,9 +912,9 @@ class AutoCapCutApp(ctk.CTk):
                 self.scenes_textbox.insert("1.0", cb_text)
                 self._update_scenes_count()
                 lines = [l for l in cb_text.splitlines() if l.strip()]
-                self._log(f"[✓] Đã dán {len(lines)} cảnh từ clipboard!")
+                self._log(f"[Info] Đã dán {len(lines)} cảnh từ clipboard.")
         except Exception:
-            self._log("[!] Clipboard không chứa văn bản hợp lệ.")
+            self._log("[Warn] Clipboard không chứa văn bản hợp lệ.")
 
     def _clear_scenes(self):
         self.scenes_textbox.delete("1.0", "end")
@@ -982,7 +931,7 @@ class AutoCapCutApp(ctk.CTk):
             self.scenes_textbox.delete("1.0", "end")
             self.scenes_textbox.insert("1.0", "\n".join(cleaned))
             self._update_scenes_count()
-            self._log(f"[✂️] Đã tự động tách kịch bản thành {len(cleaned)} câu (mỗi câu 1 dòng/cảnh)!")
+            self._log(f"[Action] Đã tách kịch bản thành {len(cleaned)} câu (mỗi câu 1 dòng).")
 
     def _clean_empty_lines(self):
         text = self.scenes_textbox.get("1.0", "end").strip()
@@ -992,7 +941,7 @@ class AutoCapCutApp(ctk.CTk):
         self.scenes_textbox.delete("1.0", "end")
         self.scenes_textbox.insert("1.0", "\n".join(lines))
         self._update_scenes_count()
-        self._log(f"[🧹] Đã dọn dẹp các dòng trống ({len(lines)} dòng hợp lệ)!")
+        self._log(f"[Action] Đã dọn dẹp dòng trống ({len(lines)} dòng hợp lệ).")
 
     def _select_all_motions(self, state: bool):
         self.m_zoom_in_var.set(state)
@@ -1001,7 +950,7 @@ class AutoCapCutApp(ctk.CTk):
         self.m_pan_down_var.set(state)
         self.m_pan_left_var.set(state)
         self.m_pan_right_var.set(state)
-        self._log(f"[🎥] {'Đã chọn tất cả' if state else 'Đã bỏ chọn tất cả'} chuyển động keyframe.")
+        self._log(f"[Action] {'Đã chọn tất cả' if state else 'Đã bỏ chọn tất cả'} chuyển động keyframe.")
 
     def _apply_preset(self, choice: str):
         if "TikTok" in choice or "Shorts" in choice:
@@ -1031,8 +980,8 @@ class AutoCapCutApp(ctk.CTk):
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
             self._select_all_motions(True)
-            self._log("[🎯] Đã áp dụng Preset: TikTok / Reels / Shorts Siêu Cuốn (9:16, Nhanh, SFX, Chữ Vàng)!")
-        elif "Điện Ảnh" in choice:
+            self._log("[Preset] Đã áp dụng: Video ngắn dọc TikTok / Shorts (9:16).")
+        elif "Điện ảnh" in choice or "YouTube" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
@@ -1059,8 +1008,8 @@ class AutoCapCutApp(ctk.CTk):
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
             self._select_all_motions(True)
-            self._log("[🎯] Đã áp dụng Preset: YouTube Kể Chuyện Điện Ảnh (16:9, Tông Ấm, Hạt Phim, Chữ Trắng)!")
-        elif "Tài Chính" in choice or "Tin Tức" in choice:
+            self._log("[Preset] Đã áp dụng: Video ngang điện ảnh YouTube (16:9).")
+        elif "Tài chính" in choice or "Bản tin" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Xanh Lá Tài Chính (Finance Green)")
@@ -1086,8 +1035,8 @@ class AutoCapCutApp(ctk.CTk):
             self.fade_var.set(True)
             self.cta_sub_var.set(True)
             self._select_all_motions(True)
-            self._log("[🎯] Đã áp dụng Preset: Tin Tức & Phân Tích Tài Chính (16:9, Chữ Xanh Lá)!")
-        elif "Tối Giản" in choice:
+            self._log("[Preset] Đã áp dụng: Bản tin & Tin tức tài chính (16:9).")
+        elif "Tối giản" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
@@ -1104,7 +1053,7 @@ class AutoCapCutApp(ctk.CTk):
             self.fade_var.set(True)
             self.cta_sub_var.set(False)
             self._select_all_motions(False)
-            self._log("[🎯] Đã áp dụng Preset: Tối Giản Siêu Tốc (16:9, Không SFX, Không Filter)!")
+            self._log("[Preset] Đã áp dụng: Tối giản nhanh (16:9).")
 
     def _browse_audio(self):
         files = filedialog.askopenfilenames(
@@ -1145,7 +1094,7 @@ class AutoCapCutApp(ctk.CTk):
                 self.scenes_textbox.insert("1.0", content)
                 self._update_scenes_count()
                 lines = [l for l in content.splitlines() if l.strip()]
-                self._log(f"[✓] Đã nạp {len(lines)} cảnh từ file: {os.path.basename(f)}")
+                self._log(f"[Info] Đã nạp {len(lines)} cảnh từ file: {os.path.basename(f)}")
             except Exception as e:
                 messagebox.showerror("Lỗi Đọc File", f"Không thể đọc file kịch bản: {e}")
 
@@ -1200,7 +1149,7 @@ class AutoCapCutApp(ctk.CTk):
             if voices and not self.audio_files_var.get():
                 self.audio_files_var.set(voices[0])
             self._update_scenes_count()
-            self._log("[✨] Đã tự động nạp các tệp mẫu sẵn có từ Desktop!")
+            self._log("[Info] Đã tự động nạp các tệp mẫu sẵn có từ Desktop.")
 
     def _log(self, text: str):
         self.console_textbox.insert("end", text + "\n")
@@ -1209,7 +1158,7 @@ class AutoCapCutApp(ctk.CTk):
     def _launch_capcut(self):
         exe = get_capcut_exe_path()
         if exe and os.path.exists(exe):
-            self._log(f"[+] Khởi chạy CapCut: {exe}")
+            self._log(f"[Action] Khởi chạy CapCut: {exe}")
             subprocess.Popen([exe])
         else:
             messagebox.showinfo("Khởi chạy CapCut", "Không tìm thấy CapCut.exe tự động. Vui lòng mở CapCut từ Desktop của bạn.")
@@ -1217,15 +1166,15 @@ class AutoCapCutApp(ctk.CTk):
     def _open_settings_dialog(self):
         dlg = ctk.CTkToplevel(self)
         dlg.title("Cài Đặt Thư Mục CapCut")
-        dlg.geometry("560x220")
+        dlg.geometry("540x200")
         dlg.configure(fg_color=self.c_bg)
         dlg.transient(self)
         dlg.grab_set()
 
-        ctk.CTkLabel(dlg, text="⚙️ Cài Đặt Thư Mục CapCut Drafts", font=("Segoe UI", 14, "bold"), text_color="#fff").pack(anchor="w", padx=20, pady=(16, 8))
+        ctk.CTkLabel(dlg, text="Cài Đặt Thư Mục CapCut Drafts", font=("Segoe UI", 13, "bold"), text_color="#fff").pack(anchor="w", padx=20, pady=(16, 6))
         ctk.CTkLabel(dlg, text="Đường dẫn lưu dự án CapCut (com.lveditor.draft):", font=("Segoe UI", 11), text_color=self.c_sub).pack(anchor="w", padx=20, pady=(0, 4))
 
-        e = ctk.CTkEntry(dlg, textvariable=self.draft_root_var, height=36, corner_radius=8, fg_color=self.c_input, border_color=self.c_input_border)
+        e = ctk.CTkEntry(dlg, textvariable=self.draft_root_var, height=34, corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border)
         e.pack(fill="x", padx=20, pady=(0, 10))
 
         def _pick_d():
@@ -1234,28 +1183,29 @@ class AutoCapCutApp(ctk.CTk):
                 self.draft_root_var.set(d)
 
         btn_row = ctk.CTkFrame(dlg, fg_color="transparent")
-        btn_row.pack(fill="x", padx=20, pady=8)
+        btn_row.pack(fill="x", padx=20, pady=6)
 
-        ctk.CTkButton(btn_row, text="📁 Duyệt Thư Mục...", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, command=_pick_d).pack(side="left")
-        ctk.CTkButton(btn_row, text="✓ Lưu Lại", fg_color=self.c_indigo, hover_color=self.c_indigo_hover, command=dlg.destroy).pack(side="right")
+        ctk.CTkButton(btn_row, text="Duyệt thư mục...", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, command=_pick_d).pack(side="left")
+        ctk.CTkButton(btn_row, text="Lưu lại", fg_color=self.c_accent, hover_color=self.c_accent_hover, command=dlg.destroy).pack(side="right")
 
     def _show_completed_dialog(self, data):
         dlg = ctk.CTkToplevel(self)
         dlg.title("Thành Công")
-        dlg.geometry("500x240")
+        dlg.geometry("480x220")
         dlg.configure(fg_color=self.c_bg)
         dlg.transient(self)
         dlg.grab_set()
 
-        ctk.CTkLabel(dlg, text="🎉 TẠO PROJECT CAPCUT THÀNH CÔNG!", font=("Segoe UI", 15, "bold"), text_color=self.c_emerald).pack(pady=(20, 8))
+        ctk.CTkLabel(dlg, text="TẠO DỰ ÁN CAPCUT THÀNH CÔNG", font=("Segoe UI", 14, "bold"), text_color=self.c_success).pack(pady=(18, 6))
+
         ctk.CTkLabel(
             dlg,
-            text=f"Dự án '{data['draft_name']}' ({data['total_scenes']} cảnh, {data['duration_seconds']/60:.2f} phút) đã được tạo sẵn trong CapCut với trọn bộ hiệu ứng Pro.",
-            font=("Segoe UI", 11), text_color=self.c_text, wraplength=440, justify="center"
+            text=f"Dự án '{data['draft_name']}' ({data['total_scenes']} cảnh, {data['duration_seconds']/60:.2f} phút) đã sẵn sàng trong CapCut.",
+            font=("Segoe UI", 11), text_color=self.c_text, wraplength=420, justify="center"
         ).pack(pady=(0, 16))
 
         btn_row = ctk.CTkFrame(dlg, fg_color="transparent")
-        btn_row.pack(pady=6)
+        btn_row.pack(pady=4)
 
         def _open_f():
             if os.path.exists(data['draft_dir']):
@@ -1270,8 +1220,8 @@ class AutoCapCutApp(ctk.CTk):
                 os.startfile(data['draft_dir'])
             dlg.destroy()
 
-        ctk.CTkButton(btn_row, text="📂 Mở Thư Mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, corner_radius=8, width=150, height=36, command=_open_f).pack(side="left", padx=8)
-        ctk.CTkButton(btn_row, text="🎬 Mở CapCut Ngay", fg_color=self.c_emerald, hover_color=self.c_emerald_hover, corner_radius=8, width=150, height=36, command=_open_cc).pack(side="left", padx=8)
+        ctk.CTkButton(btn_row, text="Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, corner_radius=6, width=140, height=34, command=_open_f).pack(side="left", padx=6)
+        ctk.CTkButton(btn_row, text="Mở CapCut ngay", fg_color=self.c_accent, hover_color=self.c_accent_hover, corner_radius=6, width=140, height=34, command=_open_cc).pack(side="left", padx=6)
 
     # ------------------------------------------------------------------
     # CORE PROCESS EXECUTION
@@ -1296,7 +1246,7 @@ class AutoCapCutApp(ctk.CTk):
             messagebox.showerror("Thiếu File SRT", "Vui lòng chọn file phụ đề SRT hợp lệ!")
             return
         if not scenes_content or scenes_content == SCENES_PLACEHOLDER.strip():
-            messagebox.showerror("Thiếu Kịch Bản", "Vui lòng dán kịch bản vào khung văn bản hoặc nhấn 'Đọc File .txt'!")
+            messagebox.showerror("Thiếu Kịch Bản", "Vui lòng dán kịch bản vào khung văn bản hoặc nhấn 'Đọc .txt'!")
             return
         if not media_dir or not os.path.isdir(media_dir):
             messagebox.showerror("Thiếu Thư Mục Media", "Vui lòng chọn thư mục chứa ảnh hoặc video!")
@@ -1354,7 +1304,6 @@ class AutoCapCutApp(ctk.CTk):
 
         sfx_name = self.sfx_name_var.get()
 
-        # Map subtitle color
         sub_col = "yellow"
         if "Trắng" in self.subtitle_color_var.get():
             sub_col = "white"
@@ -1381,7 +1330,7 @@ class AutoCapCutApp(ctk.CTk):
         }
 
         self.is_running = True
-        self.btn_run.configure(state="disabled", text="⏳  ĐANG XỬ LÝ TIẾN TRÌNH...")
+        self.btn_run.configure(state="disabled", text="Đang xử lý tiến trình...")
         self.progress_bar.set(0)
         self.console_textbox.delete("1.0", "end")
 
@@ -1429,33 +1378,26 @@ class AutoCapCutApp(ctk.CTk):
                 draft_root=draft_root or None,
                 bgm_paths=bgm_files,
                 sort_mode=sort_mode,
-                # Transitions
                 transition=trans_label,
                 transition_duration=trans_dur,
                 transition_mode=trans_mode,
-                # Clip In-Animations
                 clip_intro=clip_intro,
                 clip_intro_duration=clip_intro_dur,
                 clip_intro_mode=clip_intro_mode,
-                # Video Scene Effects
                 video_effect=video_effect,
                 video_effect_scope=video_effect_scope,
-                # Filters
                 filter_name=filter_name,
                 filter_intensity=filter_intensity,
-                # Camera Motions
                 camera_motion=cam_motion,
                 zoom_scale=zoom_scale,
                 keyframe_config=keyframe_config,
                 smart_pacing=smart_pacing,
                 canvas_blur=canvas_blur,
-                # Subtitles
                 import_subtitles=import_subs,
                 subtitle_style=sub_col,
                 subtitle_animation=sub_anim,
                 subtitle_font_size=sub_size,
                 subtitle_position=sub_pos,
-                # Audio Suite
                 enable_sfx=enable_sfx,
                 sfx_name=sfx_name,
                 sfx_volume=sfx_volume,
@@ -1482,24 +1424,24 @@ class AutoCapCutApp(ctk.CTk):
                     self._log(f"[{pct*100:5.1f}%] {msg}")
                 elif msg_type == 'success':
                     self.is_running = False
-                    self.btn_run.configure(state="normal", text="🚀  TẠO PROJECT CAPCUT NGAY")
+                    self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
                     self.last_draft_dir = data['draft_dir']
-                    self.lbl_status.configure(text="🎉 Tạo project CapCut thành công!")
+                    self.lbl_status.configure(text="Tạo project CapCut thành công!")
                     self.progress_bar.set(1.0)
-                    self._log("\n" + "=" * 60)
-                    self._log(f"🎉 TẠO PROJECT CAPCUT THÀNH CÔNG!")
-                    self._log(f"  • Dự án:       {data['draft_name']}")
-                    self._log(f"  • Tổng cảnh:   {data['total_scenes']} cảnh")
-                    self._log(f"  • Thời lượng:  {data['duration_seconds']:.2f}s ({(data['duration_seconds']/60):.2f} phút)")
-                    self._log(f"  • Thư mục:     {data['draft_dir']}")
-                    self._log("=" * 60)
+                    self._log("\n" + "=" * 50)
+                    self._log(f"TẠO DỰ ÁN CAPCUT THÀNH CÔNG")
+                    self._log(f"  Dự án:      {data['draft_name']}")
+                    self._log(f"  Tổng cảnh:  {data['total_scenes']} cảnh")
+                    self._log(f"  Thời lượng: {data['duration_seconds']:.2f}s ({(data['duration_seconds']/60):.2f} phút)")
+                    self._log(f"  Thư mục:    {data['draft_dir']}")
+                    self._log("=" * 50)
                     self._show_completed_dialog(data)
 
                 elif msg_type == 'error':
                     self.is_running = False
-                    self.btn_run.configure(state="normal", text="🚀  TẠO PROJECT CAPCUT NGAY")
-                    self.lbl_status.configure(text=f"❌ Lỗi: {data}")
-                    self._log(f"\n[X] ĐÃ XẢY RA LỖI: {data}")
+                    self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    self.lbl_status.configure(text=f"Lỗi: {data}")
+                    self._log(f"\n[Error] ĐÃ XẢY RA LỖI: {data}")
                     messagebox.showerror("Lỗi Quá Trình", f"Đã xảy ra lỗi:\n{data}")
         except queue.Empty:
             pass

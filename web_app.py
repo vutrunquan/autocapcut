@@ -1,8 +1,8 @@
 """
-Web Interface for AutoCapCut Pro.
-Designed with a soothing, eye-friendly Slate & Indigo aesthetic,
-balanced cards, intuitive inputs, 1-Click Pro Presets, live scene alignment preview,
-and real-time WebSocket progress logs.
+Web Interface for AutoCapCut Studio.
+Designed with a professional Graphite Studio Dark aesthetic,
+ergonomic 2-column layout with tabbed controls,
+soothing eye-friendly palette, and real-time WebSocket progress logs.
 """
 
 import os
@@ -34,7 +34,7 @@ from autocapcut import (
     format_time_ms
 )
 
-app = FastAPI(title="AutoCapCut Pro Web")
+app = FastAPI(title="AutoCapCut Studio Web")
 
 
 class PreviewRequest(BaseModel):
@@ -216,517 +216,556 @@ def index_page():
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoCapCut Pro - Tự Động Khớp Media & Âm Thanh Chuyên Nghiệp</title>
+  <title>AutoCapCut Studio - Tự Động Biên Tập Video CapCut</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0b0f19;
-      --card: #161f30;
-      --border: #22314a;
-      --input: #0d131f;
-      --input-border: #2a3b59;
-      --text: #f8fafc;
-      --sub: #94a3b8;
-      --accent: #4f46e5;
-      --accent-hover: #4338ca;
-      --success: #059669;
-      --sky: #0284c7;
-      --amber: #d97706;
-      --purple: #7c3aed;
-      --card-inner: rgba(13, 19, 31, 0.7);
+      --bg: #121316;
+      --card: #18191e;
+      --border: #26272f;
+      --input: #111215;
+      --input-border: #2e3039;
+      --text: #e3e4e8;
+      --sub: #888b96;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --btn-sec: #202127;
+      --btn-sec-hover: #2c2d36;
+      --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
       background-color: var(--bg);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.12) 0px, transparent 40%),
-        radial-gradient(at 100% 100%, rgba(2, 132, 199, 0.08) 0px, transparent 40%);
       color: var(--text);
-      padding: 24px;
+      padding: 16px 24px;
       min-height: 100vh;
       font-size: 13px;
     }
-    .container { max-width: 1140px; margin: 0 auto; }
-    
+    .container { max-width: 1240px; margin: 0 auto; }
+
     /* Top Header */
     header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
     }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .brand-icon {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: linear-gradient(135deg, #4f46e5, #0284c7);
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-badge {
+      width: 32px; height: 32px; border-radius: 6px;
+      background: var(--accent); color: #fff;
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px; box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3);
+      font-size: 13px; font-weight: 700;
     }
-    .brand-title h1 { font-size: 20px; font-weight: 700; color: #fff; }
-    .brand-title p { font-size: 12px; color: var(--sub); margin-top: 2px; }
-    .header-actions { display: flex; gap: 8px; }
+    .brand-title h1 { font-size: 17px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .brand-title p { font-size: 11px; color: var(--sub); margin-top: 2px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
 
-    /* Preset Banner */
-    .preset-card {
-      background: #131c2e; border: 1px solid #2b3d5b; border-radius: 12px;
-      padding: 12px 18px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 14px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    /* Buttons */
+    .btn {
+      padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid transparent; transition: all 0.15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      font-family: inherit;
     }
-    .preset-title { font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+    .btn-primary {
+      background: var(--accent); color: #fff; border-color: var(--accent);
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: var(--btn-sec); color: var(--text); border-color: var(--border);
+    }
+    .btn-secondary:hover { background: var(--btn-sec-hover); border-color: #3b3d4a; }
+
+    /* 2-Column Grid Layout */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 46% 54%;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 960px) {
+      .workspace-grid { grid-template-columns: 1fr; }
+    }
 
     /* Cards */
     .card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 14px;
     }
     .card-title {
-      font-size: 14px; font-weight: 700; color: #fff;
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;
+      font-size: 12px; font-weight: 700; color: #ffffff;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;
     }
 
     /* Form Rows */
-    .form-row { display: flex; align-items: center; margin-bottom: 12px; gap: 12px; }
-    .form-row label { width: 175px; flex-shrink: 0; color: var(--text); font-weight: 500; font-size: 13px; }
+    .form-row { display: flex; align-items: center; margin-bottom: 8px; gap: 8px; }
+    .form-row label { width: 140px; flex-shrink: 0; color: var(--text); font-weight: 500; font-size: 12px; }
     input[type="text"], select, textarea {
       background: var(--input); color: var(--text); border: 1px solid var(--input-border);
-      border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none;
-      transition: all 0.2s; font-family: inherit;
+      border-radius: 6px; padding: 6px 10px; font-size: 12px; outline: none;
+      transition: border-color 0.15s; font-family: inherit;
     }
     input[type="text"]:focus, select:focus, textarea:focus { border-color: var(--accent); }
     input[type="text"] { flex: 1; }
-    
-    /* Buttons */
-    .btn {
-      padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600;
-      cursor: pointer; border: none; transition: all 0.2s;
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-      color: #fff; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
-    }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45); }
-    .btn-secondary { background: #1e293b; color: var(--text); }
-    .btn-secondary:hover { background: #334155; }
-    .btn-purple { background: var(--purple); color: #fff; }
-    .btn-purple:hover { background: #6d28d9; }
 
-    /* Scenes Area */
+    /* Scenes Box */
     .scenes-box {
-      border: 1px solid var(--border); border-radius: 10px; background: var(--input);
-      padding: 12px; margin-bottom: 12px;
+      border: 1px solid var(--input-border); border-radius: 8px; background: var(--input);
+      padding: 10px; margin-top: 4px;
     }
     .scenes-tools { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .scenes-badge { background: #1e293b; color: var(--sub); padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; margin-left: 8px; }
-    textarea { width: 100%; height: 110px; resize: vertical; border: none; padding: 0; background: transparent; }
+    .scenes-badge {
+      background: #1e2027; color: var(--sub); padding: 2px 8px; border-radius: 8px;
+      font-size: 10px; font-weight: 600; margin-left: 6px;
+    }
+    textarea {
+      width: 100%; height: 160px; resize: vertical; border: none; padding: 0;
+      background: transparent; color: var(--text); line-height: 1.5; font-size: 12px;
+    }
 
-    /* Pro Features Grid */
-    .pro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text); font-size: 12.5px; }
-    .checkbox-label input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+    /* Tabs Component */
+    .tab-header {
+      display: flex; gap: 4px; background: var(--input); border: 1px solid var(--border);
+      border-radius: 8px; padding: 3px; margin-bottom: 14px;
+    }
+    .tab-btn {
+      flex: 1; padding: 7px 10px; font-size: 11px; font-weight: 600; color: var(--sub);
+      background: transparent; border: none; border-radius: 6px; cursor: pointer;
+      transition: all 0.15s; text-align: center; font-family: inherit;
+    }
+    .tab-btn:hover { color: var(--text); background: var(--btn-sec-hover); }
+    .tab-btn.active { background: var(--accent); color: #fff; }
 
-    /* Motions Grid */
-    .motions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Checkbox & Motion Cards */
+    .checkbox-label {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      color: var(--text); font-size: 12px;
+    }
+    .checkbox-label input[type="checkbox"] { accent-color: var(--accent); width: 14px; height: 14px; }
+
+    .motions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .motion-card {
-      background: var(--card-inner); border: 1px solid #1f2c42;
-      border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+      background: #14151a; border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
     }
-    .motion-row { display: flex; align-items: center; gap: 8px; }
-    .motion-row input[type="text"] { width: 48px; text-align: center; padding: 4px; font-size: 12px; flex: none; }
-    .motion-row label { display: flex; align-items: center; gap: 6px; width: 120px; font-weight: 500; cursor: pointer; }
-    .motion-row input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+    .motion-row { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+    .motion-row input[type="text"] { width: 38px; text-align: center; padding: 2px 4px; font-size: 11px; flex: none; height: 22px; }
+    .motion-row label { display: flex; align-items: center; gap: 4px; width: 95px; font-weight: 500; cursor: pointer; }
+    .motion-row input[type="checkbox"] { accent-color: var(--accent); width: 13px; height: 13px; }
 
-    /* Console Box */
+    /* Progress & Console */
+    .progress-bar-bg {
+      width: 100%; height: 6px; background: var(--input); border-radius: 999px;
+      overflow: hidden; margin-top: 8px; border: 1px solid var(--border);
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--accent); transition: width 0.2s;
+    }
+
     .console-box {
-      background: #090d16; border: 1px solid var(--border); border-radius: 10px;
-      padding: 14px; height: 180px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
-      font-size: 12px; color: #94a3b8; white-space: pre-wrap; line-height: 1.5;
+      background: var(--input); border: 1px solid var(--input-border); border-radius: 6px;
+      padding: 10px; height: 110px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: var(--sub); white-space: pre-wrap; line-height: 1.45;
     }
-
-    /* Progress bar */
-    .progress-bar-bg { width: 100%; height: 6px; background: #1e293b; border-radius: 999px; overflow: hidden; margin-top: 14px; }
-    .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), var(--sky)); transition: width 0.3s; }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Top Header -->
     <header>
       <div class="brand">
-        <div class="brand-icon">⚡</div>
+        <div class="brand-badge">AC</div>
         <div class="brand-title">
-          <h1>AutoCapCut Pro v2.5</h1>
-          <p>Hệ thống tự động biên tập video AI chuyên nghiệp cho CapCut PC</p>
+          <h1>AutoCapCut Studio</h1>
+          <p>Đồng bộ media, phụ đề & biên tập timeline CapCut tự động</p>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-secondary" onclick="autoLoadSamples()">✨ Tự Động Điền</button>
-        <button class="btn btn-secondary" onclick="launchCapCut()">🎬 Mở CapCut</button>
+        <span style="color: var(--sub); font-size: 11px;">Mẫu nhanh:</span>
+        <select id="preset_sel" onchange="applyPreset(this.value)" style="width: 250px; font-size: 11px;">
+          <option value="custom">Tùy chỉnh thủ công (Custom)</option>
+          <option value="tiktok">Video ngắn dọc TikTok / Shorts (9:16)</option>
+          <option value="cinematic">Video ngang điện ảnh YouTube (16:9)</option>
+          <option value="finance">Bản tin & Tin tức tài chính (16:9)</option>
+          <option value="minimal">Tối giản nhanh (16:9)</option>
+        </select>
+        <button class="btn btn-secondary" onclick="autoLoadSamples()">Tự động điền</button>
+        <button class="btn btn-secondary" onclick="launchCapCut()">Mở CapCut</button>
       </div>
     </header>
 
-    <!-- Card 1: Data inputs -->
-    <div class="card">
-      <div class="card-title"><span>📁 1. NGUỒN DỮ LIỆU ĐẦU VÀO</span></div>
-      <div class="form-row">
-        <label>File Voice (Âm thanh):</label>
-        <input type="text" id="voice_paths" placeholder="Đường dẫn 1 hoặc nhiều file audio (.wav, .mp3, .m4a)...">
-      </div>
-      <div class="form-row">
-        <label>File Phụ Đề (.srt):</label>
-        <input type="text" id="srt_path" placeholder="Đường dẫn đến file phụ đề .srt...">
-      </div>
-
-      <!-- Scenes Textarea -->
-      <div class="scenes-box">
-        <div class="scenes-tools">
-          <div style="display: flex; align-items: center;">
-            <span style="font-weight: 600; color: #fff;">Kịch Bản Phân Cảnh (Mỗi dòng 1 ảnh/video):</span>
-            <span class="scenes-badge" id="scenes_count">0 dòng</span>
+    <!-- Main 2-Column Workspace -->
+    <div class="workspace-grid">
+      <!-- LEFT COLUMN: Inputs & Script -->
+      <div>
+        <!-- Card 1: Data inputs -->
+        <div class="card">
+          <div class="card-title">1. Dữ Liệu Đầu Vào</div>
+          <div class="form-row">
+            <label>File Voice (Âm thanh):</label>
+            <input type="text" id="voice_paths" placeholder="Đường dẫn file audio (.wav, .mp3)...">
           </div>
-          <div style="display: flex; gap: 5px;">
-            <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="copyScenes()">📋 Copy</button>
-            <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="splitSentences()">✂️ Tách Câu</button>
-            <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="cleanEmptyLines()">🧹 Dọn Dòng</button>
-            <button class="btn btn-secondary" style="padding: 4px 8px;" onclick="clearScenes()">✕</button>
+          <div class="form-row">
+            <label>File Phụ Đề (.srt):</label>
+            <input type="text" id="srt_path" placeholder="Đường dẫn file phụ đề .srt...">
+          </div>
+          <div class="form-row">
+            <label>Thư Mục Media:</label>
+            <input type="text" id="images_dir" placeholder="Thư mục chứa ảnh hoặc video...">
+          </div>
+          <div class="form-row">
+            <label>Nhạc Nền (BGM):</label>
+            <input type="text" id="bgm_paths" placeholder="File nhạc nền (tùy chọn)...">
+            <span style="color: var(--sub); font-size: 11px;">Vol:</span>
+            <input type="text" id="bgm_volume" value="15" style="width: 36px; text-align: center; flex: none;">
+            <span style="color: var(--sub); font-size: 11px;">%</span>
+            <button class="btn btn-secondary" style="padding: 4px 8px;" onclick="document.getElementById('bgm_paths').value=''">✕</button>
+          </div>
+          <div class="form-row">
+            <label>Tên Dự Án CapCut:</label>
+            <input type="text" id="project_name" value="AutoCapCut_Project">
           </div>
         </div>
-        <textarea id="scenes_text" oninput="updateScenesCount()" placeholder="Chia kịch bản thành từng câu, mỗi câu một dòng rồi dán vào đây...
+
+        <!-- Card 2: Script Textarea -->
+        <div class="card">
+          <div class="card-title">
+            <span>2. Kịch Bản Phân Cảnh (Mỗi dòng 1 media)</span>
+            <span class="scenes-badge" id="scenes_count">0 cảnh đã nạp</span>
+          </div>
+          <div class="scenes-box">
+            <div class="scenes-tools">
+              <div style="display: flex; gap: 4px;">
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="splitSentences()">Tách câu</button>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="cleanEmptyLines()">Dọn dòng</button>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="copyScenes()">Copy</button>
+                <button class="btn btn-secondary" style="padding: 3px 8px; font-size: 11px;" onclick="clearScenes()">✕</button>
+              </div>
+            </div>
+            <textarea id="scenes_text" oninput="updateScenesCount()" placeholder="Chia kịch bản thành từng câu, mỗi câu một dòng rồi dán vào đây...
 • Mỗi dòng tương ứng với 1 ảnh hoặc video.
-• Tool sẽ tự động căn thời gian media theo đúng giọng đọc của dòng đó."></textarea>
-      </div>
-
-      <div class="form-row">
-        <label>Thư Mục Chứa Media:</label>
-        <input type="text" id="images_dir" placeholder="Thư mục chứa ảnh hoặc video (001.jpg, 002.jpg...)...">
-      </div>
-
-      <div class="form-row">
-        <label>Nhạc Nền (BGM - Tùy chọn):</label>
-        <input type="text" id="bgm_paths" placeholder="File nhạc nền (BGM)...">
-        <span style="color: var(--sub); font-size: 12px; margin-left: 4px;">Âm lượng:</span>
-        <input type="text" id="bgm_volume" value="15" style="width: 44px; text-align: center; flex: none;">
-        <span style="color: var(--sub); font-size: 12px;">%</span>
-        <button class="btn btn-secondary" style="padding: 6px 12px;" onclick="document.getElementById('bgm_paths').value=''">✕ Xóa</button>
-      </div>
-
-      <div class="form-row">
-        <label>Tên Dự Án CapCut:</label>
-        <input type="text" id="project_name" value="AutoCapCut_Project">
-      </div>
-    </div>
-
-    <!-- 1-Click Pro Preset Banner -->
-    <div class="preset-card">
-      <div class="preset-title">🎯 BỘ THIẾT LẬP NHANH (1-CLICK PRO PRESETS):</div>
-      <select id="preset_sel" onchange="applyPreset(this.value)" style="flex: 1; max-width: 580px; border-color: var(--accent);">
-        <option value="custom">⚙️ Tùy Chỉnh Thủ Công (Custom)</option>
-        <option value="tiktok">🔥 TikTok / Reels / Shorts Siêu Cuốn (9:16, Nhanh, SFX, Chữ Vàng)</option>
-        <option value="cinematic">🎬 YouTube Kể Chuyện Điện Ảnh (16:9, Tông Ấm, Hạt Phim, Chữ Trắng)</option>
-        <option value="finance">💼 Tin Tức & Phân Tích Tài Chính (16:9, Chữ Xanh Lá, Fade Wipe)</option>
-        <option value="minimal">⚡ Tối Giản Siêu Tốc (16:9, Không SFX, Không Filter)</option>
-      </select>
-    </div>
-
-    <!-- Card 2: Subtitles & Transitions -->
-    <div class="card">
-      <div class="card-title"><span>⚙️ 2. PHỤ ĐỀ, CHUYỂN CẢNH & KHUNG HÌNH</span></div>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <!-- Left: Subtitles & Watermark -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <label class="checkbox-label" style="font-weight: 600;">
-            <input type="checkbox" id="cb_subs" checked>
-            Tự động chèn phụ đề SRT vào video
-          </label>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: var(--sub); font-size: 12px; width: 75px;">Màu chữ:</span>
-            <select id="sub_color" style="flex: 1;">
-              <option value="yellow">Vàng Nổi Bật (TikTok / Viral)</option>
-              <option value="white">Trắng Truyền Thống (Classic White)</option>
-              <option value="cyan">Xanh Công Nghệ (Cyan Modern)</option>
-              <option value="green">Xanh Lá Tài Chính (Finance Green)</option>
-              <option value="red">Đỏ Ruby (Dramatic Red)</option>
-              <option value="purple">Tím Neon (Neon Purple)</option>
-            </select>
-            <span style="color: var(--sub); font-size: 12px;">Cỡ:</span>
-            <input type="text" id="sub_size" value="8.5" style="width: 44px; text-align: center; flex: none;">
-          </div>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="color: var(--sub); font-size: 12px; width: 75px;">Hiệu ứng:</span>
-            <select id="sub_anim" style="flex: 1;">
-              <option value="bounce">Nảy chữ lên (Bounce Pop)</option>
-              <option value="karaoke">Chạy từng chữ (Karaoke Reveal)</option>
-              <option value="playful">Nhịp điệu vui nhộn (Playful Bounce)</option>
-              <option value="slide up">Trượt mượt lên (Slide Up)</option>
-              <option value="slide right">Quét từ trái sang (Slide Right)</option>
-              <option value="none">Tĩnh (Không animation)</option>
-            </select>
-            <select id="sub_pos" style="width: 140px; flex: none;">
-              <option value="bottom">Dưới cùng</option>
-              <option value="center">Chính giữa</option>
-              <option value="top">Phía trên</option>
-            </select>
-          </div>
-          <label class="checkbox-label" style="margin-top: 4px;">
-            <input type="checkbox" id="cb_wm" checked>
-            Xóa watermark Gemini AI (Reverse Alpha Blending - Lossless)
-          </label>
-        </div>
-
-        <!-- Right: Format & Transitions -->
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="color: var(--sub); width: 110px;">Tỉ lệ & Sắp xếp:</span>
-            <select id="aspect_ratio" style="flex: 1;">
-              <option value="16:9">16:9 (Ngang)</option>
-              <option value="9:16">9:16 (Dọc - TikTok/Reels)</option>
-              <option value="1:1">1:1 (Vuông)</option>
-            </select>
-            <select id="sort_mode" style="flex: 1;">
-              <option value="abc">Sắp xếp ABC</option>
-              <option value="oldest_first">Cũ đến Mới</option>
-              <option value="newest_first">Mới đến Cũ</option>
-            </select>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="color: var(--sub); width: 110px;">Chuyển cảnh:</span>
-            <select id="transition_sel" style="flex: 1;">
-              <option value="none">Không transition</option>
-              <option value="random">Ngẫu nhiên (Random)</option>
-              <option value="dissolve">Mờ chồng (Dissolve)</option>
-              <option value="black fade">Mờ đen (Black Fade)</option>
-              <option value="white flash">Chớp trắng (White Flash)</option>
-              <option value="swipe left">Gạt sang trái (Swipe Left)</option>
-              <option value="corner slide">Trượt góc (Corner Slide)</option>
-              <option value="flip zoom">Lật thu phóng (Flip Zoom)</option>
-              <option value="zoom">Thu phóng nhanh (Zoom)</option>
-              <option value="signal glitch">Nhiễu sóng (Signal Glitch)</option>
-              <option value="slide drop">Rơi trượt (Slide Drop)</option>
-              <option value="slide interface">Trượt giao diện (Slide Interface)</option>
-              <option value="snap zoom">Búng zoom (Snap Zoom)</option>
-              <option value="light wipe">Vệt sáng quét (Light Wipe)</option>
-            </select>
-            <span style="color: var(--sub); font-size: 11px;">Thời lượng:</span>
-            <input type="text" id="trans_dur" value="0.5" style="width: 40px; text-align: center; flex: none;">
-            <span style="color: var(--sub); font-size: 11px;">s</span>
-          </div>
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="color: var(--sub); width: 110px;">Áp dụng:</span>
-            <select id="trans_mode" style="flex: 1;">
-              <option value="all">Tất cả phân cảnh (All)</option>
-              <option value="random">Ngẫu nhiên đổi hiệu ứng (Random)</option>
-              <option value="alternate">Xen kẽ các cảnh (Alternate)</option>
-            </select>
+• Phần mềm sẽ tự động căn thời gian media theo đúng giọng đọc của dòng đó."></textarea>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Card 3: Pro Video Effects, Intros & Filters -->
-    <div class="card">
-      <div class="card-title"><span>✨ 3. HIỆU ỨNG CAPCUT, HOẠT ẢNH & BỘ LỌC ĐIỆN ẢNH</span></div>
-      
-      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px;">
-        <!-- Row 1: Clip In-Animation -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="color: var(--text); font-weight: 500; width: 180px;">Hoạt ảnh mở đầu (Intro):</span>
-          <select id="clip_intro_sel" style="flex: 1;">
-            <option value="none">Không animation</option>
-            <option value="random">Ngẫu nhiên (Random)</option>
-            <option value="zoom in">Thu phóng vào (Zoom In)</option>
-            <option value="dynamic zoom in">Phóng to năng động (Dynamic Zoom In)</option>
-            <option value="dynamic zoom out">Thu nhỏ năng động (Dynamic Zoom Out)</option>
-            <option value="fade in">Mờ dần xuất hiện (Fade In)</option>
-            <option value="blur fade in">Mờ ảo tỏ dần (Blur Fade In)</option>
-            <option value="shake horizontal">Lắc ngang nảy (Horizontal Shake)</option>
-            <option value="shake vertical">Lắc dọc nảy (Vertical Shake)</option>
-            <option value="slide up">Trượt từ dưới lên (Slide Up)</option>
-            <option value="slide down">Trượt từ trên xuống (Slide Down)</option>
-            <option value="slide right">Trượt từ trái sang (Slide Right)</option>
-            <option value="slide left">Trượt từ phải sang (Slide Left)</option>
-            <option value="spin open">Xoay mở màn (Spin Open)</option>
-          </select>
-          <span style="color: var(--sub); font-size: 11px;">Thời lượng:</span>
-          <input type="text" id="clip_intro_dur" value="0.8" style="width: 40px; text-align: center; flex: none;">
-          <span style="color: var(--sub); font-size: 11px;">s</span>
-          <select id="clip_intro_mode" style="width: 170px; flex: none;">
-            <option value="all">Tất cả phân cảnh</option>
-            <option value="random">Ngẫu nhiên xen kẽ</option>
-            <option value="first_only">Chỉ cảnh đầu tiên</option>
-          </select>
+      <!-- RIGHT COLUMN: Tabbed Controls & Action Box -->
+      <div>
+        <div class="card" style="padding-bottom: 12px;">
+          <!-- Tab Headers -->
+          <div class="tab-header">
+            <button class="tab-btn active" data-tab="tab_tr" onclick="switchTab('tab_tr')">Chuyển cảnh & Mở đầu</button>
+            <button class="tab-btn" data-tab="tab_eff" onclick="switchTab('tab_eff')">Hiệu ứng & Bộ lọc</button>
+            <button class="tab-btn" data-tab="tab_cam" onclick="switchTab('tab_cam')">Chuyển động Camera</button>
+            <button class="tab-btn" data-tab="tab_sub" onclick="switchTab('tab_sub')">Phụ đề & Âm thanh</button>
+          </div>
+
+          <!-- TAB 1: Transitions & Intros -->
+          <div id="tab_tr" class="tab-content active">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div class="form-row">
+                <label>Khung hình & Sắp xếp:</label>
+                <select id="aspect_ratio" style="flex: 1;">
+                  <option value="16:9">16:9 (Ngang - YouTube, Facebook)</option>
+                  <option value="9:16">9:16 (Dọc - TikTok, Reels, Shorts)</option>
+                  <option value="1:1">1:1 (Vuông - Instagram, Post)</option>
+                </select>
+                <select id="sort_mode" style="flex: 1;">
+                  <option value="abc">Sắp xếp ABC</option>
+                  <option value="oldest_first">Cũ đến Mới</option>
+                  <option value="newest_first">Mới đến Cũ</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label>Chuyển cảnh:</label>
+                <select id="transition_sel" style="flex: 1;">
+                  <option value="none">Không transition</option>
+                  <option value="random">Ngẫu nhiên (Random)</option>
+                  <option value="dissolve">Mờ chồng (Dissolve)</option>
+                  <option value="black fade">Mờ đen (Black Fade)</option>
+                  <option value="white flash">Chớp trắng (White Flash)</option>
+                  <option value="swipe left">Gạt sang trái (Swipe Left)</option>
+                  <option value="corner slide">Trượt góc (Corner Slide)</option>
+                  <option value="flip zoom">Lật thu phóng (Flip Zoom)</option>
+                  <option value="zoom">Thu phóng nhanh (Zoom)</option>
+                  <option value="signal glitch">Nhiễu sóng (Signal Glitch)</option>
+                  <option value="slide drop">Rơi trượt (Slide Drop)</option>
+                  <option value="slide interface">Trượt giao diện (Slide Interface)</option>
+                  <option value="snap zoom">Búng zoom (Snap Zoom)</option>
+                  <option value="light wipe">Vệt sáng quét (Light Wipe)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Thời lượng:</span>
+                <input type="text" id="trans_dur" value="0.5" style="width: 36px; text-align: center; flex: none;">
+                <span style="color: var(--sub); font-size: 11px;">s</span>
+              </div>
+              <div class="form-row">
+                <label>Áp dụng chuyển cảnh:</label>
+                <select id="trans_mode" style="flex: 1;">
+                  <option value="all">Tất cả phân cảnh (All)</option>
+                  <option value="random">Ngẫu nhiên đổi hiệu ứng (Random)</option>
+                  <option value="alternate">Xen kẽ các cảnh (Alternate)</option>
+                </select>
+              </div>
+
+              <div class="form-row" style="margin-top: 4px; border-top: 1px solid var(--border); padding-top: 10px;">
+                <label>Hoạt ảnh mở đầu (Intro):</label>
+                <select id="clip_intro_sel" style="flex: 1;">
+                  <option value="none">Không animation</option>
+                  <option value="random">Ngẫu nhiên (Random)</option>
+                  <option value="zoom in">Thu phóng vào (Zoom In)</option>
+                  <option value="dynamic zoom in">Phóng to năng động (Dynamic Zoom In)</option>
+                  <option value="dynamic zoom out">Thu nhỏ năng động (Dynamic Zoom Out)</option>
+                  <option value="fade in">Mờ dần xuất hiện (Fade In)</option>
+                  <option value="blur fade in">Mờ ảo tỏ dần (Blur Fade In)</option>
+                  <option value="shake horizontal">Lắc ngang nảy (Horizontal Shake)</option>
+                  <option value="shake vertical">Lắc dọc nảy (Vertical Shake)</option>
+                  <option value="slide up">Trượt từ dưới lên (Slide Up)</option>
+                  <option value="slide down">Trượt từ trên xuống (Slide Down)</option>
+                  <option value="slide right">Trượt từ trái sang (Slide Right)</option>
+                  <option value="slide left">Trượt từ phải sang (Slide Left)</option>
+                  <option value="spin open">Xoay mở màn (Spin Open)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Thời lượng:</span>
+                <input type="text" id="clip_intro_dur" value="0.8" style="width: 36px; text-align: center; flex: none;">
+                <span style="color: var(--sub); font-size: 11px;">s</span>
+              </div>
+              <div class="form-row">
+                <label>Áp dụng hoạt ảnh:</label>
+                <select id="clip_intro_mode" style="flex: 1;">
+                  <option value="all">Tất cả phân cảnh</option>
+                  <option value="random">Ngẫu nhiên xen kẽ</option>
+                  <option value="first_only">Chỉ cảnh đầu tiên</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Effects & Filters -->
+          <div id="tab_eff" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div class="form-row">
+                <label>Hiệu ứng video CapCut:</label>
+                <select id="video_eff_sel" style="flex: 1;">
+                  <option value="none">Không dùng hiệu ứng</option>
+                  <option value="random">Ngẫu nhiên (Random)</option>
+                  <option value="focus shake">Rung lắc tiêu điểm (Focus Shake)</option>
+                  <option value="rgb shake">Rung tách màu RGB (RGB Shake)</option>
+                  <option value="pixel glitch">Nhiễu hạt Pixel (Pixel Glitch)</option>
+                  <option value="glitch intro">Giật sóng mở màn (Glitch Intro)</option>
+                  <option value="bouncing glow">Hào quang nhấp nháy (Bouncing Glow)</option>
+                  <option value="flash">Chớp sáng kịch tính (Flash)</option>
+                  <option value="neon flash">Ánh đèn Neon (Neon Flash)</option>
+                  <option value="vintage flash">Chớp phim cổ điển (Vintage Flash)</option>
+                </select>
+                <select id="video_eff_scope" style="width: 170px; flex: none;">
+                  <option value="all">Tất cả phân cảnh</option>
+                  <option value="random">Ngẫu nhiên một số cảnh</option>
+                  <option value="intro_outro">Chỉ mở đầu & kết thúc</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <label>Bộ lọc màu điện ảnh:</label>
+                <select id="filter_sel" style="flex: 1;">
+                  <option value="none">Không dùng filter</option>
+                  <option value="soft grain">Soft Grain (Hạt phim điện ảnh)</option>
+                  <option value="vintage 1980">Vintage 1980 (Tông màu cổ điển)</option>
+                  <option value="vhs retro">VHS Retro (Băng từ VHS)</option>
+                  <option value="peach fuzz">Peach Fuzz (Tông ấm điện ảnh)</option>
+                  <option value="lover blue">Lover Blue (Tông lạnh điện ảnh)</option>
+                  <option value="bw retro">BW Retro (Trắng đen cổ điển)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Độ đậm:</span>
+                <input type="text" id="filter_intensity" value="60" style="width: 36px; text-align: center; flex: none;">
+                <span style="color: var(--sub); font-size: 11px;">%</span>
+              </div>
+
+              <div style="border-top: 1px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px;">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_blur" checked>
+                  Làm mờ nền Canvas Blur khi ảnh không vừa khung (tránh viền đen)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_wm" checked>
+                  Xóa watermark ảnh Gemini AI tự động (Lossless Reverse Alpha Blending)
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: Camera Motion -->
+          <div id="tab_cam" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div class="form-row">
+                <label>Chế độ chuyển động:</label>
+                <select id="camera_motion_sel" style="flex: 1;">
+                  <option value="smart_pacing">Smart Pacing AI (Tự phân tích nhịp câu)</option>
+                  <option value="zoom_in">Zoom In (Phóng to dần)</option>
+                  <option value="zoom_out">Zoom Out (Thu nhỏ dần)</option>
+                  <option value="pan_left">Pan Left (Lia sang trái)</option>
+                  <option value="pan_right">Pan Right (Lia sang phải)</option>
+                  <option value="pan_up">Pan Up (Lia lên trên)</option>
+                  <option value="pan_down">Pan Down (Lia xuống dưới)</option>
+                  <option value="random">Ngẫu nhiên góc quay (Ken Burns)</option>
+                  <option value="none">Cố định (Không chuyển động)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Zoom:</span>
+                <input type="text" id="zoom_scale" value="112" style="width: 38px; text-align: center; flex: none;">
+                <span style="color: var(--sub); font-size: 11px;">%</span>
+              </div>
+
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--sub); font-size: 11px;">Tinh chỉnh 6 hướng Keyframe:</span>
+                <div style="display: flex; gap: 4px;">
+                  <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="selectAllMotions(true)">Chọn tất cả</button>
+                  <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="selectAllMotions(false)">Bỏ chọn</button>
+                </div>
+              </div>
+
+              <div class="motions-grid">
+                <div class="motion-card">
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_zoom_in" checked> Zoom In</label>
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_zoom_in_s" value="110"> %
+                  </div>
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_pan_up" checked> Pan Up</label>
+                    <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_up_x" value="0">
+                    <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_up_y" value="100">
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_pan_up_s" value="110">
+                  </div>
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_pan_left" checked> Pan Left</label>
+                    <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_left_x" value="190">
+                    <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_left_y" value="0">
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_pan_left_s" value="110">
+                  </div>
+                </div>
+
+                <div class="motion-card">
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_zoom_out" checked> Zoom Out</label>
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_zoom_out_s" value="110"> %
+                  </div>
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_pan_down" checked> Pan Down</label>
+                    <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_down_x" value="0">
+                    <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_down_y" value="100">
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_pan_down_s" value="110">
+                  </div>
+                  <div class="motion-row">
+                    <label><input type="checkbox" id="m_pan_right" checked> Pan Right</label>
+                    <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_right_x" value="190">
+                    <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_right_y" value="0">
+                    <span style="color: var(--sub);">S:</span> <input type="text" id="m_pan_right_s" value="110">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 4: Subtitles & Audio Suite -->
+          <div id="tab_sub" class="tab-content">
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <label class="checkbox-label" style="font-weight: 600;">
+                <input type="checkbox" id="cb_subs" checked>
+                Tự động chèn phụ đề SRT vào timeline
+              </label>
+
+              <div class="form-row">
+                <label>Màu chữ & Cỡ:</label>
+                <select id="sub_color" style="flex: 1;">
+                  <option value="yellow">Vàng Nổi Bật (TikTok / Viral)</option>
+                  <option value="white">Trắng Truyền Thống (Classic White)</option>
+                  <option value="cyan">Xanh Công Nghệ (Cyan Modern)</option>
+                  <option value="green">Xanh Lá Tài Chính (Finance Green)</option>
+                  <option value="red">Đỏ Ruby (Dramatic Red)</option>
+                  <option value="purple">Tím Neon (Neon Purple)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Cỡ:</span>
+                <input type="text" id="sub_size" value="8.5" style="width: 36px; text-align: center; flex: none;">
+              </div>
+
+              <div class="form-row">
+                <label>Hiệu ứng & Vị trí:</label>
+                <select id="sub_anim" style="flex: 1;">
+                  <option value="bounce">Nảy chữ lên (Bounce Pop)</option>
+                  <option value="karaoke">Chạy từng chữ (Karaoke Reveal)</option>
+                  <option value="playful">Nhịp điệu vui nhộn (Playful Bounce)</option>
+                  <option value="slide up">Trượt mượt lên (Slide Up)</option>
+                  <option value="slide right">Quét từ trái sang (Slide Right)</option>
+                  <option value="none">Tĩnh (Không animation)</option>
+                </select>
+                <select id="sub_pos" style="width: 140px; flex: none;">
+                  <option value="bottom">Dưới cùng</option>
+                  <option value="center">Chính giữa</option>
+                  <option value="top">Phía trên</option>
+                </select>
+              </div>
+
+              <div class="form-row" style="border-top: 1px solid var(--border); padding-top: 8px;">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_sfx" checked>
+                  Âm thanh SFX:
+                </label>
+                <select id="sfx_name_sel" style="flex: 1;">
+                  <option value="random">Ngẫu nhiên phối hợp (Random)</option>
+                  <option value="whoosh">Whoosh (Lướt gió điện ảnh)</option>
+                  <option value="swoosh">Swoosh (Vút nhanh)</option>
+                  <option value="pop">Pop (Nảy vui nhộn)</option>
+                  <option value="ding">Ding (Keng chuông)</option>
+                </select>
+                <span style="color: var(--sub); font-size: 11px;">Vol:</span>
+                <input type="text" id="sfx_vol" value="50" style="width: 36px; text-align: center; flex: none;">
+                <span style="color: var(--sub); font-size: 11px;">%</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 6px; padding-top: 4px;">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_ducking" checked>
+                  Audio Ducking (Tự động hạ nhỏ nhạc nền khi có giọng đọc)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_fade" checked>
+                  Audio Fade In & Fade Out cho nhạc nền (Mở & tắt êm ái)
+                </label>
+                <label class="checkbox-label">
+                  <input type="checkbox" id="cb_cta" checked>
+                  Chèn CTA Kêu gọi Đăng ký (Subscribe) & chuông kết thúc video
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Row 2: Video Scene Effect -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="color: var(--text); font-weight: 500; width: 180px;">Hiệu ứng video (Effect):</span>
-          <select id="video_eff_sel" style="flex: 1;">
-            <option value="none">Không dùng hiệu ứng</option>
-            <option value="random">Ngẫu nhiên (Random)</option>
-            <option value="focus shake">Rung lắc tiêu điểm (Focus Shake)</option>
-            <option value="rgb shake">Rung tách màu RGB (RGB Shake)</option>
-            <option value="pixel glitch">Nhiễu hạt Pixel (Pixel Glitch)</option>
-            <option value="glitch intro">Giật sóng mở màn (Glitch Intro)</option>
-            <option value="bouncing glow">Hào quang nhấp nháy (Bouncing Glow)</option>
-            <option value="flash">Chớp sáng kịch tính (Flash)</option>
-            <option value="neon flash">Ánh đèn Neon (Neon Flash)</option>
-            <option value="vintage flash">Chớp phim cổ điển (Vintage Flash)</option>
-          </select>
-          <span style="color: var(--sub); font-size: 11px;">Phạm vi:</span>
-          <select id="video_eff_scope" style="width: 250px; flex: none;">
-            <option value="all">Tất cả phân cảnh</option>
-            <option value="random">Ngẫu nhiên một số cảnh</option>
-            <option value="intro_outro">Chỉ cảnh mở đầu & kết thúc</option>
-          </select>
+        <!-- Action Box -->
+        <div class="card" style="padding: 12px 16px;">
+          <button class="btn btn-primary" style="width: 100%; height: 38px; font-size: 13px;" id="btn-run" onclick="startBuild()">
+            Bắt đầu tạo dự án CapCut
+          </button>
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar"></div></div>
+          <div id="p-status" style="color: var(--sub); font-size: 11px; margin-top: 6px;">Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.</div>
         </div>
 
-        <!-- Row 3: Cinematic Filter -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="color: var(--text); font-weight: 500; width: 180px;">Bộ lọc màu (Filter):</span>
-          <select id="filter_sel" style="flex: 1;">
-            <option value="none">Không dùng filter</option>
-            <option value="soft grain">Soft Grain (Hạt phim điện ảnh)</option>
-            <option value="vintage 1980">Vintage 1980 (Tông màu cổ điển)</option>
-            <option value="vhs retro">VHS Retro (Băng từ VHS)</option>
-            <option value="peach fuzz">Peach Fuzz (Tông ấm điện ảnh)</option>
-            <option value="lover blue">Lover Blue (Tông lạnh điện ảnh)</option>
-            <option value="bw retro">BW Retro (Trắng đen cổ điển)</option>
-          </select>
-          <span style="color: var(--sub); font-size: 11px;">Độ đậm:</span>
-          <input type="text" id="filter_intensity" value="60" style="width: 40px; text-align: center; flex: none;">
-          <span style="color: var(--sub); font-size: 11px;">%</span>
-        </div>
-
-        <!-- Row 4: SFX Audio Suite -->
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <label class="checkbox-label" style="width: 180px;">
-            <input type="checkbox" id="cb_sfx" checked>
-            Âm thanh chuyển cảnh (SFX):
-          </label>
-          <select id="sfx_name_sel" style="flex: 1;">
-            <option value="random">Ngẫu nhiên phối hợp (Random)</option>
-            <option value="whoosh">Whoosh (Lướt gió điện ảnh)</option>
-            <option value="swoosh">Swoosh (Vút nhanh)</option>
-            <option value="pop">Pop (Nảy vui nhộn)</option>
-            <option value="ding">Ding (Keng chuông)</option>
-          </select>
-          <span style="color: var(--sub); font-size: 11px;">Âm lượng:</span>
-          <input type="text" id="sfx_vol" value="50" style="width: 40px; text-align: center; flex: none;">
-          <span style="color: var(--sub); font-size: 11px;">%</span>
+        <!-- Console Log Box -->
+        <div class="card">
+          <div class="card-title">
+            <span>Nhật ký tiến trình</span>
+            <button class="btn btn-secondary" style="padding: 2px 8px; font-size: 10px;" onclick="document.getElementById('console').textContent=''">Xóa log</button>
+          </div>
+          <div class="console-box" id="console">AutoCapCut Studio sẵn sàng hoạt động.</div>
         </div>
       </div>
-
-      <!-- Row 5: Pro Audio & Visual Toggles -->
-      <div class="pro-grid" style="border-top: 1px solid var(--border); padding-top: 12px;">
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <label class="checkbox-label">
-            <input type="checkbox" id="cb_blur" checked>
-            Canvas Blur (Làm mờ nền khi ảnh không vừa khung - chống viền đen)
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="cb_ducking" checked>
-            Audio Ducking (Tự động hạ nhạc nền khi có tiếng giọng đọc)
-          </label>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <label class="checkbox-label">
-            <input type="checkbox" id="cb_fade" checked>
-            Audio Fade In & Fade Out cho nhạc nền (Mở & tắt êm ái)
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="cb_cta" checked>
-            Chèn CTA Kêu gọi Đăng ký (Subscribe) & tiếng chuông ở cuối video
-          </label>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 4: Camera Motion & Ken Burns -->
-    <div class="card">
-      <div class="card-title">
-        <span>🎥 4. GÓC QUAY & CHUYỂN ĐỘNG CAMERA (CAMERA MOTION & KEN BURNS)</span>
-        <div style="display: flex; gap: 6px;">
-          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="selectAllMotions(true)">✓ Chọn Tất Cả</button>
-          <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" onclick="selectAllMotions(false)">✕ Bỏ Chọn</button>
-        </div>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-        <span style="color: var(--text); font-weight: 500;">Chế độ Camera:</span>
-        <select id="camera_motion_sel" style="flex: 1; max-width: 320px;">
-          <option value="smart_pacing">Smart Pacing AI (Tự phân tích nhịp câu)</option>
-          <option value="zoom_in">Zoom In (Phóng to dần)</option>
-          <option value="zoom_out">Zoom Out (Thu nhỏ dần)</option>
-          <option value="pan_left">Pan Left (Lia sang trái)</option>
-          <option value="pan_right">Pan Right (Lia sang phải)</option>
-          <option value="pan_up">Pan Up (Lia lên trên)</option>
-          <option value="pan_down">Pan Down (Lia xuống dưới)</option>
-          <option value="random">Ngẫu nhiên góc quay (Dynamic Ken Burns)</option>
-          <option value="none">Cố định (Không chuyển động)</option>
-        </select>
-        <span style="color: var(--sub); font-size: 12px;">Tỷ lệ zoom:</span>
-        <input type="text" id="zoom_scale" value="112" style="width: 44px; text-align: center; flex: none;">
-        <span style="color: var(--sub); font-size: 12px;">%</span>
-      </div>
-      <div class="motions-grid">
-        <!-- Col 1 -->
-        <div class="motion-card">
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_zoom_in" checked> Zoom In</label>
-            <span style="color: var(--sub);">Scale:</span>
-            <input type="text" id="m_zoom_in_s" value="110"> %
-          </div>
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_pan_up" checked> Pan Up</label>
-            <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_up_x" value="0">
-            <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_up_y" value="100">
-            <span style="color: var(--sub);">Scale:</span> <input type="text" id="m_pan_up_s" value="110"> %
-          </div>
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_pan_left" checked> Pan Left</label>
-            <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_left_x" value="190">
-            <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_left_y" value="0">
-            <span style="color: var(--sub);">Scale:</span> <input type="text" id="m_pan_left_s" value="110"> %
-          </div>
-        </div>
-        <!-- Col 2 -->
-        <div class="motion-card">
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_zoom_out" checked> Zoom Out</label>
-            <span style="color: var(--sub);">Scale:</span>
-            <input type="text" id="m_zoom_out_s" value="110"> %
-          </div>
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_pan_down" checked> Pan Down</label>
-            <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_down_x" value="0">
-            <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_down_y" value="100">
-            <span style="color: var(--sub);">Scale:</span> <input type="text" id="m_pan_down_s" value="110"> %
-          </div>
-          <div class="motion-row">
-            <label><input type="checkbox" id="m_pan_right" checked> Pan Right</label>
-            <span style="color: var(--sub);">X:</span> <input type="text" id="m_pan_right_x" value="190">
-            <span style="color: var(--sub);">Y:</span> <input type="text" id="m_pan_right_y" value="0">
-            <span style="color: var(--sub);">Scale:</span> <input type="text" id="m_pan_right_s" value="110"> %
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Center Action -->
-    <div style="text-align: center; margin: 24px 0 16px;">
-      <button class="btn btn-primary" style="padding: 14px 48px; font-size: 15px; font-weight: 700;" id="btn-run" onclick="startBuild()">
-        🚀 TẠO PROJECT CAPCUT NGAY
-      </button>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar"></div></div>
-      <div id="p-status" style="color: var(--sub); font-size: 12px; margin-top: 8px;">Sẵn sàng.</div>
-    </div>
-
-    <!-- Card 5: Console Output -->
-    <div class="card">
-      <div class="card-title"><span>📊 NHẬT KÝ TIẾN TRÌNH CHI TIẾT</span></div>
-      <div class="console-box" id="console">Hệ thống sẵn sàng. Nhấn 'TẠO PROJECT CAPCUT NGAY' để thực hiện.</div>
     </div>
   </div>
 
@@ -741,10 +780,19 @@ def index_page():
       } catch (e) { console.error(e); }
     });
 
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
+      if (activeBtn) activeBtn.classList.add('active');
+      const activeContent = document.getElementById(tabId);
+      if (activeContent) activeContent.classList.add('active');
+    }
+
     function updateScenesCount() {
       const text = document.getElementById('scenes_text').value.trim();
       const count = text ? text.split('\\n').filter(l => l.trim().length > 0).length : 0;
-      document.getElementById('scenes_count').textContent = count + ' dòng';
+      document.getElementById('scenes_count').textContent = count + ' cảnh đã nạp';
     }
 
     function autoLoadSamples() {
@@ -754,7 +802,7 @@ def index_page():
       if (sampleData.images_dir) document.getElementById('images_dir').value = sampleData.images_dir;
       if (sampleData.script_content) document.getElementById('scenes_text').value = sampleData.script_content;
       updateScenesCount();
-      log('[✨] Đã tự động nạp các tệp mẫu sẵn có!');
+      log('[Info] Đã tự động nạp các tệp mẫu sẵn có từ Desktop.');
     }
 
     function log(msg) {
@@ -765,20 +813,21 @@ def index_page():
 
     function copyScenes() {
       const t = document.getElementById('scenes_text').value;
-      navigator.clipboard.writeText(t);
-      log('[✓] Đã sao chép kịch bản vào clipboard!');
+      if (t.trim()) {
+        navigator.clipboard.writeText(t);
+        log('[Info] Đã sao chép kịch bản vào clipboard.');
+      }
     }
 
     function splitSentences() {
       const t = document.getElementById('scenes_text').value.trim();
       if (!t) return;
-      // Split on sentence boundary
       const sentences = t.replace(/\\r\\n/g, '\\n').split(/(?<=[.!?。！？;])\\s+/);
       const cleaned = sentences.map(s => s.trim()).filter(s => s.length > 0);
       if (cleaned.length > 0) {
         document.getElementById('scenes_text').value = cleaned.join('\\n');
         updateScenesCount();
-        log(`[✂️] Đã tự động tách thành ${cleaned.length} câu (mỗi câu 1 dòng)!`);
+        log(`[Action] Đã tách kịch bản thành ${cleaned.length} câu (mỗi câu 1 dòng).`);
       }
     }
 
@@ -788,7 +837,7 @@ def index_page():
       const lines = t.split('\\n').map(l => l.trim()).filter(l => l.length > 0);
       document.getElementById('scenes_text').value = lines.join('\\n');
       updateScenesCount();
-      log(`[🧹] Đã dọn sạch các dòng trống (${lines.length} dòng hợp lệ)!`);
+      log(`[Action] Đã dọn dẹp dòng trống (${lines.length} dòng hợp lệ).`);
     }
 
     function clearScenes() {
@@ -800,7 +849,7 @@ def index_page():
       ['m_zoom_in', 'm_zoom_out', 'm_pan_up', 'm_pan_down', 'm_pan_left', 'm_pan_right'].forEach(id => {
         document.getElementById(id).checked = state;
       });
-      log(`[🎥] ${state ? 'Đã chọn tất cả' : 'Đã bỏ chọn tất cả'} chuyển động keyframe.`);
+      log(`[Action] ${state ? 'Đã chọn tất cả' : 'Đã bỏ chọn tất cả'} chuyển động keyframe.`);
     }
 
     function applyPreset(preset) {
@@ -830,7 +879,7 @@ def index_page():
         document.getElementById('cb_fade').checked = true;
         document.getElementById('cb_cta').checked = true;
         selectAllMotions(true);
-        log('[🎯] Đã áp dụng Preset: TikTok / Reels / Shorts Siêu Cuốn (9:16, Nhanh, SFX, Chữ Vàng)!');
+        log('[Preset] Đã áp dụng: Video ngắn dọc TikTok / Shorts (9:16).');
       } else if (preset === 'cinematic') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
@@ -857,7 +906,7 @@ def index_page():
         document.getElementById('cb_fade').checked = true;
         document.getElementById('cb_cta').checked = true;
         selectAllMotions(true);
-        log('[🎯] Đã áp dụng Preset: YouTube Kể Chuyện Điện Ảnh (16:9, Tông Ấm, Hạt Phim, Chữ Trắng)!');
+        log('[Preset] Đã áp dụng: Video ngang điện ảnh YouTube (16:9).');
       } else if (preset === 'finance') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
@@ -883,7 +932,7 @@ def index_page():
         document.getElementById('cb_fade').checked = true;
         document.getElementById('cb_cta').checked = true;
         selectAllMotions(true);
-        log('[🎯] Đã áp dụng Preset: Tin Tức & Phân Tích Tài Chính (16:9, Chữ Xanh Lá)!');
+        log('[Preset] Đã áp dụng: Bản tin & Tin tức tài chính (16:9).');
       } else if (preset === 'minimal') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
@@ -900,8 +949,7 @@ def index_page():
         document.getElementById('cb_fade').checked = true;
         document.getElementById('cb_cta').checked = false;
         selectAllMotions(false);
-        document.getElementById('m_zoom_in').checked = true;
-        log('[🎯] Đã áp dụng Preset: Tối Giản Siêu Tốc (16:9, Không SFX, Không Filter)!');
+        log('[Preset] Đã áp dụng: Tối giản nhanh (16:9).');
       }
     }
 
@@ -910,7 +958,7 @@ def index_page():
         const res = await fetch('/api/launch-capcut', { method: 'POST' });
         const data = await res.json();
         if (data.status === 'success') {
-          log('[+] Đã khởi chạy CapCut!');
+          log('[Action] Đã khởi chạy CapCut: ' + data.message);
         } else {
           alert('Không thể mở CapCut: ' + data.message);
         }
@@ -980,7 +1028,7 @@ def index_page():
       const pStatus = document.getElementById('p-status');
 
       btn.disabled = true;
-      btn.textContent = '⏳ ĐANG XỬ LÝ TIẾN TRÌNH...';
+      btn.textContent = 'Đang xử lý tiến trình...';
 
       const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       const ws = new WebSocket(`${proto}//${window.location.host}/ws/build`);
@@ -998,28 +1046,28 @@ def index_page():
           log(`[${msg.percent}%] ${msg.message}`);
         } else if (msg.type === 'success') {
           pBar.style.width = '100%';
-          pStatus.textContent = '🎉 Hoàn tất 100%!';
+          pStatus.textContent = 'Hoàn tất 100%!';
           btn.disabled = false;
-          btn.textContent = '🚀 TẠO PROJECT CAPCUT NGAY';
-          log('\\n🎉 TẠO PROJECT CAPCUT THÀNH CÔNG!');
-          log(`  • Dự án:      ${msg.result.draft_name}`);
-          log(`  • Tổng cảnh:  ${msg.result.total_scenes} cảnh`);
-          log(`  • Thời lượng: ${(msg.result.duration_seconds/60).toFixed(2)} phút`);
-          log(`  • Thư mục:    ${msg.result.draft_dir}`);
-          alert(`🎉 Đã tạo project CapCut '${msg.result.draft_name}' thành công!\\nBạn có thể mở CapCut ngay bây giờ.`);
+          btn.textContent = 'Bắt đầu tạo dự án CapCut';
+          log('\\nTẠO DỰ ÁN CAPCUT THÀNH CÔNG');
+          log(`  Dự án:      ${msg.result.draft_name}`);
+          log(`  Tổng cảnh:  ${msg.result.total_scenes} cảnh`);
+          log(`  Thời lượng: ${(msg.result.duration_seconds/60).toFixed(2)} phút`);
+          log(`  Thư mục:    ${msg.result.draft_dir}`);
+          alert(`Đã tạo dự án CapCut '${msg.result.draft_name}' thành công!\\nBạn có thể mở CapCut ngay bây giờ.`);
         } else if (msg.type === 'error') {
           btn.disabled = false;
-          btn.textContent = '🚀 TẠO PROJECT CAPCUT NGAY';
-          pStatus.textContent = '❌ Lỗi: ' + msg.message;
-          log('[!] LỖI: ' + msg.message);
+          btn.textContent = 'Bắt đầu tạo dự án CapCut';
+          pStatus.textContent = 'Lỗi: ' + msg.message;
+          log('[Error] LỖI: ' + msg.message);
           alert('Lỗi: ' + msg.message);
         }
       };
 
       ws.onerror = (err) => {
         btn.disabled = false;
-        btn.textContent = '🚀 TẠO PROJECT CAPCUT NGAY';
-        log('[!] Lỗi kết nối WebSocket');
+        btn.textContent = 'Bắt đầu tạo dự án CapCut';
+        log('[Error] Lỗi kết nối WebSocket');
       };
     }
   </script>
@@ -1031,7 +1079,7 @@ def index_page():
 def main():
     import uvicorn
     print("\n" + "=" * 60)
-    print("🎬 AutoCapCut Web Interface đang chạy tại: http://localhost:8000")
+    print("AutoCapCut Studio Web đang chạy tại: http://localhost:8000")
     print("=" * 60)
     uvicorn.run(app, host="127.0.0.1", port=8000)
 
