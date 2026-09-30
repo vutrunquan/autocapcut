@@ -60,6 +60,20 @@ class AutoCapCutApp(ctk.CTk):
         self.geometry("1200x820")
         self.minsize(1080, 720)
 
+        # Application Icon
+        for p in [
+            os.path.join(getattr(sys, '_MEIPASS', ''), "assets", "icon.ico"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "icon.ico"),
+            os.path.join(os.path.dirname(sys.executable), "assets", "icon.ico"),
+            "assets/icon.ico"
+        ]:
+            if p and os.path.exists(p):
+                try:
+                    self.iconbitmap(p)
+                    break
+                except Exception:
+                    pass
+
         # ------------------------------------------------------------------
         # PROFESSIONAL GRAPHITE & COBALT PALETTE (Gentle on the eyes)
         # ------------------------------------------------------------------

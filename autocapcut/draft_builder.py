@@ -322,9 +322,19 @@ def build_capcut_draft(
             bgm_idx += 1
 
     # 3. SFX AUDIO TRACK (Transition Sound Effects)
-    sfx_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'sfx')
+    sfx_candidates = [
+        os.path.join(getattr(sys, '_MEIPASS', ''), 'assets', 'sfx'),
+        os.path.join(os.path.dirname(sys.executable), 'assets', 'sfx'),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'sfx'),
+        os.path.join(os.getcwd(), 'assets', 'sfx')
+    ]
+    sfx_dir = ""
+    for cand in sfx_candidates:
+        if cand and os.path.isdir(cand):
+            sfx_dir = cand
+            break
     sfx_files = []
-    if enable_sfx and os.path.isdir(sfx_dir):
+    if enable_sfx and sfx_dir and os.path.isdir(sfx_dir):
         all_sfx = [
             os.path.join(sfx_dir, f) for f in os.listdir(sfx_dir)
             if f.lower().endswith(('.wav', '.mp3'))

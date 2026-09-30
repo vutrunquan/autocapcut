@@ -105,6 +105,44 @@ Khi nén file zip hoặc gửi thư mục cho khách:
 
 ---
 
+## 🎁 4. Đóng Gói 1-Click Thành File ZIP Để Gửi Khách (Google Drive)
+
+Bạn không cần phải tự lọc file hay lo lắng gửi nhầm file admin cho khách:
+
+### Bước 1: Nhấp đúp chuột vào file:
+👉 **`Dong_Goi_Ban_Giao.bat`** (ở ngay thư mục gốc dự án)
+
+Hệ thống sẽ tự động:
+1. Biên dịch toàn bộ mã nguồn thành ứng dụng độc lập `AutoCapCut.exe`.
+2. Đóng gói đầy đủ thư viện Python, giao diện, âm thanh SFX, icon sắc nét.
+3. Đính kèm thông tin chuyển khoản VietQR trong `license_config.json` của bạn.
+4. Tự động **LOẠI BỎ** các file `admin_keygen.*` để khách không thể can thiệp.
+5. Tạo sẵn file hướng dẫn sử dụng tiếng Việt `Huong_Dan_Su_Dung.txt`.
+6. Tự động nén tất cả thành 1 file ZIP duy nhất:
+   📁 **`releases\AutoCapCut_Studio_Windows.zip`** (Dung lượng ~105 MB).
+7. Tự động mở thư mục `releases` để bạn lấy file!
+
+---
+
+### Bước 2: Tải lên Google Drive & Lấy Link gửi khách
+1. Mở trình duyệt vào Google Drive của bạn: `drive.google.com`.
+2. Kéo thả file `releases\AutoCapCut_Studio_Windows.zip` vào Google Drive.
+3. Chuột phải vào file trên Drive -> Chọn **Chia sẻ (Share)** -> Chọn **Bất kỳ ai có đường liên kết (Anyone with the link)** -> Chọn quyền **Người xem (Viewer)**.
+4. Bấm **Sao chép đường liên kết** (Copy link) và gửi cho khách hàng!
+
+---
+
+### Bước 3: Trải nghiệm của khách hàng
+- Khách tải file ZIP về từ link Google Drive của bạn.
+- Chuột phải vào file ZIP -> Chọn **Extract All (Giải nén)**.
+- Mở thư mục vừa giải nén -> Bấm đúp vào **`AutoCapCut.exe`** (hoặc `Mo_AutoCapCut.bat`).
+- **Phần mềm mở lên dùng được ngay lập tức!**
+  - Khách không cần cài Python, không cần cài Git hay gõ lệnh gì cả.
+  - Tự động bắt đầu 3 ngày dùng thử miễn phí.
+  - Hết 3 ngày hiện thông tin chuyển khoản 150k của bạn và mã máy để kích hoạt trọn đời!
+
+---
+
 ## 🛡️ 5. Tổng Kết Các Lệnh CLI Bản Quyền Cho Kỹ Thuật Viên
 
 - Xem mã máy và trạng thái bản quyền hiện tại:
@@ -119,3 +157,8 @@ Khi nén file zip hoặc gửi thư mục cho khách:
   ```bash
   python admin_keygen.py <HWID>
   ```
+- Đóng gói ứng dụng qua dòng lệnh:
+  ```bash
+  python tools\build_dist.py
+  ```
+

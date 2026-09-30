@@ -395,8 +395,18 @@ DEFAULT_PAYMENT_CONFIG = {
 
 
 def _get_config_path() -> str:
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_dir, "license_config.json")
+    candidates = [
+        os.path.join(os.path.dirname(sys.executable), "license_config.json"),
+        os.path.join(getattr(sys, '_MEIPASS', ''), "license_config.json"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "license_config.json"),
+        os.path.join(os.getcwd(), "license_config.json")
+    ]
+    for c in candidates:
+        if c and os.path.exists(c):
+            return c
+    if getattr(sys, 'frozen', False):
+        return os.path.join(os.path.dirname(sys.executable), "license_config.json")
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "license_config.json")
 
 
 def get_payment_info() -> Dict[str, Any]:
