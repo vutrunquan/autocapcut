@@ -384,13 +384,13 @@ def activate_license(key: str) -> Tuple[bool, str]:
 # ----------------------------------------------------------------------
 DEFAULT_PAYMENT_CONFIG = {
     "bank_name": "MBBank",
-    "bank_account": "0987654321",
+    "bank_account": "0346730482",
     "account_name": "VU TRUNG QUAN",
     "price_vnd": 150000,
-    "zalo_contact": "0987654321",
-    "facebook_contact": "https://facebook.com",
+    "zalo_contact": "0346730482",
+    "facebook_contact": "",
     "telegram_contact": "",
-    "support_note": "Gửi mã máy (Machine ID) qua Zalo sau khi chuyển khoản để nhận mã kích hoạt ngay trong 5 phút."
+    "support_note": "Gửi mã máy (Machine ID) qua Zalo (0346730482) sau khi chuyển khoản để nhận mã kích hoạt ngay trong 5 phút."
 }
 
 
