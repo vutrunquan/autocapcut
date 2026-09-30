@@ -12,6 +12,13 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+if sys.platform == 'win32':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+        sys.stderr.reconfigure(encoding='utf-8')
+    except Exception:
+        pass
+
 REPO_OWNER = "vutrungquan"
 REPO_NAME = "autocapcut"
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -102,8 +109,8 @@ def main():
                 "tag_name": tag_name,
                 "name": title,
                 "body": body_text,
-                "draft": false,
-                "prerelease": false
+                "draft": False,
+                "prerelease": False
             }).encode("utf-8")
             req = urllib.request.Request(rel_api_url, data=payload, headers=headers, method="POST")
             try:
