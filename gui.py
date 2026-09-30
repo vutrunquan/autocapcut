@@ -179,6 +179,7 @@ class AutoCapCutApp(ctk.CTk):
         self.msg_queue = queue.Queue()
         self.is_running = False
         self.last_draft_dir = None
+        self.pending_update_data = None
 
         sample_dirs = [
             r"C:\Users\vutru\OneDrive\Desktop\New folder (2)",
@@ -296,15 +297,20 @@ class AutoCapCutApp(ctk.CTk):
         # ------------------------------------------------------------------
         # 2. MAIN 2-COLUMN WORKSPACE
         # ------------------------------------------------------------------
-        main_body = ctk.CTkFrame(self, fg_color="transparent")
-        main_body.pack(fill="both", expand=True, padx=20, pady=(4, 12))
+        # Update Alert Banner (shown when a newer version is waiting for upgrade)
+        self.update_banner_frame = ctk.CTkFrame(
+            self, fg_color="#064e3b", border_color="#059669", border_width=1, corner_radius=8
+        )
+
+        self.main_body = ctk.CTkFrame(self, fg_color="transparent")
+        self.main_body.pack(fill="both", expand=True, padx=20, pady=(4, 12))
 
         # LEFT COLUMN: Inputs & Script (46% width)
-        left_col = ctk.CTkFrame(main_body, fg_color="transparent")
+        left_col = ctk.CTkFrame(self.main_body, fg_color="transparent")
         left_col.pack(side="left", fill="both", expand=True, padx=(0, 8))
 
         # RIGHT COLUMN: Studio Controls Tabview & Run Box (54% width)
-        right_col = ctk.CTkFrame(main_body, fg_color="transparent")
+        right_col = ctk.CTkFrame(self.main_body, fg_color="transparent")
         right_col.pack(side="right", fill="both", expand=True, padx=(8, 0))
 
         # ------------------------------------------------------------------
@@ -1498,6 +1504,10 @@ class AutoCapCutApp(ctk.CTk):
         threading.Thread(target=_bg, daemon=True).start()
 
     def _manual_check_update(self):
+        if self.pending_update_data:
+            self._show_update_dialog(self.pending_update_data)
+            return
+
         self._log("[Update] Đang kiểm tra bản cập nhật mới...")
         def _bg():
             try:
@@ -1510,7 +1520,87 @@ class AutoCapCutApp(ctk.CTk):
                 self.msg_queue.put(('update_check_error', str(e)))
         threading.Thread(target=_bg, daemon=True).start()
 
-    def _show_update_dialog(self, data):
+    def _show_update_banner(self, data):
+        self.pending_update_data = data
+        latest = data.get("latest_version", "Mới")
+        curr = data.get("current_version", CURRENT_VERSION)
+        changelog = data.get("changelog", [])
+        highlight = changelog[0] if changelog else "Cập nhật và tối ưu hoá tính năng mới."
+
+        # 1. Update title row version badge to an eye-catching update indicator
+        self.btn_ver.configure(
+            text=f"🔔 Có bản v{latest} mới!",
+            fg_color="#065f46",
+            hover_color="#047857",
+            text_color="#6ee7b7",
+            width=135,
+            command=lambda: self._show_update_dialog(data)
+        )
+
+        # 2. Clear previous banner content if any
+        for w in self.update_banner_frame.winfo_children():
+            w.destroy()
+
+        # 3. Build inner content
+        inner = ctk.CTkFrame(self.update_banner_frame, fg_color="transparent")
+        inner.pack(fill="x", padx=14, pady=8)
+
+        # Left Info
+        left_box = ctk.CTkFrame(inner, fg_color="transparent")
+        left_box.pack(side="left", fill="x", expand=True)
+
+        top_row = ctk.CTkFrame(left_box, fg_color="transparent")
+        top_row.pack(anchor="w")
+
+        ctk.CTkLabel(
+            top_row, text="🚀 CẬP NHẬT CHỜ CÀI ĐẶT",
+            font=("Segoe UI", 10, "bold"),
+            fg_color="#047857", text_color="#ecfdf5",
+            corner_radius=4, height=22, padx=8
+        ).pack(side="left", padx=(0, 8))
+
+        ctk.CTkLabel(
+            top_row, text=f"AutoCapCut Studio v{latest} đã sẵn sàng (Phiên bản đang dùng: v{curr})",
+            font=("Segoe UI", 12, "bold"), text_color="#ffffff"
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            left_box, text=f"• Điểm mới: {highlight} — Nhấn 'Cập nhật ngay' để nâng cấp tự động (giữ nguyên bản quyền)",
+            font=("Segoe UI", 11), text_color="#a7f3d0"
+        ).pack(anchor="w", pady=(3, 0))
+
+        # Right Actions
+        btn_box = ctk.CTkFrame(inner, fg_color="transparent")
+        btn_box.pack(side="right")
+
+        btn_act = ctk.CTkButton(
+            btn_box, text="Cập nhật ngay", font=("Segoe UI", 11, "bold"),
+            fg_color="#10b981", hover_color="#059669", text_color="#ffffff",
+            height=32, width=125, corner_radius=6,
+            command=lambda: self._show_update_dialog(data, auto_start=True)
+        )
+        btn_act.pack(side="left", padx=(0, 6))
+
+        btn_detail = ctk.CTkButton(
+            btn_box, text="Xem chi tiết", font=("Segoe UI", 11),
+            fg_color="#047857", hover_color="#065f46", text_color="#ecfdf5",
+            height=32, width=95, corner_radius=6,
+            command=lambda: self._show_update_dialog(data, auto_start=False)
+        )
+        btn_detail.pack(side="left", padx=(0, 6))
+
+        btn_hide = ctk.CTkButton(
+            btn_box, text="✕", font=("Segoe UI", 11, "bold"),
+            fg_color="transparent", hover_color="#047857", text_color="#a7f3d0",
+            height=32, width=32, corner_radius=6,
+            command=self.update_banner_frame.pack_forget
+        )
+        btn_hide.pack(side="left")
+
+        # Pack banner right above main_body
+        self.update_banner_frame.pack(fill="x", padx=20, pady=(0, 8), before=self.main_body)
+
+    def _show_update_dialog(self, data, auto_start: bool = False):
         latest = data.get("latest_version", "Mới")
         curr = data.get("current_version", CURRENT_VERSION)
         changelog = data.get("changelog", [])
@@ -1632,6 +1722,9 @@ class AutoCapCutApp(ctk.CTk):
             width=180, height=36, corner_radius=6, command=_do_update
         )
         btn_update.pack(side="right")
+
+        if auto_start:
+            self.after(200, _do_update)
 
     # ------------------------------------------------------------------
     # CORE PROCESS EXECUTION
@@ -1864,6 +1957,8 @@ class AutoCapCutApp(ctk.CTk):
                     messagebox.showerror("Lỗi Quá Trình", f"Đã xảy ra lỗi:\n{data}")
 
                 elif msg_type == 'update_available':
+                    self.pending_update_data = data
+                    self._show_update_banner(data)
                     self._show_update_dialog(data)
 
                 elif msg_type == 'update_none':

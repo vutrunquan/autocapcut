@@ -179,6 +179,11 @@ def launch_capcut():
     return {"status": "error", "message": "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn."}
 
 
+@app.get("/api/update-check")
+def api_update_check():
+    return check_for_updates()
+
+
 @app.websocket("/ws/build")
 async def ws_build(websocket: WebSocket):
     await websocket.accept()
@@ -517,6 +522,21 @@ def index_page():
         </div>
       </div>
     </header>
+
+    <!-- Update Alert Banner (shown when a newer version is waiting) -->
+    <div id="updateBanner" style="display: none; background: #064e3b; border: 1px solid #059669; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; justify-content: space-between; align-items: center;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="background: #047857; color: #ecfdf5; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">🚀 CẬP NHẬT CHỜ CÀI ĐẶT</span>
+        <div>
+          <div id="updateTitle" style="font-weight: 700; color: #fff; font-size: 13px;">AutoCapCut Studio có bản cập nhật mới</div>
+          <div id="updateSubtitle" style="font-size: 11px; color: #a7f3d0; margin-top: 2px;">Nhấn vào đây để tải và nâng cấp.</div>
+        </div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <a id="updateBtn" href="#" target="_blank" class="btn btn-primary" style="background: #10b981; border-color: #10b981; font-weight: 600; text-decoration: none;">Cập nhật ngay</a>
+        <button class="btn btn-secondary" style="padding: 4px 10px;" onclick="document.getElementById('updateBanner').style.display='none'">✕</button>
+      </div>
+    </div>
 
     <!-- Main 2-Column Workspace -->
     <div class="workspace-grid">
@@ -1383,6 +1403,24 @@ def index_page():
         log('[Error] Lỗi kết nối WebSocket');
       };
     }
+
+    // Auto-check for updates on load
+    fetch('/api/update-check')
+      .then(r => r.json())
+      .then(data => {
+        if (data.has_update) {
+          const banner = document.getElementById('updateBanner');
+          if (banner) {
+            banner.style.display = 'flex';
+            document.getElementById('updateTitle').innerText = `AutoCapCut Studio v${data.latest_version} đã sẵn sàng nâng cấp!`;
+            if (data.changelog && data.changelog.length > 0) {
+              document.getElementById('updateSubtitle').innerText = `• ${data.changelog[0]} (Giữ nguyên bản quyền & dữ liệu)`;
+            }
+            document.getElementById('updateBtn').href = data.download_url || data.manual_url;
+          }
+        }
+      })
+      .catch(() => {});
   </script>
 </body>
 </html>
