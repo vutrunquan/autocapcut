@@ -35,6 +35,14 @@ from .licensing import (
     LicenseExpiredError
 )
 
+from .updater import (
+    CURRENT_VERSION,
+    check_for_updates,
+    download_update_file,
+    apply_update_package,
+    is_newer_version
+)
+
 __all__ = [
     'run_autocapcut',
     'parse_script_input',
@@ -61,5 +69,10 @@ __all__ = [
     'generate_license_key',
     'verify_license_key',
     'get_payment_info',
-    'LicenseExpiredError'
+    'LicenseExpiredError',
+    'CURRENT_VERSION',
+    'check_for_updates',
+    'download_update_file',
+    'apply_update_package',
+    'is_newer_version'
 ]

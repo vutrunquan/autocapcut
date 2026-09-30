@@ -108,6 +108,11 @@ def prepare_dist_folder():
         with open(target_app_dir / "license_config.json", "w", encoding="utf-8") as f:
             json.dump(DEFAULT_PAYMENT_CONFIG, f, ensure_ascii=False, indent=2)
 
+    # 3. Copy version.json
+    ver_src = BASE_DIR / "version.json"
+    if ver_src.exists():
+        shutil.copy2(ver_src, target_app_dir / "version.json")
+
     # 3. Create user instructions file (Huong_Dan_Su_Dung.txt)
     guide_content = """========================================================================
              AUTOCAPCUT STUDIO - HƯỚNG DẪN SỬ DỤNG NHANH

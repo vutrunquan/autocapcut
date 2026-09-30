@@ -143,7 +143,39 @@ Hệ thống sẽ tự động:
 
 ---
 
-## 🛡️ 5. Tổng Kết Các Lệnh CLI Bản Quyền Cho Kỹ Thuật Viên
+## 🔄 5. Cơ Chế Tự Động Cập Nhật (OTA Update) Cho Máy Khách
+
+Khi bạn nâng cấp tính năng mới hoặc sửa lỗi, khách hàng đang dùng ở nhà sẽ **tự động nhận được thông báo cập nhật** mà không cần bạn phải gửi lại file thủ công:
+
+### Cách hoạt động:
+1. **Khi bạn phát hành bản mới**:
+   - Mở file `version.json` ở thư mục gốc dự án.
+   - Sửa số phiên bản (ví dụ từ `"1.0.0"` lên `"1.1.0"`).
+   - Thêm các tính năng mới vào mục `"changelog"`.
+   - Nhấp đúp vào `Dong_Goi_Ban_Giao.bat` để tạo file ZIP mới.
+   - Đẩy code lên GitHub (`git push`).
+   - Tải file ZIP mới lên GitHub Release (hoặc cập nhật link tải trong `version.json`).
+
+2. **Khách hàng mở phần mềm**:
+   - Ứng dụng chạy kiểm tra phiên bản ngầm (không làm lag app).
+   - Nếu phát hiện có bản mới hơn, một cửa sổ thông báo hiện lên:
+     > **🚀 ĐÃ CÓ BẢN CẬP NHẬT MỚI (v1.1.0)**  
+     > *Những điểm mới trong bản này:*  
+     > • Cập nhật thêm hiệu ứng mới...  
+     > • Tối ưu hoá tốc độ xuất dự án...  
+     >  
+     > `[Để sau]`  `[Cập nhật ngay (Tự động)]`
+   - Khách bấm **"Cập nhật ngay"**:
+     - Phần mềm tự động tải bản mới với thanh % tiến trình.
+     - Tự động thay thế file cũ và khởi động lại app.
+     - **Bản quyền vĩnh viễn và số ngày dùng thử của khách được giữ nguyên 100%!**
+
+3. **Kiểm tra thủ công**:
+   - Khách có thể bấm vào nút phiên bản `v1.0.0` ở góc trên bên trái bất cứ lúc nào để kiểm tra cập nhật tức thì.
+
+---
+
+## 🛡️ 6. Tổng Kết Các Lệnh CLI Bản Quyền Cho Kỹ Thuật Viên
 
 - Xem mã máy và trạng thái bản quyền hiện tại:
   ```bash
@@ -157,8 +189,9 @@ Hệ thống sẽ tự động:
   ```bash
   python admin_keygen.py <HWID>
   ```
-- Đóng gói ứng dụng qua dòng lệnh:
+- Đóng gói ứng dụng tạo file ZIP bàn giao:
   ```bash
   python tools\build_dist.py
   ```
+
 

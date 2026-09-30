@@ -40,7 +40,9 @@ from autocapcut import (
     activate_license,
     get_payment_info,
     check_license_valid,
-    LicenseExpiredError
+    LicenseExpiredError,
+    CURRENT_VERSION,
+    check_for_updates
 )
 
 ensure_macos_path()
@@ -77,6 +79,11 @@ def api_activate_license(req: ActivateRequest):
     if ok:
         return {"status": "success", "message": msg, "license": get_license_info()}
     raise HTTPException(400, msg)
+
+
+@app.get("/api/update/check")
+def api_check_update():
+    return check_for_updates()
 
 
 @app.get("/api/defaults")
@@ -487,7 +494,10 @@ def index_page():
       <div class="brand">
         <div class="brand-badge">AC</div>
         <div class="brand-title">
-          <h1>AutoCapCut Studio</h1>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <h1>AutoCapCut Studio</h1>
+            <span style="font-size: 10px; font-weight: 700; background: #1e293b; color: #94a3b8; padding: 2px 6px; border-radius: 4px; cursor: pointer;" onclick="checkUpdateWeb()" title="Bấm để kiểm tra bản cập nhật">v1.0.0</span>
+          </div>
           <p>Đồng bộ media, phụ đề & biên tập timeline CapCut tự động</p>
         </div>
       </div>
@@ -941,7 +951,26 @@ def index_page():
       } catch (e) { console.error(e); }
 
       loadLicense();
+      setTimeout(() => checkUpdateWeb(true), 2500);
     });
+
+    async function checkUpdateWeb(silent = false) {
+      try {
+        const res = await fetch('/api/update/check');
+        const data = await res.json();
+        if (data.has_update) {
+          const notes = (data.changelog || []).map(i => '• ' + i).join('\n');
+          const ok = confirm(`🚀 ĐÃ CÓ BẢN CẬP NHẬT MỚI (v${data.latest_version})!\n\nĐiểm mới:\n${notes}\n\nBạn có muốn mở trang tải bản cập nhật không?`);
+          if (ok) {
+            window.open(data.manual_url || data.download_url, '_blank');
+          }
+        } else if (!silent) {
+          alert(`Bạn đang sử dụng phiên bản mới nhất (v${data.current_version}).`);
+        }
+      } catch (e) {
+        if (!silent) console.error('Lỗi kiểm tra cập nhật:', e);
+      }
+    }
 
     async function loadLicense() {
       try {

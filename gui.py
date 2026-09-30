@@ -35,7 +35,11 @@ from autocapcut import (
     activate_license,
     get_payment_info,
     check_license_valid,
-    LicenseExpiredError
+    LicenseExpiredError,
+    CURRENT_VERSION,
+    check_for_updates,
+    download_update_file,
+    apply_update_package
 )
 
 ensure_macos_path()
@@ -194,6 +198,8 @@ class AutoCapCutApp(ctk.CTk):
         self.after(100, self._process_queue)
         if not get_license_info().get("is_valid", False):
             self.after(600, self._open_license_dialog)
+        # Background check for updates after 2s
+        self.after(2000, self._start_background_update_check)
 
     def _build_layout(self):
         # ------------------------------------------------------------------
@@ -216,11 +222,21 @@ class AutoCapCutApp(ctk.CTk):
         text_sub_box = ctk.CTkFrame(title_box, fg_color="transparent")
         text_sub_box.pack(side="left")
 
+        title_row = ctk.CTkFrame(text_sub_box, fg_color="transparent")
+        title_row.pack(anchor="w")
+
         lbl_title = ctk.CTkLabel(
-            text_sub_box, text="AutoCapCut Studio", font=("Segoe UI", 16, "bold"),
+            title_row, text="AutoCapCut Studio", font=("Segoe UI", 16, "bold"),
             text_color="#ffffff"
         )
-        lbl_title.pack(anchor="w")
+        lbl_title.pack(side="left")
+
+        self.btn_ver = ctk.CTkButton(
+            title_row, text=f"v{CURRENT_VERSION}", font=("Segoe UI", 9, "bold"),
+            fg_color="#1e293b", hover_color="#334155", text_color="#94a3b8",
+            corner_radius=4, height=18, width=44, command=self._manual_check_update
+        )
+        self.btn_ver.pack(side="left", padx=(8, 0))
 
         lbl_sub = ctk.CTkLabel(
             text_sub_box, text="Đồng bộ media, phụ đề & biên tập timeline CapCut tự động",
@@ -1469,6 +1485,155 @@ class AutoCapCutApp(ctk.CTk):
         ctk.CTkLabel(dlg, text=note_text, font=("Segoe UI", 10), text_color=self.c_sub).pack(pady=(6, 12))
 
     # ------------------------------------------------------------------
+    # IN-APP AUTO-UPDATER
+    # ------------------------------------------------------------------
+    def _start_background_update_check(self):
+        def _bg():
+            try:
+                info = check_for_updates(timeout=6)
+                if info.get("has_update"):
+                    self.msg_queue.put(('update_available', info))
+            except Exception:
+                pass
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _manual_check_update(self):
+        self._log("[Update] Đang kiểm tra bản cập nhật mới...")
+        def _bg():
+            try:
+                info = check_for_updates(timeout=6)
+                if info.get("has_update"):
+                    self.msg_queue.put(('update_available', info))
+                else:
+                    self.msg_queue.put(('update_none', info))
+            except Exception as e:
+                self.msg_queue.put(('update_check_error', str(e)))
+        threading.Thread(target=_bg, daemon=True).start()
+
+    def _show_update_dialog(self, data):
+        latest = data.get("latest_version", "Mới")
+        curr = data.get("current_version", CURRENT_VERSION)
+        changelog = data.get("changelog", [])
+        dl_url = data.get("download_url", "")
+        manual_url = data.get("manual_url", "https://github.com/vutrungquan/autocapcut/releases/latest")
+
+        dlg = ctk.CTkToplevel(self)
+        dlg.title("Cập Nhật AutoCapCut Studio")
+        dlg.geometry("560x490")
+        dlg.minsize(520, 430)
+        dlg.configure(fg_color=self.c_bg)
+        dlg.transient(self)
+        dlg.grab_set()
+
+        # Top banner card
+        card_top = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
+        card_top.pack(fill="x", padx=18, pady=(16, 10))
+
+        head_inner = ctk.CTkFrame(card_top, fg_color="transparent")
+        head_inner.pack(fill="x", padx=16, pady=12)
+
+        ctk.CTkLabel(
+            head_inner, text=f"🚀 CÓ BẢN CẬP NHẬT MỚI: v{latest}", font=("Segoe UI", 11, "bold"),
+            fg_color="#065f46", text_color="#6ee7b7", corner_radius=6, height=24, padx=8
+        ).pack(anchor="w", pady=(0, 6))
+
+        ctk.CTkLabel(
+            head_inner, text="Nâng Cấp AutoCapCut Studio", font=("Segoe UI", 15, "bold"),
+            text_color="#ffffff"
+        ).pack(anchor="w")
+
+        rel_date = f" ({data.get('release_date')})" if data.get('release_date') else ""
+        ctk.CTkLabel(
+            head_inner, text=f"Phiên bản đang dùng: v{curr}  ➔  Phiên bản mới: v{latest}{rel_date}",
+            font=("Segoe UI", 11), text_color=self.c_sub
+        ).pack(anchor="w", pady=(2, 0))
+
+        # Changelog card
+        card_change = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
+        card_change.pack(fill="both", expand=True, padx=18, pady=6)
+
+        c_inner = ctk.CTkFrame(card_change, fg_color="transparent")
+        c_inner.pack(fill="both", expand=True, padx=14, pady=12)
+
+        ctk.CTkLabel(
+            c_inner, text="NHỮNG ĐIỂM MỚI TRONG BẢN CẬP NHẬT:", font=("Segoe UI", 10, "bold"),
+            text_color=self.c_sub
+        ).pack(anchor="w", pady=(0, 6))
+
+        txt_box = ctk.CTkTextbox(
+            c_inner, fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
+            text_color=self.c_text, font=("Segoe UI", 11), corner_radius=6
+        )
+        txt_box.pack(fill="both", expand=True)
+
+        if changelog:
+            cl_text = "\n".join(f"• {item}" for item in changelog)
+        else:
+            cl_text = "• Cập nhật và tối ưu hoá tính năng AutoCapCut Studio mới nhất."
+        txt_box.insert("1.0", cl_text)
+        txt_box.configure(state="disabled")
+
+        # Progress UI (initially hidden)
+        prog_frame = ctk.CTkFrame(dlg, fg_color="transparent")
+        lbl_p_status = ctk.CTkLabel(prog_frame, text="", font=("Segoe UI", 11), text_color=self.c_text)
+        lbl_p_status.pack(anchor="w", padx=2, pady=(0, 4))
+        p_bar = ctk.CTkProgressBar(prog_frame, height=8, corner_radius=4, progress_color=self.c_accent)
+        p_bar.pack(fill="x")
+        p_bar.set(0)
+
+        # Bottom buttons
+        btn_row = ctk.CTkFrame(dlg, fg_color="transparent")
+        btn_row.pack(fill="x", padx=18, pady=(10, 16))
+
+        btn_cancel = ctk.CTkButton(
+            btn_row, text="Để sau", font=("Segoe UI", 11),
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
+            width=100, height=36, corner_radius=6, command=dlg.destroy
+        )
+        btn_cancel.pack(side="left")
+
+        def _do_update():
+            if not dl_url:
+                import webbrowser
+                webbrowser.open(manual_url)
+                dlg.destroy()
+                return
+
+            btn_update.configure(state="disabled", text="Đang tải về...")
+            btn_cancel.configure(state="disabled")
+            btn_row.pack_forget()
+            prog_frame.pack(fill="x", padx=18, pady=(8, 16))
+            lbl_p_status.configure(text="Đang kết nối tải bản cập nhật...")
+
+            import tempfile
+            target_zip = os.path.join(tempfile.gettempdir(), f"autocapcut_update_v{latest}.zip")
+
+            def _dl_worker():
+                def _prog(pct, dl_bytes, tot_bytes):
+                    dl_mb = dl_bytes / (1024 * 1024)
+                    tot_mb = tot_bytes / (1024 * 1024) if tot_bytes else 0
+                    if tot_mb > 0:
+                        msg = f"Đang tải bản cập nhật: {pct*100:4.1f}% ({dl_mb:.1f} MB / {tot_mb:.1f} MB)..."
+                    else:
+                        msg = f"Đang tải bản cập nhật: {dl_mb:.1f} MB..."
+                    self.msg_queue.put(('update_progress_ui', (dlg, p_bar, lbl_p_status, pct, msg)))
+
+                try:
+                    download_update_file(dl_url, target_zip, progress_callback=_prog)
+                    self.msg_queue.put(('update_apply_ui', (dlg, lbl_p_status, target_zip)))
+                except Exception as e:
+                    self.msg_queue.put(('update_err_ui', (dlg, lbl_p_status, btn_row, btn_cancel, btn_update, str(e), manual_url)))
+
+            threading.Thread(target=_dl_worker, daemon=True).start()
+
+        btn_update = ctk.CTkButton(
+            btn_row, text="Cập nhật ngay (Tự động)", font=("Segoe UI", 11, "bold"),
+            fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color="#ffffff",
+            width=180, height=36, corner_radius=6, command=_do_update
+        )
+        btn_update.pack(side="right")
+
+    # ------------------------------------------------------------------
     # CORE PROCESS EXECUTION
     # ------------------------------------------------------------------
     def _start_processing(self):
@@ -1697,6 +1862,42 @@ class AutoCapCutApp(ctk.CTk):
                     self.lbl_status.configure(text=f"Lỗi: {data}")
                     self._log(f"\n[Error] ĐÃ XẢY RA LỖI: {data}")
                     messagebox.showerror("Lỗi Quá Trình", f"Đã xảy ra lỗi:\n{data}")
+
+                elif msg_type == 'update_available':
+                    self._show_update_dialog(data)
+
+                elif msg_type == 'update_none':
+                    messagebox.showinfo("Cập Nhật", f"Bạn đang sử dụng phiên bản mới nhất (v{CURRENT_VERSION}).")
+
+                elif msg_type == 'update_check_error':
+                    self._log(f"[Update] Không thể kiểm tra bản cập nhật: {data}")
+
+                elif msg_type == 'update_progress_ui':
+                    dlg, p_bar, lbl_p, pct, msg = data
+                    if dlg.winfo_exists():
+                        p_bar.set(pct)
+                        lbl_p.configure(text=msg)
+
+                elif msg_type == 'update_apply_ui':
+                    dlg, lbl_p, zip_path = data
+                    if dlg.winfo_exists():
+                        lbl_p.configure(text="Đã tải xong! Đang cài đặt và khởi động lại ứng dụng...")
+                    ok, msg = apply_update_package(zip_path)
+                    if ok:
+                        self.after(1000, lambda: os._exit(0))
+                    else:
+                        messagebox.showerror("Lỗi Cập Nhật", msg)
+
+                elif msg_type == 'update_err_ui':
+                    dlg, lbl_p, btn_row, btn_cancel, btn_update, err_msg, man_url = data
+                    if dlg.winfo_exists():
+                        lbl_p.configure(text=f"Lỗi tải về: {err_msg}", text_color=self.c_danger)
+                        btn_row.pack(fill="x", padx=18, pady=(10, 16))
+                        btn_cancel.configure(state="normal")
+                        btn_update.configure(
+                            state="normal", text="Mở trang tải thủ công",
+                            command=lambda: [__import__('webbrowser').open(man_url), dlg.destroy()]
+                        )
         except queue.Empty:
             pass
 

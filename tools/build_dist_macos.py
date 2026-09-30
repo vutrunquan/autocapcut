@@ -75,6 +75,11 @@ def prepare_dist_folder():
     if cfg_src.exists():
         shutil.copy2(cfg_src, target_app_dir / "license_config.json")
 
+    # Copy version.json
+    ver_src = BASE_DIR / "version.json"
+    if ver_src.exists():
+        shutil.copy2(ver_src, target_app_dir / "version.json")
+
     # Copy instructions
     guide_content = """========================================================================
          AUTOCAPCUT STUDIO - HƯỚNG DẪN SỬ DỤNG CHO MACOS
