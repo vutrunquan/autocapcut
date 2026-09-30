@@ -34,7 +34,13 @@ from autocapcut import (
     format_time_ms,
     launch_capcut_app,
     open_path_in_os,
-    ensure_macos_path
+    ensure_macos_path,
+    get_machine_id,
+    get_license_info,
+    activate_license,
+    get_payment_info,
+    check_license_valid,
+    LicenseExpiredError
 )
 
 ensure_macos_path()
@@ -48,6 +54,29 @@ class PreviewRequest(BaseModel):
     voice_paths: str
     images_dir: str
     sort_mode: str = "abc"
+
+
+class ActivateRequest(BaseModel):
+    license_key: str
+
+
+@app.get("/api/license")
+def api_get_license():
+    info = get_license_info()
+    pay = get_payment_info()
+    return {
+        "status": "success",
+        "license": info,
+        "payment": pay
+    }
+
+
+@app.post("/api/license/activate")
+def api_activate_license(req: ActivateRequest):
+    ok, msg = activate_license(req.license_key)
+    if ok:
+        return {"status": "success", "message": msg, "license": get_license_info()}
+    raise HTTPException(400, msg)
 
 
 @app.get("/api/defaults")
@@ -147,6 +176,17 @@ def launch_capcut():
 async def ws_build(websocket: WebSocket):
     await websocket.accept()
     try:
+        # Enforce license check before processing
+        try:
+            check_license_valid()
+        except LicenseExpiredError as e:
+            await websocket.send_json({
+                "type": "error",
+                "message": f"BẢN QUYỀN ĐÃ HẾT HẠN: {str(e)}\nVui lòng kích hoạt gói 150k vĩnh viễn để tiếp tục sử dụng!"
+            })
+            await websocket.close()
+            return
+
         data_text = await websocket.receive_text()
         req = json.loads(data_text)
         loop = asyncio.get_running_loop()
@@ -387,6 +427,57 @@ def index_page():
       padding: 10px; height: 110px; overflow-y: auto; font-family: 'JetBrains Mono', monospace;
       font-size: 11px; color: var(--sub); white-space: pre-wrap; line-height: 1.45;
     }
+
+    /* License Badge & Activation Modal */
+    .license-badge {
+      display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+      border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; border: 1px solid transparent; user-select: none;
+    }
+    .license-badge.lifetime {
+      background: #065f46; color: #6ee7b7; border-color: #047857;
+    }
+    .license-badge.lifetime:hover { background: #047857; }
+    .license-badge.trial {
+      background: #854d0e; color: #fef08a; border-color: #a16207;
+    }
+    .license-badge.trial:hover { background: #a16207; }
+    .license-badge.expired {
+      background: #991b1b; color: #fca5a5; border-color: #b91c1c;
+      animation: pulse-red 2s infinite;
+    }
+    .license-badge.expired:hover { background: #b91c1c; }
+
+    @keyframes pulse-red {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
+      z-index: 9999; align-items: center; justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #18191e; border: 1px solid #2e3039; border-radius: 12px;
+      width: 90%; max-width: 580px; padding: 22px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+    }
+    .modal-close {
+      background: transparent; border: none; color: var(--sub); font-size: 18px;
+      cursor: pointer; padding: 4px 8px; border-radius: 4px;
+    }
+    .modal-close:hover { color: #fff; background: var(--btn-sec-hover); }
+    .lic-section { margin-bottom: 12px; }
+    .btn-xs {
+      background: var(--btn-sec); border: 1px solid var(--border); color: var(--text);
+      border-radius: 4px; padding: 2px 7px; font-size: 10px; cursor: pointer;
+      margin-left: 6px;
+    }
+    .btn-xs:hover { background: var(--btn-sec-hover); }
   </style>
 </head>
 <body>
@@ -411,6 +502,9 @@ def index_page():
         </select>
         <button class="btn btn-secondary" onclick="autoLoadSamples()">Tự động điền</button>
         <button class="btn btn-secondary" onclick="launchCapCut()">Mở CapCut</button>
+        <div id="licenseBadge" class="license-badge trial" onclick="openLicenseModal()">
+          ⏳ Đang kiểm tra...
+        </div>
       </div>
     </header>
 
@@ -780,8 +874,64 @@ def index_page():
     </div>
   </div>
 
+  <!-- License Activation Modal -->
+  <div id="licenseModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div id="modalBadge" class="license-badge trial">⏳ Đang tải...</div>
+        <button class="modal-close" onclick="closeLicenseModal()">✕</button>
+      </div>
+      <h2 style="font-size: 16px; margin: 4px 0 2px 0; color: #fff;">Kích Hoạt Bản Quyền AutoCapCut Studio</h2>
+      <p id="modalSub" style="color: var(--sub); font-size: 11px; margin-bottom: 12px;">Dùng thử 3 ngày miễn phí hoặc nâng cấp gói 150k vĩnh viễn.</p>
+
+      <!-- Machine ID -->
+      <div class="lic-section">
+        <label style="font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase;">Mã Máy Của Bạn (Machine ID):</label>
+        <div style="display: flex; gap: 8px; margin-top: 5px;">
+          <input type="text" id="modalHwid" readonly style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #60a5fa;" />
+          <button class="btn btn-secondary" onclick="copyHwid()" id="btnCopyHwid">Sao chép</button>
+        </div>
+      </div>
+
+      <!-- Payment info -->
+      <div class="lic-section" style="background: #121316; border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin: 10px 0;">
+        <div style="font-size: 10px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; text-transform: uppercase;">Thông Tin Thanh Toán (Gói Vĩnh Viễn 150.000 VNĐ)</div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <div style="flex: 1; font-size: 11px; line-height: 1.7; color: var(--text);">
+            <div>• Ngân hàng: <b id="payBank">MBBank</b></div>
+            <div>• Số tài khoản: <b id="payAcc" style="color: #60a5fa;">...</b> <button class="btn-xs" onclick="copyStk()">Chép STK</button></div>
+            <div>• Chủ tài khoản: <b id="payHolder">...</b></div>
+            <div>• Số tiền: <b style="color: #10b981;">150.000 VNĐ</b> (Dùng trọn đời máy này)</div>
+            <div>• Nội dung CK: <b id="payContent" style="color: #f59e0b;">...</b> <button class="btn-xs" onclick="copyNd()">Chép nội dung</button></div>
+          </div>
+          <div style="text-align: center;">
+            <a id="vietqrLink" href="#" target="_blank" title="Bấm để mở ảnh QR kích thước lớn">
+              <img id="vietqrImg" src="" alt="VietQR 150k" style="width: 105px; height: 105px; border-radius: 6px; border: 1px solid var(--border); background: #fff; display: block;" />
+            </a>
+            <div style="font-size: 9px; color: var(--sub); margin-top: 3px;">Quét VietQR 150k</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Input -->
+      <div class="lic-section">
+        <label style="font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase;">Nhập Mã Kích Hoạt (License Key):</label>
+        <div style="display: flex; gap: 8px; margin-top: 5px;">
+          <input type="text" id="modalKeyInput" placeholder="ACCP-XXXX-XXXX-XXXX-XXXX" style="font-family: 'JetBrains Mono', monospace; font-size: 12px;" />
+          <button class="btn btn-primary" style="background: #10b981; border-color: #10b981; min-width: 120px;" onclick="doActivateKey()">Kích hoạt ngay</button>
+        </div>
+        <div id="modalActMsg" style="font-size: 11px; margin-top: 5px; min-height: 16px;"></div>
+      </div>
+
+      <div style="font-size: 10px; color: var(--sub); margin-top: 8px; text-align: center;">
+        💡 Sau khi chuyển khoản, bạn gửi mã máy qua Zalo/Facebook để nhận mã kích hoạt trong 5 phút.
+      </div>
+    </div>
+  </div>
+
   <script>
     let sampleData = null;
+    let licenseState = null;
 
     window.addEventListener('DOMContentLoaded', async () => {
       try {
@@ -789,7 +939,130 @@ def index_page():
         sampleData = await res.json();
         autoLoadSamples();
       } catch (e) { console.error(e); }
+
+      loadLicense();
     });
+
+    async function loadLicense() {
+      try {
+        const res = await fetch('/api/license');
+        const data = await res.json();
+        licenseState = data;
+        updateLicenseUI(data.license, data.payment);
+      } catch (e) {
+        console.error('Không thể kiểm tra bản quyền:', e);
+      }
+    }
+
+    function updateLicenseUI(lic, pay) {
+      const badge = document.getElementById('licenseBadge');
+      const mBadge = document.getElementById('modalBadge');
+      const mSub = document.getElementById('modalSub');
+      const btnRun = document.getElementById('btn-run');
+
+      document.getElementById('modalHwid').value = lic.hwid;
+      document.getElementById('payBank').textContent = pay.bank_name || 'MBBank';
+      document.getElementById('payAcc').textContent = pay.bank_account || '';
+      document.getElementById('payHolder').textContent = pay.account_name || '';
+      document.getElementById('payContent').textContent = pay.transfer_content || '';
+      document.getElementById('vietqrImg').src = pay.vietqr_url || '';
+      document.getElementById('vietqrLink').href = pay.vietqr_url || '#';
+
+      if (lic.status === 'lifetime') {
+        badge.className = 'license-badge lifetime';
+        badge.textContent = '✨ Bản quyền vĩnh viễn';
+        mBadge.className = 'license-badge lifetime';
+        mBadge.textContent = '✨ ĐÃ KÍCH HOẠT VĨNH VIỄN';
+        mSub.textContent = 'Phần mềm đã được kích hoạt bản quyền vĩnh viễn trên máy tính này.';
+        if (btnRun) {
+          btnRun.disabled = false;
+          btnRun.textContent = 'Bắt đầu tạo dự án CapCut';
+        }
+      } else if (lic.status === 'trial') {
+        const d = lic.days_left || 0;
+        const h = lic.hours_left || 0;
+        const timeStr = d > 0 ? `${d} ngày ${h}h` : `${h} giờ`;
+        badge.className = 'license-badge trial';
+        badge.textContent = `⏳ Dùng thử: Còn ${timeStr}`;
+        mBadge.className = 'license-badge trial';
+        mBadge.textContent = `⏳ DÙNG THỬ (CÒN ${d} NGÀY ${h} GIỜ)`;
+        mSub.textContent = 'Bạn đang trong thời gian dùng thử 3 ngày miễn phí. Nâng cấp 150k để dùng trọn đời.';
+        if (btnRun) {
+          btnRun.disabled = false;
+          btnRun.textContent = 'Bắt đầu tạo dự án CapCut';
+        }
+      } else {
+        badge.className = 'license-badge expired';
+        badge.textContent = '🔒 Hết hạn (Kích hoạt 150k)';
+        mBadge.className = 'license-badge expired';
+        mBadge.textContent = '🔒 HẾT HẠN DÙNG THỬ 3 NGÀY';
+        mSub.textContent = 'Thời gian dùng thử 3 ngày đã hết. Vui lòng thanh toán 150.000 VNĐ để mở khóa vĩnh viễn.';
+        if (btnRun) {
+          btnRun.disabled = true;
+          btnRun.textContent = '🔒 Đã hết hạn dùng thử 3 ngày (Kích hoạt 150k)';
+        }
+        openLicenseModal();
+      }
+    }
+
+    function openLicenseModal() {
+      document.getElementById('licenseModal').classList.add('active');
+    }
+
+    function closeLicenseModal() {
+      document.getElementById('licenseModal').classList.remove('active');
+    }
+
+    function copyHwid() {
+      const hwid = document.getElementById('modalHwid').value;
+      navigator.clipboard.writeText(hwid);
+      const btn = document.getElementById('btnCopyHwid');
+      btn.textContent = 'Đã chép!';
+      setTimeout(() => btn.textContent = 'Sao chép', 1500);
+    }
+
+    function copyStk() {
+      const acc = document.getElementById('payAcc').textContent;
+      navigator.clipboard.writeText(acc);
+      alert('Đã sao chép số tài khoản: ' + acc);
+    }
+
+    function copyNd() {
+      const nd = document.getElementById('payContent').textContent;
+      navigator.clipboard.writeText(nd);
+      alert('Đã sao chép nội dung chuyển khoản: ' + nd);
+    }
+
+    async function doActivateKey() {
+      const key = document.getElementById('modalKeyInput').value.trim();
+      const msgEl = document.getElementById('modalActMsg');
+      if (!key) {
+        msgEl.style.color = '#ef4444';
+        msgEl.textContent = 'Vui lòng nhập mã kích hoạt!';
+        return;
+      }
+      try {
+        const res = await fetch('/api/license/activate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ license_key: key })
+        });
+        const data = await res.json();
+        if (res.ok && data.status === 'success') {
+          msgEl.style.color = '#10b981';
+          msgEl.textContent = data.message;
+          alert(data.message);
+          loadLicense();
+          closeLicenseModal();
+        } else {
+          msgEl.style.color = '#ef4444';
+          msgEl.textContent = data.detail || data.message || 'Mã kích hoạt không hợp lệ!';
+        }
+      } catch (e) {
+        msgEl.style.color = '#ef4444';
+        msgEl.textContent = 'Lỗi kết nối: ' + e.message;
+      }
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));

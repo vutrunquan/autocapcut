@@ -84,6 +84,10 @@ def run_autocapcut(
     """
     Run full automated CapCut video project creation with all pro features.
     """
+    # Enforce 3-day trial and lifetime license check
+    from .licensing import check_license_valid
+    check_license_valid()
+
     def log(msg: str, pct: float = 0.0):
         if progress_callback:
             progress_callback(msg, pct)

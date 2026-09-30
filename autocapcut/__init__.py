@@ -24,6 +24,17 @@ from .utils import (
     ensure_macos_path
 )
 
+from .licensing import (
+    get_machine_id,
+    get_license_info,
+    check_license_valid,
+    activate_license,
+    generate_license_key,
+    verify_license_key,
+    get_payment_info,
+    LicenseExpiredError
+)
+
 __all__ = [
     'run_autocapcut',
     'parse_script_input',
@@ -42,5 +53,13 @@ __all__ = [
     'format_time_ms',
     'open_path_in_os',
     'launch_capcut_app',
-    'ensure_macos_path'
+    'ensure_macos_path',
+    'get_machine_id',
+    'get_license_info',
+    'check_license_valid',
+    'activate_license',
+    'generate_license_key',
+    'verify_license_key',
+    'get_payment_info',
+    'LicenseExpiredError'
 ]

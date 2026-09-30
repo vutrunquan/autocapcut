@@ -10,7 +10,13 @@ from autocapcut import (
     run_autocapcut,
     get_default_capcut_draft_path,
     get_capcut_exe_path,
-    launch_capcut_app
+    launch_capcut_app,
+    get_machine_id,
+    get_license_info,
+    activate_license,
+    get_payment_info,
+    check_license_valid,
+    LicenseExpiredError
 )
 
 # Ensure console supports UTF-8
@@ -54,8 +60,64 @@ def main():
     parser.add_argument("--no-zoom", action="store_true", help="Tắt hiệu ứng zoom nhẹ (Ken Burns)")
     parser.add_argument("--draft-root", help="Thư mục draft của CapCut (nếu muốn chỉ định riêng)")
     parser.add_argument("--open-capcut", action="store_true", help="Tự động mở CapCut sau khi tạo xong")
+    parser.add_argument("--hwid", action="store_true", help="Hiển thị Machine ID (Mã máy) để mua bản quyền")
+    parser.add_argument("--activate", help="Kích hoạt bản quyền vĩnh viễn với License Key (ACCP-XXXX-...)")
+    parser.add_argument("--license-info", action="store_true", help="Xem trạng thái bản quyền hiện tại")
 
     args = parser.parse_args()
+
+    # License command-line handlers
+    if args.hwid or args.license_info:
+        info = get_license_info()
+        pay = get_payment_info()
+        print("\n" + "=" * 60)
+        print("THÔNG TIN BẢN QUYỀN VÀ MÃ THIẾT BỊ")
+        print("=" * 60)
+        print(f"  • Mã máy (Machine ID): {info['hwid']}")
+        print(f"  • Trạng thái:          {info['message']}")
+        print("\nTHÔNG TIN THANH TOÁN (GÓI VĨNH VIỄN 150.000 VNĐ):")
+        print(f"  • Ngân hàng:           {pay.get('bank_name')}")
+        print(f"  • Số tài khoản:        {pay.get('bank_account')} ({pay.get('account_name')})")
+        print(f"  • Số tiền:             150.000 VNĐ (Trọn đời máy)")
+        print(f"  • Nội dung CK:         {pay.get('transfer_content')}")
+        print(f"  • Link VietQR:         {pay.get('vietqr_url')}")
+        print("=" * 60 + "\n")
+        return
+
+    if args.activate:
+        ok, msg = activate_license(args.activate)
+        print("\n" + "=" * 60)
+        if ok:
+            print("🎉 " + msg)
+        else:
+            print("[X] KÍCH HOẠT THẤT BẠI: " + msg)
+        print("=" * 60 + "\n")
+        return
+
+    # Check license validity for drafting
+    try:
+        check_license_valid()
+        lic = get_license_info()
+        if lic["status"] == "lifetime":
+            print("[i] Bản quyền: ✨ Vĩnh viễn (Đã kích hoạt trọn đời)")
+        else:
+            print(f"[i] Bản quyền: ⏳ Dùng thử miễn phí (Còn {lic['days_left']} ngày {lic['hours_left']} giờ)")
+    except LicenseExpiredError:
+        pay = get_payment_info()
+        print("\n" + "!" * 70)
+        print("🔒 BẢN DÙNG THỬ 3 NGÀY ĐÃ HẾT HẠN!")
+        print(f"Mã thiết bị của máy bạn (Machine ID): {pay['hwid']}")
+        print("-" * 70)
+        print("Vui lòng thanh toán 150.000 VNĐ để nhận mã kích hoạt bản quyền VĨNH VIỄN:")
+        print(f"  • Ngân hàng:    {pay.get('bank_name')}")
+        print(f"  • Số tài khoản: {pay.get('bank_account')} ({pay.get('account_name')})")
+        print(f"  • Số tiền:      150.000 VNĐ")
+        print(f"  • Cú pháp CK:   {pay.get('transfer_content')}")
+        print(f"  • Link VietQR:  {pay.get('vietqr_url')}")
+        print(f"\nSau khi nhận mã kích hoạt, chạy lệnh sau để kích hoạt:")
+        print(f"  python cli.py --activate ACCP-XXXX-XXXX-XXXX-XXXX")
+        print("!" * 70 + "\n")
+        sys.exit(1)
 
     # Interactive prompt if required arguments are missing
     srt_path = args.srt

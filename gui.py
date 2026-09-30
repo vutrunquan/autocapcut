@@ -29,7 +29,13 @@ from autocapcut import (
     get_capcut_exe_path,
     open_path_in_os,
     launch_capcut_app,
-    ensure_macos_path
+    ensure_macos_path,
+    get_machine_id,
+    get_license_info,
+    activate_license,
+    get_payment_info,
+    check_license_valid,
+    LicenseExpiredError
 )
 
 ensure_macos_path()
@@ -170,7 +176,10 @@ class AutoCapCutApp(ctk.CTk):
 
         self._build_layout()
         self._auto_detect_sample_files()
+        self._update_license_ui()
         self.after(100, self._process_queue)
+        if not get_license_info().get("is_valid", False):
+            self.after(600, self._open_license_dialog)
 
     def _build_layout(self):
         # ------------------------------------------------------------------
@@ -245,6 +254,14 @@ class AutoCapCutApp(ctk.CTk):
             corner_radius=6, width=80, height=32, command=self._open_settings_dialog
         )
         btn_settings.pack(side="left", padx=4)
+
+        # License Status Badge Button
+        self.btn_license = ctk.CTkButton(
+            actions_box, text="Đang kiểm tra...", font=("Segoe UI", 11, "bold"),
+            fg_color="#854d0e", hover_color="#a16207", text_color="#fef08a",
+            corner_radius=6, height=32, command=self._open_license_dialog
+        )
+        self.btn_license.pack(side="left", padx=4)
 
         # ------------------------------------------------------------------
         # 2. MAIN 2-COLUMN WORKSPACE
@@ -1232,11 +1249,225 @@ class AutoCapCutApp(ctk.CTk):
         ctk.CTkButton(btn_row, text="Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, corner_radius=6, width=140, height=34, command=_open_f).pack(side="left", padx=6)
         ctk.CTkButton(btn_row, text="Mở CapCut ngay", fg_color=self.c_accent, hover_color=self.c_accent_hover, corner_radius=6, width=140, height=34, command=_open_cc).pack(side="left", padx=6)
 
+    def _update_license_ui(self):
+        info = get_license_info()
+        status = info.get("status")
+        if status == "lifetime":
+            self.btn_license.configure(
+                text="✨ Bản quyền vĩnh viễn",
+                fg_color="#065f46",
+                hover_color="#047857",
+                text_color="#6ee7b7"
+            )
+            if hasattr(self, "btn_run") and not self.is_running:
+                self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+        elif status == "trial":
+            d = info.get("days_left", 0)
+            h = info.get("hours_left", 0)
+            t_str = f"{d} ngày {h}h" if d > 0 else f"{h} giờ"
+            self.btn_license.configure(
+                text=f"⏳ Dùng thử: Còn {t_str}",
+                fg_color="#854d0e",
+                hover_color="#a16207",
+                text_color="#fef08a"
+            )
+            if hasattr(self, "btn_run") and not self.is_running:
+                self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+        else:
+            self.btn_license.configure(
+                text="🔒 Hết hạn (Kích hoạt 150k)",
+                fg_color="#991b1b",
+                hover_color="#b91c1c",
+                text_color="#fca5a5"
+            )
+            if hasattr(self, "btn_run") and not self.is_running:
+                self.btn_run.configure(state="disabled", text="🔒 Đã hết hạn dùng thử 3 ngày (Kích hoạt 150k)")
+
+    def _open_license_dialog(self):
+        info = get_license_info()
+        pay = get_payment_info()
+        hwid = info["hwid"]
+
+        dlg = ctk.CTkToplevel(self)
+        dlg.title("Bản Quyền & Kích Hoạt AutoCapCut Studio")
+        dlg.geometry("640x630")
+        dlg.minsize(580, 580)
+        dlg.configure(fg_color=self.c_bg)
+        dlg.transient(self)
+        dlg.grab_set()
+
+        # Dialog Header
+        top_bar = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_width=1, border_color=self.c_card_border)
+        top_bar.pack(fill="x", padx=20, pady=(18, 10))
+
+        if info["status"] == "lifetime":
+            badge_text = "✨ ĐÃ KÍCH HOẠT VĨNH VIỄN"
+            badge_color = "#065f46"
+            badge_fg = "#6ee7b7"
+            sub_text = "Phần mềm đã được kích hoạt bản quyền vĩnh viễn trên máy tính này."
+        elif info["status"] == "trial":
+            badge_text = f"⏳ ĐANG DÙNG THỬ (CÒN {info['days_left']} NGÀY {info['hours_left']} GIỜ)"
+            badge_color = "#854d0e"
+            badge_fg = "#fef08a"
+            sub_text = "Bạn đang trong 3 ngày trải nghiệm miễn phí toàn bộ tính năng. Nâng cấp 150k để dùng trọn đời."
+        else:
+            badge_text = "🔒 HẾT HẠN DÙNG THỬ 3 NGÀY"
+            badge_color = "#991b1b"
+            badge_fg = "#fca5a5"
+            sub_text = "Thời gian dùng thử 3 ngày đã kết thúc. Vui lòng thanh toán 150.000 VNĐ để mở khóa vĩnh viễn."
+
+        header_inner = ctk.CTkFrame(top_bar, fg_color="transparent")
+        header_inner.pack(fill="x", padx=16, pady=12)
+
+        lbl_b = ctk.CTkLabel(header_inner, text=badge_text, font=("Segoe UI", 11, "bold"),
+                             fg_color=badge_color, text_color=badge_fg, corner_radius=6, height=26, padx=10)
+        lbl_b.pack(anchor="w", pady=(0, 6))
+
+        ctk.CTkLabel(header_inner, text="Kích Hoạt Bản Quyền AutoCapCut Studio", font=("Segoe UI", 15, "bold"),
+                     text_color="#ffffff").pack(anchor="w")
+        ctk.CTkLabel(header_inner, text=sub_text, font=("Segoe UI", 11),
+                     text_color=self.c_sub).pack(anchor="w", pady=(2, 0))
+
+        # Card 1: Machine ID (HWID)
+        hwid_card = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_width=1, border_color=self.c_card_border)
+        hwid_card.pack(fill="x", padx=20, pady=5)
+
+        hwid_inner = ctk.CTkFrame(hwid_card, fg_color="transparent")
+        hwid_inner.pack(fill="x", padx=16, pady=10)
+
+        ctk.CTkLabel(hwid_inner, text="MÃ THIẾT BỊ CỦA BẠN (MACHINE ID):", font=("Segoe UI", 10, "bold"),
+                     text_color=self.c_sub).pack(anchor="w")
+
+        id_row = ctk.CTkFrame(hwid_inner, fg_color="transparent")
+        id_row.pack(fill="x", pady=(6, 0))
+
+        ent_hwid = ctk.CTkEntry(id_row, font=("Consolas", 13, "bold"), fg_color=self.c_input,
+                                border_color=self.c_accent, text_color="#60a5fa", height=34)
+        ent_hwid.insert(0, hwid)
+        ent_hwid.configure(state="readonly")
+        ent_hwid.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+        def _copy_hwid():
+            self.clipboard_clear()
+            self.clipboard_append(hwid)
+            btn_copy_hwid.configure(text="Đã chép!", fg_color=self.c_success)
+            self.after(1500, lambda: btn_copy_hwid.configure(text="Sao chép", fg_color=self.c_btn_sec))
+
+        btn_copy_hwid = ctk.CTkButton(id_row, text="Sao chép", font=("Segoe UI", 11),
+                                     fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+                                     width=90, height=34, command=_copy_hwid)
+        btn_copy_hwid.pack(side="left")
+
+        # Card 2: Payment Details (150k Lifetime)
+        pay_card = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_width=1, border_color=self.c_card_border)
+        pay_card.pack(fill="x", padx=20, pady=5)
+
+        pay_inner = ctk.CTkFrame(pay_card, fg_color="transparent")
+        pay_inner.pack(fill="x", padx=16, pady=10)
+
+        ctk.CTkLabel(pay_inner, text="THÔNG TIN THANH TOÁN (GÓI VĨNH VIỄN 150.000 VNĐ):",
+                     font=("Segoe UI", 10, "bold"), text_color=self.c_sub).pack(anchor="w", pady=(0, 4))
+
+        p_info = (
+            f"• Ngân hàng: {pay.get('bank_name', 'MBBank')}\n"
+            f"• Số tài khoản: {pay.get('bank_account', '')} ({pay.get('account_name', '')})\n"
+            f"• Số tiền: 150.000 VNĐ (Sử dụng trọn đời trên máy này, cập nhật miễn phí)\n"
+            f"• Nội dung chuyển khoản: {pay.get('transfer_content', '')}"
+        )
+        ctk.CTkLabel(pay_inner, text=p_info, font=("Segoe UI", 11), text_color=self.c_text,
+                     justify="left").pack(anchor="w", pady=(0, 8))
+
+        p_btn_row = ctk.CTkFrame(pay_inner, fg_color="transparent")
+        p_btn_row.pack(fill="x")
+
+        def _open_qr():
+            import webbrowser
+            qr_url = pay.get("vietqr_url", "")
+            if qr_url:
+                webbrowser.open(qr_url)
+
+        def _copy_stk():
+            self.clipboard_clear()
+            self.clipboard_append(pay.get('bank_account', ''))
+            btn_stk.configure(text="Đã chép STK!")
+            self.after(1500, lambda: btn_stk.configure(text="Chép STK"))
+
+        def _copy_nd():
+            self.clipboard_clear()
+            self.clipboard_append(pay.get('transfer_content', ''))
+            btn_nd.configure(text="Đã chép cú pháp!")
+            self.after(1500, lambda: btn_nd.configure(text="Chép nội dung CK"))
+
+        btn_stk = ctk.CTkButton(p_btn_row, text="Chép STK", font=("Segoe UI", 11),
+                                fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+                                width=105, height=30, command=_copy_stk)
+        btn_stk.pack(side="left", padx=(0, 6))
+
+        btn_nd = ctk.CTkButton(p_btn_row, text="Chép nội dung CK", font=("Segoe UI", 11),
+                               fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+                               width=135, height=30, command=_copy_nd)
+        btn_nd.pack(side="left", padx=(0, 6))
+
+        btn_qr = ctk.CTkButton(p_btn_row, text="Mở mã QR VietQR", font=("Segoe UI", 11),
+                               fg_color=self.c_accent, hover_color=self.c_accent_hover,
+                               width=135, height=30, command=_open_qr)
+        btn_qr.pack(side="left")
+
+        # Card 3: Key Activation Entry
+        act_card = ctk.CTkFrame(dlg, fg_color=self.c_card, corner_radius=10, border_width=1, border_color=self.c_card_border)
+        act_card.pack(fill="x", padx=20, pady=5)
+
+        act_inner = ctk.CTkFrame(act_card, fg_color="transparent")
+        act_inner.pack(fill="x", padx=16, pady=10)
+
+        ctk.CTkLabel(act_inner, text="NHẬP MÃ KÍCH HOẠT (LICENSE KEY):", font=("Segoe UI", 10, "bold"),
+                     text_color=self.c_sub).pack(anchor="w")
+
+        key_row = ctk.CTkFrame(act_inner, fg_color="transparent")
+        key_row.pack(fill="x", pady=(6, 4))
+
+        ent_key = ctk.CTkEntry(key_row, font=("Consolas", 12), placeholder_text="ACCP-XXXX-XXXX-XXXX-XXXX",
+                               fg_color=self.c_input, border_color=self.c_input_border, height=34)
+        ent_key.pack(side="left", fill="x", expand=True, padx=(0, 8))
+
+        lbl_msg = ctk.CTkLabel(act_inner, text="", font=("Segoe UI", 11), text_color=self.c_text)
+        lbl_msg.pack(anchor="w")
+
+        def _do_activate():
+            key_val = ent_key.get().strip()
+            ok, msg = activate_license(key_val)
+            if ok:
+                lbl_msg.configure(text=msg, text_color=self.c_success)
+                messagebox.showinfo("Kích Hoạt Thành Công", msg)
+                self._update_license_ui()
+                dlg.destroy()
+            else:
+                lbl_msg.configure(text=msg, text_color=self.c_danger)
+                messagebox.showerror("Kích Hoạt Thất Bại", msg)
+
+        btn_act = ctk.CTkButton(key_row, text="Kích hoạt ngay", font=("Segoe UI", 11, "bold"),
+                                fg_color=self.c_success, hover_color="#059669",
+                                width=120, height=34, command=_do_activate)
+        btn_act.pack(side="left")
+
+        # Bottom help note
+        note_text = "💡 Lưu ý: Sau khi chuyển khoản, gửi mã máy (Machine ID) để Admin kích hoạt ngay trong 5-10 phút."
+        ctk.CTkLabel(dlg, text=note_text, font=("Segoe UI", 10), text_color=self.c_sub).pack(pady=(6, 12))
+
     # ------------------------------------------------------------------
     # CORE PROCESS EXECUTION
     # ------------------------------------------------------------------
     def _start_processing(self):
         if self.is_running:
+            return
+
+        # Hard License check before starting processing
+        try:
+            check_license_valid()
+        except LicenseExpiredError as e:
+            self._update_license_ui()
+            self._open_license_dialog()
+            messagebox.showwarning("Bản Quyền Đã Hết Hạn", str(e))
             return
 
         audio_str = self.audio_files_var.get().strip()
