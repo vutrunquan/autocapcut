@@ -1,14 +1,13 @@
 {
-  "version": "1.0.0",
+  "version": "1.0.1",
   "min_compatible_version": "1.0.0",
   "release_date": "2026-09-30",
-  "title": "AutoCapCut Studio v1.0 - Bản Thương Mại Chính Thức",
+  "title": "AutoCapCut Studio v1.0.1 - Cập Nhật Thông Tin Ngân Hàng & Auto-Update",
   "changelog": [
-    "Khởi tạo phiên bản thương mại chính thức AutoCapCut Studio v1.0",
-    "Tự động đồng bộ ảnh và video khớp kịch bản và giọng đọc SRT",
-    "Tính năng dùng thử 3 ngày miễn phí và bản quyền trọn đời 150.000 VNĐ",
-    "Hệ thống tự động phát hiện bản cập nhật mới và cập nhật 1-click (OTA Update)"
+    "Cập nhật số tài khoản MBBank 0346730482 chính xác",
+    "Tối ưu hoá giao diện và mã quét VietQR",
+    "Hệ thống tự động phát hiện bản cập nhật mới và cập nhật 1-click"
   ],
   "download_url": "https://github.com/vutrungquan/autocapcut/releases/latest/download/AutoCapCut_Studio_Windows.zip",
-  "manual_page_url": "https://github.com/vutrungquan/autocapcut/releases/latest"
+  "manual_page_url": "https://github.com/vutrungquan/autocapcut"
 }
