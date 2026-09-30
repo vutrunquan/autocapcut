@@ -19,6 +19,7 @@ import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
 CURRENT_VERSION = "1.0.0"
+GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrungquan/autocapcut/contents/version.json"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrungquan/autocapcut/main/version.json"
 GITHUB_API_URL = "https://api.github.com/repos/vutrungquan/autocapcut/releases/latest"
 
@@ -62,7 +63,39 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
         "Cache-Control": "no-cache"
     }
 
-    # 1. Try version.json on GitHub main branch (fastest & most customizable)
+    # 1. Primary: GitHub Contents API (Real-time, zero CDN caching lag)
+    try:
+        req = urllib.request.Request(GITHUB_CONTENTS_URL, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            api_resp = json.loads(resp.read().decode("utf-8"))
+            raw_b64 = api_resp.get("content", "")
+            if raw_b64:
+                import base64
+                raw_json = base64.b64decode(raw_b64).decode("utf-8")
+                data = json.loads(raw_json)
+                remote_ver = data.get("version", "").strip()
+                if remote_ver and is_newer_version(remote_ver, CURRENT_VERSION):
+                    return {
+                        "has_update": True,
+                        "latest_version": remote_ver,
+                        "current_version": CURRENT_VERSION,
+                        "release_date": data.get("release_date", ""),
+                        "changelog": data.get("changelog", []),
+                        "download_url": data.get("download_url", ""),
+                        "manual_url": data.get("manual_page_url", "https://github.com/vutrungquan/autocapcut"),
+                        "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
+                    }
+                else:
+                    return {
+                        "has_update": False,
+                        "latest_version": remote_ver or CURRENT_VERSION,
+                        "current_version": CURRENT_VERSION,
+                        "changelog": data.get("changelog", [])
+                    }
+    except Exception:
+        pass
+
+    # 2. Secondary fallback: version.json on raw.githubusercontent.com
     cache_bust = f"?t={int(time.time())}"
     try:
         req = urllib.request.Request(VERSION_CHECK_URL + cache_bust, headers=headers)
@@ -77,7 +110,7 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                     "release_date": data.get("release_date", ""),
                     "changelog": data.get("changelog", []),
                     "download_url": data.get("download_url", ""),
-                    "manual_url": data.get("manual_page_url", "https://github.com/vutrungquan/autocapcut/releases/latest"),
+                    "manual_url": data.get("manual_page_url", "https://github.com/vutrungquan/autocapcut"),
                     "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                 }
             else:
