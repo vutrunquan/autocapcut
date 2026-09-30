@@ -18,7 +18,7 @@ import subprocess
 import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
-CURRENT_VERSION = "1.0.0"
+CURRENT_VERSION = "1.0.1"
 GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrungquan/autocapcut/contents/version.json"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrungquan/autocapcut/main/version.json"
 GITHUB_API_URL = "https://api.github.com/repos/vutrungquan/autocapcut/releases/latest"
