@@ -1,14 +1,14 @@
 {
-  "version": "1.1.0",
+  "version": "1.3.5",
   "min_compatible_version": "1.0.0",
   "release_date": "2026-10-01",
-  "title": "AutoCapCut Studio v1.1.0 - Kho Nhạc Nền BGM & Hiệu Ứng Âm Thanh CapCut Đa Dạng",
+  "title": "AutoCapCut Studio v1.3.5 - Cập Nhật Ổn Định Trên Windows & macOS",
   "changelog": [
-    "Tích hợp 5 bộ nhạc nền CapCut bản quyền chất lượng cao (Điện ảnh, Tài chính, Lofi, Kịch tính, Vlog)",
-    "Bổ sung 16 hiệu ứng âm thanh chuyển cảnh SFX chuẩn CapCut (Whoosh, Swoosh, Kaching, Boom, Camera, Click...)",
-    "Tối ưu âm lượng tự động thông minh (Audio Ducking) & hiệu ứng Fade In/Fade Out",
-    "Chuyển đổi hạ tầng phân phối và cập nhật tốc độ cao qua Google Drive"
+    "Sửa lỗi cập nhật tự động: file không được ghi đè do xung đột khóa tiến trình",
+    "Cải thiện updater: thay timeout bằng ping delay tương thích mọi môi trường Windows",
+    "Tự động đóng tiến trình cũ bằng taskkill trước khi cập nhật",
+    "Loại bỏ cửa sổ CMD nhấp nháy khi cập nhật"
   ],
-  "download_url": "https://drive.usercontent.google.com/download?id=1MPyLbHp9uCicWdoZ8PrAOd7gF0C5ngXz&export=download&confirm=t",
-  "manual_page_url": "https://drive.google.com/file/d/1MPyLbHp9uCicWdoZ8PrAOd7gF0C5ngXz/view?usp=sharing"
+  "download_url": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
+  "manual_page_url": "https://drive.google.com/file/d/1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW/view?usp=sharing"
 }

@@ -19,7 +19,7 @@ if sys.platform == 'win32':
     except Exception:
         pass
 
-REPO_OWNER = "buoncuoi123"
+REPO_OWNER = "vutrunquan"
 REPO_NAME = "autocapcut"
 BASE_DIR = Path(__file__).resolve().parent.parent
 ZIP_PATH = BASE_DIR / "releases" / "AutoCapCut_Studio_Windows.zip"

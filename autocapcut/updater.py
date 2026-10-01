@@ -18,10 +18,11 @@ import subprocess
 import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
-CURRENT_VERSION = "1.1.0"
-GITHUB_CONTENTS_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/contents/version.json"
-VERSION_CHECK_URL = "https://raw.githubusercontent.com/buoncuoi123/autocapcut/main/version.json"
-GITHUB_API_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/releases/latest"
+CURRENT_VERSION = "1.3.5"
+GOOGLE_DRIVE_VERSION_URL = "https://drive.usercontent.google.com/download?id=1SfGAiG8cN7vUnpSTq2cF0BAuY8jy5VPU&export=download&confirm=t"
+GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrunquan/autocapcut/contents/version.json"
+VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrunquan/autocapcut/main/version.json"
+GITHUB_API_URL = "https://api.github.com/repos/vutrunquan/autocapcut/releases/latest"
 
 
 def parse_version_tuple(v_str: str) -> Tuple[int, ...]:
@@ -46,33 +47,19 @@ def is_newer_version(remote_ver: str, local_ver: str = CURRENT_VERSION) -> bool:
 def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
     """
     Check if a newer version of AutoCapCut is available online.
-    Returns:
-    {
-        'has_update': bool,
-        'latest_version': str,
-        'current_version': str,
-        'release_date': str,
-        'changelog': list of str,
-        'download_url': str,
-        'manual_url': str,
-        'title': str
-    }
+    Prioritizes Google Drive direct streaming endpoint, then falls back to GitHub.
     """
     headers = {
-        "User-Agent": f"AutoCapCut-Updater/{CURRENT_VERSION}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Cache-Control": "no-cache"
     }
 
-    # 1. Primary: GitHub Contents API (Real-time, zero CDN caching lag)
-    try:
-        req = urllib.request.Request(GITHUB_CONTENTS_URL, headers=headers)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            api_resp = json.loads(resp.read().decode("utf-8"))
-            raw_b64 = api_resp.get("content", "")
-            if raw_b64:
-                import base64
-                raw_json = base64.b64decode(raw_b64).decode("utf-8")
-                data = json.loads(raw_json)
+    # 1. Primary: Google Drive Direct Endpoint (100% independent, zero bans, zero rate limits)
+    if GOOGLE_DRIVE_VERSION_URL:
+        try:
+            req = urllib.request.Request(GOOGLE_DRIVE_VERSION_URL, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
                 remote_ver = data.get("version", "").strip()
                 if remote_ver and is_newer_version(remote_ver, CURRENT_VERSION):
                     return {
@@ -82,18 +69,18 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                         "release_date": data.get("release_date", ""),
                         "changelog": data.get("changelog", []),
                         "download_url": data.get("download_url", ""),
-                        "manual_url": data.get("manual_page_url", "https://github.com/buoncuoi123/autocapcut"),
+                        "manual_url": data.get("manual_page_url", "https://drive.google.com/file/d/1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW/view?usp=sharing"),
                         "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                     }
-                else:
+                elif remote_ver:
                     return {
                         "has_update": False,
-                        "latest_version": remote_ver or CURRENT_VERSION,
+                        "latest_version": remote_ver,
                         "current_version": CURRENT_VERSION,
                         "changelog": data.get("changelog", [])
                     }
-    except Exception:
-        pass
+        except Exception:
+            pass
 
     # 2. Secondary fallback: version.json on raw.githubusercontent.com
     cache_bust = f"?t={int(time.time())}"
@@ -110,7 +97,7 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                     "release_date": data.get("release_date", ""),
                     "changelog": data.get("changelog", []),
                     "download_url": data.get("download_url", ""),
-                    "manual_url": data.get("manual_page_url", "https://github.com/buoncuoi123/autocapcut"),
+                    "manual_url": data.get("manual_page_url", "https://github.com/vutrunquan/autocapcut"),
                     "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                 }
             else:
@@ -231,11 +218,12 @@ def apply_update_package(zip_path: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, f"Lỗi giải nén gói cập nhật: {e}"
 
-    # 3. Locate source directory inside stage (could be nested inside a root folder)
+    # 3. Locate source directory inside stage (could be nested inside a root folder like AutoCapCut_Studio)
     source_dir = stage_dir
-    sub_entries = os.listdir(stage_dir)
-    if len(sub_entries) == 1 and os.path.isdir(os.path.join(stage_dir, sub_entries[0])):
-        source_dir = os.path.join(stage_dir, sub_entries[0])
+    for root, dirs, files in os.walk(stage_dir):
+        if "AutoCapCut.exe" in files or "version.json" in files:
+            source_dir = root
+            break
 
     # 4. Generate and trigger OS-specific detached restart updater
     if sys.platform == "win32":
@@ -245,52 +233,96 @@ def apply_update_package(zip_path: str) -> Tuple[bool, str]:
 
         script_content = f"""@echo off
 chcp 65001 > nul
-echo Đang cập nhật AutoCapCut Studio lên phiên bản mới...
-timeout /t 2 /nobreak > nul
 
-:: Copy all updated files, preserving existing license_config.json
-robocopy "{source_dir}" "{app_dir}" /E /IS /IT /XF license_config.json > nul
+:: 1. Dung ping thay timeout vi timeout loi trong process khong co console
+:: Moi lan ping mat ~1 giay -> -n 4 = doi ~3 giay
+ping 127.0.0.1 -n 4 > nul
 
-:: Clean up staging directory
+:: 2. Buoc dong tien trinh cu neu chua tat
+taskkill /F /IM AutoCapCut.exe > nul 2>&1
+
+:: 3. Doi them 2 giay cho Windows giai phong file lock
+ping 127.0.0.1 -n 3 > nul
+
+:: 4. Sao chep de toan bo file ban moi (bao toan license_config.json)
+robocopy "{source_dir}" "{app_dir}" /E /IS /IT /R:3 /W:1 /XF license_config.json > nul
+
+:: 5. Don dep thu muc tam va file ZIP da tai
 rmdir /s /q "{stage_dir}" > nul 2>&1
 del "{zip_path}" > nul 2>&1
 
-:: Restart application
-echo Khởi động lại ứng dụng...
+:: 6. Chuyen thu muc lam viec va khoi dong lai ung dung
+cd /d "{app_dir}"
 start "" {target_launch}
 
-:: Self-destruct updater script
+:: 7. Tu huy file script tam nay
 del "%~f0" > nul 2>&1
 exit
 """
         with open(bat_script, "w", encoding="utf-8") as f:
             f.write(script_content)
 
-        # Launch detached updater process
+        # Create a VBScript silent launcher — runs .bat with NO visible CMD window
+        vbs_launcher = os.path.join(tempfile.gettempdir(), f"silent_update_{int(time.time())}.vbs")
+        vbs_content = f'CreateObject("WScript.Shell").Run "cmd /c ""{bat_script}""", 0, False\n'
+        with open(vbs_launcher, "w", encoding="utf-8") as f:
+            f.write(vbs_content)
+
+        # Launch via wscript.exe (GUI host, no console window at all)
         flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS
-        subprocess.Popen(["cmd.exe", "/c", bat_script], creationflags=flags, close_fds=True)
+        subprocess.Popen(["wscript.exe", vbs_launcher], creationflags=flags, close_fds=True,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
         return True, "Bản cập nhật đã sẵn sàng! Ứng dụng sẽ tự động khởi động lại trong giây lát."
 
     elif sys.platform == "darwin":
         sh_script = os.path.join(tempfile.gettempdir(), f"apply_update_{int(time.time())}.sh")
         script_content = f"""#!/bin/bash
-sleep 2
+
+# 1. Doi ung dung cu thoat
+sleep 3
+
+# 2. Buoc dong tien trinh cu neu chua tat
+pkill -f "AutoCapCut" 2>/dev/null || true
+sleep 1
+
+# 3. Bao toan license_config.json
+LICENSE_BAK=""
+if [ -f "{app_dir}/license_config.json" ]; then
+    LICENSE_BAK="/tmp/autocapcut_license_bak.json"
+    cp "{app_dir}/license_config.json" "$LICENSE_BAK"
+fi
+
+# 4. Sao chep de toan bo file ban moi
 cp -R "{source_dir}/"* "{app_dir}/"
+
+# 5. Khoi phuc license_config.json
+if [ -n "$LICENSE_BAK" ] && [ -f "$LICENSE_BAK" ]; then
+    cp "$LICENSE_BAK" "{app_dir}/license_config.json"
+    rm -f "$LICENSE_BAK"
+fi
+
+# 6. Don dep thu muc tam va file ZIP da tai
 rm -rf "{stage_dir}"
 rm -f "{zip_path}"
+
+# 7. Khoi dong lai ung dung
+cd "{app_dir}"
 if [ -d "{app_dir}/AutoCapCut.app" ]; then
     open "{app_dir}/AutoCapCut.app"
 else
     python3 "{app_dir}/gui.py" &
 fi
+
+# 8. Tu huy script tam
 rm -f "$0"
 """
         with open(sh_script, "w", encoding="utf-8") as f:
             f.write(script_content)
         os.chmod(sh_script, 0o755)
 
-        subprocess.Popen(["/bin/bash", sh_script], start_new_session=True, close_fds=True)
+        subprocess.Popen(["/bin/bash", sh_script], start_new_session=True, close_fds=True,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         return True, "Bản cập nhật đã sẵn sàng! Đang khởi động lại ứng dụng."
 
     return False, "Hệ điều hành hiện tại chưa hỗ trợ tự động thay thế."

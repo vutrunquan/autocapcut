@@ -291,18 +291,20 @@ def index_page():
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #121316;
-      --card: #18191e;
-      --border: #26272f;
-      --input: #111215;
-      --input-border: #2e3039;
-      --text: #e3e4e8;
-      --sub: #888b96;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
-      --btn-sec: #202127;
-      --btn-sec-hover: #2c2d36;
+      --bg: #15161a;
+      --card: #1d1f26;
+      --border: #2a2d38;
+      --input: #131418;
+      --input-border: #303442;
+      --text: #e3e5ec;
+      --sub: #9499ab;
+      --accent: #5356e3;
+      --accent-hover: #4447d1;
+      --btn-sec: #252833;
+      --btn-sec-hover: #323646;
       --success: #10b981;
+      --teal: #0d9488;
+      --teal-hover: #0f766e;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {

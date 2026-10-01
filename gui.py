@@ -79,21 +79,22 @@ class AutoCapCutApp(ctk.CTk):
                     pass
 
         # ------------------------------------------------------------------
-        # PROFESSIONAL GRAPHITE & COBALT PALETTE (Gentle on the eyes)
+        # BESPOKE CREATIVE STUDIO PALETTE (Soft, Nuanced & Eye-Friendly)
+        # Avoids generic AI templates (harsh pitch black & electric cyan/blue)
         # ------------------------------------------------------------------
-        self.c_bg = "#121316"           # Dark graphite canvas
-        self.c_card = "#18191e"         # Studio surface card
-        self.c_card_border = "#26272f"  # Subtle 1px border
-        self.c_input = "#111215"        # Inset field background
-        self.c_input_border = "#2e3039" # Field border
-        self.c_text = "#e3e4e8"         # Soft off-white text (no glare)
-        self.c_sub = "#888b96"          # Balanced muted slate text
-        self.c_accent = "#2563eb"       # Refined cobalt accent
-        self.c_accent_hover = "#1d4ed8"
-        self.c_btn_sec = "#202127"      # Neutral secondary button
-        self.c_btn_sec_h = "#2c2d36"    # Neutral hover
-        self.c_success = "#10b981"      # Emerald indicator badge
-        self.c_danger = "#ef4444"
+        self.c_bg = "#15161a"           # Deep warm slate obsidian (soothing, no glare)
+        self.c_card = "#1d1f26"         # Warm studio card surface
+        self.c_card_border = "#2a2d38"  # Subtle organic boundary
+        self.c_input = "#131418"        # Soft inset container
+        self.c_input_border = "#303442" # Muted field border
+        self.c_text = "#e3e5ec"         # Natural pearl white text (crisp, zero eye fatigue)
+        self.c_sub = "#9499ab"          # Muted warm slate helper text
+        self.c_accent = "#5356e3"       # Refined Studio Iris (creative & premium, not AI blue)
+        self.c_accent_hover = "#4447d1"
+        self.c_btn_sec = "#252833"      # Soft dark slate button
+        self.c_btn_sec_h = "#323646"    # Natural hover
+        self.c_success = "#10b981"      # Balanced sage emerald
+        self.c_danger = "#f43f5e"       # Soft rose red
 
         self.configure(fg_color=self.c_bg)
 
@@ -206,19 +207,20 @@ class AutoCapCutApp(ctk.CTk):
 
     def _build_layout(self):
         # ------------------------------------------------------------------
-        # 1. TOP HEADER (Brand & Universal Actions)
+        # 1. TOP HEADER — 2 Rows for breathing room
         # ------------------------------------------------------------------
-        header_frame = ctk.CTkFrame(self, fg_color="transparent", height=50)
-        header_frame.pack(fill="x", padx=20, pady=(14, 8))
+        # Row 1: Brand + Quick Preset
+        header_row1 = ctk.CTkFrame(self, fg_color="transparent", height=40)
+        header_row1.pack(fill="x", padx=22, pady=(12, 0))
 
         # Brand Badge & Title
-        title_box = ctk.CTkFrame(header_frame, fg_color="transparent")
+        title_box = ctk.CTkFrame(header_row1, fg_color="transparent")
         title_box.pack(side="left")
 
         logo_badge = ctk.CTkLabel(
             title_box, text="AC", font=("Segoe UI", 12, "bold"),
-            fg_color=self.c_accent, text_color="#ffffff", corner_radius=6,
-            width=30, height=30
+            fg_color=self.c_accent, text_color="#ffffff", corner_radius=7,
+            width=34, height=34
         )
         logo_badge.pack(side="left", padx=(0, 10))
 
@@ -230,28 +232,40 @@ class AutoCapCutApp(ctk.CTk):
 
         lbl_title = ctk.CTkLabel(
             title_row, text="AutoCapCut Studio", font=("Segoe UI", 16, "bold"),
-            text_color="#ffffff"
+            text_color="#f3f5fa"
         )
         lbl_title.pack(side="left")
 
         self.btn_ver = ctk.CTkButton(
             title_row, text=f"v{CURRENT_VERSION}", font=("Segoe UI", 9, "bold"),
-            fg_color="#1e293b", hover_color="#334155", text_color="#94a3b8",
-            corner_radius=4, height=18, width=44, command=self._manual_check_update
+            fg_color="#24283b", hover_color="#323752", text_color="#a5b4fc",
+            corner_radius=4, height=18, width=48, command=self._manual_check_update
         )
         self.btn_ver.pack(side="left", padx=(8, 0))
 
         lbl_sub = ctk.CTkLabel(
             text_sub_box, text="Đồng bộ media, phụ đề & biên tập timeline CapCut tự động",
-            font=("Segoe UI", 11), text_color=self.c_sub
+            font=("Segoe UI", 10), text_color=self.c_sub
         )
         lbl_sub.pack(anchor="w")
 
-        # Top Right Actions & Quick Preset
-        actions_box = ctk.CTkFrame(header_frame, fg_color="transparent")
-        actions_box.pack(side="right")
+        # License Badge — right side of row 1
+        self.btn_license = ctk.CTkButton(
+            header_row1, text="Đang kiểm tra...", font=("Segoe UI", 11, "bold"),
+            fg_color="#3d2a14", hover_color="#52381b", text_color="#fde047",
+            corner_radius=6, height=32, command=self._open_license_dialog
+        )
+        self.btn_license.pack(side="right", padx=(6, 0))
 
-        ctk.CTkLabel(actions_box, text="Mẫu nhanh:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
+        # Row 2: Action bar — Preset + Quick Buttons
+        header_row2 = ctk.CTkFrame(self, fg_color="transparent", height=36)
+        header_row2.pack(fill="x", padx=22, pady=(6, 6))
+
+        # Left: Preset selector
+        preset_box = ctk.CTkFrame(header_row2, fg_color="transparent")
+        preset_box.pack(side="left")
+
+        ctk.CTkLabel(preset_box, text="Mẫu nhanh:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 6))
 
         preset_opts = [
             "Tùy chỉnh thủ công (Custom)",
@@ -261,83 +275,93 @@ class AutoCapCutApp(ctk.CTk):
             "Tối giản nhanh (16:9)"
         ]
         self.preset_combo = ctk.CTkComboBox(
-            actions_box, variable=self.preset_var, values=preset_opts, width=270, height=32, corner_radius=6,
+            preset_box, variable=self.preset_var, values=preset_opts, width=280, height=30, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec,
             font=("Segoe UI", 11), command=self._apply_preset
         )
-        self.preset_combo.pack(side="left", padx=(0, 10))
+        self.preset_combo.pack(side="left")
+
+        # Right: Quick action buttons
+        actions_box = ctk.CTkFrame(header_row2, fg_color="transparent")
+        actions_box.pack(side="right")
 
         btn_auto = ctk.CTkButton(
-            actions_box, text="Tự động điền", font=("Segoe UI", 11),
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=6, width=105, height=32, command=self._auto_detect_sample_files
+            actions_box, text="Tự động điền", font=("Segoe UI", 11, "bold"),
+            fg_color="#242c3d", hover_color="#303b52", text_color="#93c5fd",
+            corner_radius=6, width=100, height=30, command=self._auto_detect_sample_files
         )
-        btn_auto.pack(side="left", padx=4)
+        btn_auto.pack(side="left", padx=3)
 
         btn_cc = ctk.CTkButton(
-            actions_box, text="Mở CapCut", font=("Segoe UI", 11),
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=6, width=95, height=32, command=self._launch_capcut
+            actions_box, text="Mở CapCut", font=("Segoe UI", 11, "bold"),
+            fg_color="#1d302f", hover_color="#274341", text_color="#5eead4",
+            corner_radius=6, width=95, height=30, command=self._launch_capcut
         )
-        btn_cc.pack(side="left", padx=4)
+        btn_cc.pack(side="left", padx=3)
 
         btn_settings = ctk.CTkButton(
             actions_box, text="Cài đặt", font=("Segoe UI", 11),
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=6, width=80, height=32, command=self._open_settings_dialog
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color="#cbd5e1",
+            corner_radius=6, width=75, height=30, command=self._open_settings_dialog
         )
-        btn_settings.pack(side="left", padx=4)
-
-        # License Status Badge Button
-        self.btn_license = ctk.CTkButton(
-            actions_box, text="Đang kiểm tra...", font=("Segoe UI", 11, "bold"),
-            fg_color="#854d0e", hover_color="#a16207", text_color="#fef08a",
-            corner_radius=6, height=32, command=self._open_license_dialog
-        )
-        self.btn_license.pack(side="left", padx=4)
+        btn_settings.pack(side="left", padx=3)
 
         # ------------------------------------------------------------------
-        # 2. MAIN 2-COLUMN WORKSPACE
+        # 2. MAIN BODY — Balanced 2-Column Grid Layout (50/50)
         # ------------------------------------------------------------------
-        # Update Alert Banner (shown when a newer version is waiting for upgrade)
+        # Update Alert Banner (shown when update is available)
         self.update_banner_frame = ctk.CTkFrame(
-            self, fg_color="#064e3b", border_color="#059669", border_width=1, corner_radius=8
+            self, fg_color="#142b23", border_color="#1e4d3b", border_width=1, corner_radius=8
         )
 
         self.main_body = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_body.pack(fill="both", expand=True, padx=20, pady=(4, 12))
+        self.main_body.pack(fill="both", expand=True, padx=22, pady=(2, 14))
 
-        # LEFT COLUMN: Inputs & Script (46% width)
+        # Use grid for precise 50/50 split
+        self.main_body.columnconfigure(0, weight=1, uniform="col")
+        self.main_body.columnconfigure(1, weight=1, uniform="col")
+        self.main_body.rowconfigure(0, weight=1)
+
+        # LEFT COLUMN: Inputs & Script
         left_col = ctk.CTkFrame(self.main_body, fg_color="transparent")
-        left_col.pack(side="left", fill="both", expand=True, padx=(0, 8))
+        left_col.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
 
-        # RIGHT COLUMN: Studio Controls Tabview & Run Box (54% width)
+        # RIGHT COLUMN: Studio Controls Tabview & Run Box
         right_col = ctk.CTkFrame(self.main_body, fg_color="transparent")
-        right_col.pack(side="right", fill="both", expand=True, padx=(8, 0))
+        right_col.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
+
 
         # ------------------------------------------------------------------
         # LEFT COLUMN CONTENT:
-        # Card 1: Dữ liệu đầu vào
-        # Card 2: Kịch bản phân cảnh
+        # Card 1: Dữ liệu đầu vào (fixed height)
+        # Card 2: Kịch bản phân cảnh (fills remaining space)
         # ------------------------------------------------------------------
-        card_data = self._create_card(left_col, title="1. DỮ LIỆU ĐẦU VÀO")
+        # Use grid in left_col so card_script can expand
+        left_col.rowconfigure(0, weight=0)  # card_data: fixed
+        left_col.rowconfigure(1, weight=1)  # card_script: expand
+        left_col.columnconfigure(0, weight=1)
+
+        card_data = self._create_card(left_col, title="1. DỮ LIỆU ĐẦU VÀO (Voice, Phụ đề, Media & Nhạc)", grid_row=0)
 
         self._add_row(
             card_data, label="File Voice (Âm thanh):", var=self.audio_files_var,
             placeholder="Chọn 1 hoặc nhiều file audio (.wav, .mp3)...",
-            btn_text="Chọn audio", cmd=self._browse_audio
+            btn_text="Chọn audio", cmd=self._browse_audio,
+            btn_color="#262b3d", btn_hover="#343a54", btn_text_color="#c7d2fe"
         )
 
         self._add_row(
             card_data, label="File Phụ Đề (.srt):", var=self.srt_file_var,
             placeholder="Chọn file phụ đề SRT khớp với giọng đọc...",
-            btn_text="Chọn SRT", cmd=self._browse_srt
+            btn_text="Chọn SRT", cmd=self._browse_srt,
+            btn_color="#22332c", btn_hover="#2d453b", btn_text_color="#a7f3d0"
         )
 
         self._add_row(
             card_data, label="Thư Mục Media:", var=self.media_folder_var,
             placeholder="Thư mục chứa ảnh hoặc video...",
-            btn_text="Chọn thư mục", cmd=self._browse_media_folder
+            btn_text="Chọn thư mục", cmd=self._browse_media_folder,
+            btn_color="#362f25", btn_hover="#483f30", btn_text_color="#fed7aa"
         )
 
         # BGM (Nhạc nền) row
@@ -376,14 +400,15 @@ class AutoCapCutApp(ctk.CTk):
 
         btn_bgm_clear = ctk.CTkButton(
             bgm_row, text="✕", width=28, height=30, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
+            fg_color="#332428", hover_color="#462f35", text_color="#fca5a5", font=("Segoe UI", 11),
             command=self._clear_bgm
         )
         btn_bgm_clear.pack(side="left", padx=(0, 6))
 
         btn_bgm = ctk.CTkButton(
             bgm_row, text="Chọn BGM", width=85, height=30, corner_radius=6,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
+            fg_color="#31263d", hover_color="#433354", text_color="#e9d5ff",
+            font=("Segoe UI", 11, "bold"),
             command=self._browse_bgm
         )
         btn_bgm.pack(side="right")
@@ -405,15 +430,15 @@ class AutoCapCutApp(ctk.CTk):
         )
         e_name.pack(side="left", fill="x", expand=True)
 
-        # Card 2: Kịch bản phân cảnh (Script)
-        card_script = self._create_card(left_col, title="2. KỊCH BẢN PHÂN CẢNH (Mỗi dòng 1 media)")
+        # Card 2: Kịch bản phân cảnh (Script) — fills remaining vertical space
+        card_script = self._create_card(left_col, title="2. KỊCH BẢN PHÂN CẢNH (Mỗi dòng tương ứng 1 media)", grid_row=1, expand=True)
 
         sc_bar = ctk.CTkFrame(card_script, fg_color="transparent")
         sc_bar.pack(fill="x", pady=(0, 6))
 
         self.lbl_scenes_count = ctk.CTkLabel(
             sc_bar, text="0 cảnh đã nạp", font=("Segoe UI", 10, "bold"),
-            fg_color="#1d2027", text_color=self.c_sub, corner_radius=10, padx=8, pady=2
+            fg_color="#182d24", text_color="#86efac", corner_radius=10, padx=8, pady=2
         )
         self.lbl_scenes_count.pack(side="left")
 
@@ -422,61 +447,63 @@ class AutoCapCutApp(ctk.CTk):
 
         btn_split = ctk.CTkButton(
             sc_tools, text="Tách câu", width=68, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#222b3b", hover_color="#2f3b52", text_color="#93c5fd", font=("Segoe UI", 10, "bold"),
             command=self._split_scenes_into_sentences
         )
         btn_split.pack(side="left", padx=2)
 
         btn_clean = ctk.CTkButton(
             sc_tools, text="Dọn dòng", width=68, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#272935", hover_color="#343747", text_color="#cbd5e1", font=("Segoe UI", 10),
             command=self._clean_empty_lines
         )
         btn_clean.pack(side="left", padx=2)
 
         btn_paste = ctk.CTkButton(
             sc_tools, text="Dán", width=48, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#1c3026", hover_color="#264234", text_color="#86efac", font=("Segoe UI", 10, "bold"),
             command=self._paste_scenes
         )
         btn_paste.pack(side="left", padx=2)
 
         btn_copy = ctk.CTkButton(
             sc_tools, text="Copy", width=48, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#272935", hover_color="#343747", text_color="#cbd5e1", font=("Segoe UI", 10),
             command=self._copy_scenes
         )
         btn_copy.pack(side="left", padx=2)
 
         btn_load = ctk.CTkButton(
             sc_tools, text="Đọc .txt", width=68, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#2e243b", hover_color="#3e3052", text_color="#d8b4fe", font=("Segoe UI", 10, "bold"),
             command=self._browse_scenes_file
         )
         btn_load.pack(side="left", padx=2)
 
         btn_clear_sc = ctk.CTkButton(
             sc_tools, text="✕", width=26, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#362226", hover_color="#4a2e34", text_color="#fca5a5", font=("Segoe UI", 10),
             command=self._clear_scenes
         )
         btn_clear_sc.pack(side="left", padx=(2, 0))
 
         self.scenes_textbox = ctk.CTkTextbox(
-            card_script, height=190, corner_radius=8,
+            card_script, height=220, corner_radius=8,
             fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
             text_color=self.c_text, font=("Segoe UI", 11)
         )
-        self.scenes_textbox.pack(fill="both", expand=True)
+        self.scenes_textbox.pack(fill="both", expand=True, pady=(0, 2))
         self.scenes_textbox.insert("1.0", SCENES_PLACEHOLDER)
         self.scenes_textbox.bind("<FocusIn>", self._on_scenes_focus_in)
         self.scenes_textbox.bind("<FocusOut>", self._on_scenes_focus_out)
         self.scenes_textbox.bind("<KeyRelease>", self._update_scenes_count)
 
-        # ------------------------------------------------------------------
-        # RIGHT COLUMN CONTENT:
-        # Tabview (Studio Controls) + Run Box + Progress + Log
-        # ------------------------------------------------------------------
+        # RIGHT COLUMN: use grid so tabview expands and run/log cards have fixed sizes
+        right_col.rowconfigure(0, weight=1)  # tabview: expand
+        right_col.rowconfigure(1, weight=0)  # run card: fixed
+        right_col.rowconfigure(2, weight=0)  # log card: fixed
+        right_col.columnconfigure(0, weight=1)
+
         self.tabview = ctk.CTkTabview(
             right_col,
             fg_color=self.c_card,
@@ -490,7 +517,7 @@ class AutoCapCutApp(ctk.CTk):
             border_color=self.c_card_border,
             border_width=1
         )
-        self.tabview.pack(fill="both", expand=True, pady=(0, 10))
+        self.tabview.grid(row=0, column=0, sticky="nsew", pady=(0, 8))
 
         tab_tr = self.tabview.add("Chuyển cảnh & Mở đầu")
         tab_eff = self.tabview.add("Hiệu ứng & Bộ lọc")
@@ -687,13 +714,13 @@ class AutoCapCutApp(ctk.CTk):
 
         ctk.CTkButton(
             cam_bar, text="Chọn tất cả", width=75, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color="#242c3d", hover_color="#303b52", text_color="#93c5fd", font=("Segoe UI", 10, "bold"),
             command=lambda: self._select_all_motions(True)
         ).pack(side="right", padx=2)
 
         ctk.CTkButton(
             cam_bar, text="Bỏ chọn", width=65, height=26, corner_radius=5,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 10),
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_sub, font=("Segoe UI", 10),
             command=lambda: self._select_all_motions(False)
         ).pack(side="right", padx=2)
 
@@ -701,13 +728,13 @@ class AutoCapCutApp(ctk.CTk):
         kf_grid = ctk.CTkFrame(tab_cam, fg_color="transparent")
         kf_grid.pack(fill="both", expand=True)
 
-        col_k1 = ctk.CTkFrame(kf_grid, fg_color="#14151a", corner_radius=8, border_color=self.c_card_border, border_width=1)
+        col_k1 = ctk.CTkFrame(kf_grid, fg_color="#181a21", corner_radius=8, border_color=self.c_card_border, border_width=1)
         col_k1.pack(side="left", fill="both", expand=True, padx=(0, 5), pady=2)
         self._add_motion_zoom(col_k1, "Zoom In (Phóng to)", self.m_zoom_in_var, self.m_zoom_in_scale)
         self._add_motion_pan(col_k1, "Pan Up (Lia lên)", self.m_pan_up_var, self.m_pan_up_x, self.m_pan_up_y, self.m_pan_up_scale)
         self._add_motion_pan(col_k1, "Pan Left (Lia trái)", self.m_pan_left_var, self.m_pan_left_x, self.m_pan_left_y, self.m_pan_left_scale)
 
-        col_k2 = ctk.CTkFrame(kf_grid, fg_color="#14151a", corner_radius=8, border_color=self.c_card_border, border_width=1)
+        col_k2 = ctk.CTkFrame(kf_grid, fg_color="#181a21", corner_radius=8, border_color=self.c_card_border, border_width=1)
         col_k2.pack(side="left", fill="both", expand=True, padx=(5, 0), pady=2)
         self._add_motion_zoom(col_k2, "Zoom Out (Thu nhỏ)", self.m_zoom_out_var, self.m_zoom_out_scale)
         self._add_motion_pan(col_k2, "Pan Down (Lia xuống)", self.m_pan_down_var, self.m_pan_down_x, self.m_pan_down_y, self.m_pan_down_scale)
@@ -826,28 +853,28 @@ class AutoCapCutApp(ctk.CTk):
         ).pack(anchor="w", pady=2)
 
         # ------------------------------------------------------------------
-        # ACTION BOX & RUN BUTTON
+        # ACTION BOX & RUN BUTTON — fixed height card
         # ------------------------------------------------------------------
         run_card = ctk.CTkFrame(right_col, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
-        run_card.pack(fill="x", pady=(0, 8), padx=2, ipady=4)
+        run_card.grid(row=1, column=0, sticky="ew", pady=(0, 8), ipady=4)
 
         run_inner = ctk.CTkFrame(run_card, fg_color="transparent")
         run_inner.pack(fill="x", padx=12, pady=8)
 
         self.btn_run = ctk.CTkButton(
             run_inner,
-            text="Bắt đầu tạo dự án CapCut",
+            text="⚡ Bắt đầu tạo dự án CapCut",
             font=("Segoe UI", 13, "bold"),
             fg_color=self.c_accent,
             hover_color=self.c_accent_hover,
             corner_radius=8,
-            height=40,
+            height=42,
             command=self._start_processing
         )
         self.btn_run.pack(fill="x", pady=(0, 6))
 
         self.progress_bar = ctk.CTkProgressBar(
-            run_inner, corner_radius=6, height=6, fg_color="#121316", progress_color=self.c_accent
+            run_inner, corner_radius=6, height=6, fg_color="#131418", progress_color=self.c_accent
         )
         self.progress_bar.pack(fill="x")
         self.progress_bar.set(0)
@@ -876,8 +903,8 @@ class AutoCapCutApp(ctk.CTk):
             self.complete_action_frame,
             text="🚀 Mở Dự Án Trong CapCut Ngay",
             font=("Segoe UI", 11, "bold"),
-            fg_color="#059669",
-            hover_color="#047857",
+            fg_color="#0d9488",
+            hover_color="#0f766e",
             text_color="#ffffff",
             corner_radius=6,
             height=34,
@@ -900,47 +927,55 @@ class AutoCapCutApp(ctk.CTk):
         self.btn_open_folder.pack(side="left")
 
         # ------------------------------------------------------------------
-        # CONSOLE LOG (Compact & Clean)
+        # CONSOLE LOG — compact fixed-height card
         # ------------------------------------------------------------------
         log_card = ctk.CTkFrame(right_col, fg_color=self.c_card, corner_radius=10, border_color=self.c_card_border, border_width=1)
-        log_card.pack(fill="both", expand=True, padx=2)
+        log_card.grid(row=2, column=0, sticky="ew")
 
         log_head = ctk.CTkFrame(log_card, fg_color="transparent")
         log_head.pack(fill="x", padx=12, pady=(6, 2))
-        ctk.CTkLabel(log_head, text="Nhật ký tiến trình:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(side="left")
+        ctk.CTkLabel(log_head, text="📋 Nhật ký tiến trình:", font=("Segoe UI", 11, "bold"), text_color=self.c_text).pack(side="left")
 
         btn_clear_log = ctk.CTkButton(
             log_head, text="Xóa log", width=55, height=22, corner_radius=4,
-            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 9),
+            fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_sub, font=("Segoe UI", 9),
             command=lambda: self.console_textbox.delete("1.0", "end")
         )
         btn_clear_log.pack(side="right")
 
         self.console_textbox = ctk.CTkTextbox(
-            log_card, height=100, corner_radius=6,
+            log_card, height=120, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border, border_width=1,
-            text_color="#888b96", font=("Consolas", 10)
+            text_color="#9da3b4", font=("Consolas", 10)
         )
-        self.console_textbox.pack(fill="both", expand=True, padx=12, pady=(0, 10))
+        self.console_textbox.pack(fill="x", padx=12, pady=(0, 10))
         self._log("AutoCapCut Studio sẵn sàng hoạt động.")
 
     # ------------------------------------------------------------------
     # CARD & ROW HELPERS
     # ------------------------------------------------------------------
-    def _create_card(self, parent, title: str) -> ctk.CTkFrame:
+    def _create_card(self, parent, title: str, grid_row: int = None, expand: bool = False) -> ctk.CTkFrame:
         card = ctk.CTkFrame(
             parent, fg_color=self.c_card, corner_radius=10,
             border_color=self.c_card_border, border_width=1
         )
-        card.pack(fill="x", pady=(0, 10), ipadx=10, ipady=8)
+        if grid_row is not None:
+            sticky = "nsew" if expand else "ew"
+            card.grid(row=grid_row, column=0, sticky=sticky, pady=(0, 10))
+        else:
+            card.pack(fill="x", pady=(0, 10))
 
         lbl = ctk.CTkLabel(
             card, text=title, font=("Segoe UI", 12, "bold"), text_color="#ffffff"
         )
-        lbl.pack(anchor="w", padx=4, pady=(0, 6))
-        return card
+        lbl.pack(anchor="w", padx=14, pady=(10, 6))
 
-    def _add_row(self, parent, label, var, placeholder, btn_text, cmd):
+        # Inner content frame for consistent left/right padding
+        content = ctk.CTkFrame(card, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=14, pady=(0, 10))
+        return content
+
+    def _add_row(self, parent, label, var, placeholder, btn_text, cmd, btn_color=None, btn_hover=None, btn_text_color=None):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x", pady=3)
 
@@ -957,8 +992,11 @@ class AutoCapCutApp(ctk.CTk):
         entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         btn = ctk.CTkButton(
-            row, text=btn_text, font=("Segoe UI", 11), fg_color=self.c_btn_sec,
-            hover_color=self.c_btn_sec_h, corner_radius=6, width=110, height=30, command=cmd
+            row, text=btn_text, font=("Segoe UI", 11, "bold" if btn_text_color else "normal"),
+            fg_color=btn_color or self.c_btn_sec,
+            hover_color=btn_hover or self.c_btn_sec_h,
+            text_color=btn_text_color or self.c_text,
+            corner_radius=6, width=110, height=30, command=cmd
         )
         btn.pack(side="right")
 
@@ -1397,7 +1435,7 @@ class AutoCapCutApp(ctk.CTk):
         ).pack(side="left", padx=6)
 
         ctk.CTkButton(
-            btn_row, text="🚀 Mở CapCut xem ngay", fg_color="#059669", hover_color="#047857",
+            btn_row, text="🚀 Mở CapCut xem ngay", fg_color="#0d9488", hover_color="#0f766e",
             text_color="#ffffff", corner_radius=6, width=180, height=36, font=("Segoe UI", 12, "bold"), command=_open_cc
         ).pack(side="left", padx=6)
 
@@ -1407,29 +1445,29 @@ class AutoCapCutApp(ctk.CTk):
         if status == "lifetime":
             self.btn_license.configure(
                 text="✨ Bản quyền vĩnh viễn",
-                fg_color="#065f46",
-                hover_color="#047857",
+                fg_color="#153326",
+                hover_color="#1d4533",
                 text_color="#6ee7b7"
             )
             if hasattr(self, "btn_run") and not self.is_running:
-                self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                self.btn_run.configure(state="normal", text="⚡ Bắt đầu tạo dự án CapCut")
         elif status == "trial":
             d = info.get("days_left", 0)
             h = info.get("hours_left", 0)
             t_str = f"{d} ngày {h}h" if d > 0 else f"{h} giờ"
             self.btn_license.configure(
                 text=f"⏳ Dùng thử: Còn {t_str}",
-                fg_color="#854d0e",
-                hover_color="#a16207",
-                text_color="#fef08a"
+                fg_color="#3d2a14",
+                hover_color="#52381b",
+                text_color="#fde047"
             )
             if hasattr(self, "btn_run") and not self.is_running:
-                self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                self.btn_run.configure(state="normal", text="⚡ Bắt đầu tạo dự án CapCut")
         else:
             self.btn_license.configure(
                 text="🔒 Hết hạn (Kích hoạt 150k)",
-                fg_color="#991b1b",
-                hover_color="#b91c1c",
+                fg_color="#451e23",
+                hover_color="#5a262d",
                 text_color="#fca5a5"
             )
             if hasattr(self, "btn_run") and not self.is_running:
@@ -1550,18 +1588,18 @@ class AutoCapCutApp(ctk.CTk):
             btn_nd.configure(text="Đã chép cú pháp!")
             self.after(1500, lambda: btn_nd.configure(text="Chép nội dung CK"))
 
-        btn_stk = ctk.CTkButton(p_btn_row, text="Chép STK", font=("Segoe UI", 11),
-                                fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+        btn_stk = ctk.CTkButton(p_btn_row, text="Chép STK", font=("Segoe UI", 11, "bold"),
+                                fg_color="#242c3d", hover_color="#303b52", text_color="#93c5fd",
                                 width=105, height=30, command=_copy_stk)
         btn_stk.pack(side="left", padx=(0, 6))
 
-        btn_nd = ctk.CTkButton(p_btn_row, text="Chép nội dung CK", font=("Segoe UI", 11),
-                               fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+        btn_nd = ctk.CTkButton(p_btn_row, text="Chép nội dung CK", font=("Segoe UI", 11, "bold"),
+                               fg_color="#2d2538", hover_color="#3d324c", text_color="#d8b4fe",
                                width=135, height=30, command=_copy_nd)
         btn_nd.pack(side="left", padx=(0, 6))
 
-        btn_qr = ctk.CTkButton(p_btn_row, text="Mở mã QR VietQR", font=("Segoe UI", 11),
-                               fg_color=self.c_accent, hover_color=self.c_accent_hover,
+        btn_qr = ctk.CTkButton(p_btn_row, text="Mở mã QR VietQR", font=("Segoe UI", 11, "bold"),
+                               fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color="#ffffff",
                                width=135, height=30, command=_open_qr)
         btn_qr.pack(side="left")
 
@@ -1598,7 +1636,7 @@ class AutoCapCutApp(ctk.CTk):
                 messagebox.showerror("Kích Hoạt Thất Bại", msg)
 
         btn_act = ctk.CTkButton(key_row, text="Kích hoạt ngay", font=("Segoe UI", 11, "bold"),
-                                fg_color=self.c_success, hover_color="#059669",
+                                fg_color="#0d9488", hover_color="#0f766e", text_color="#ffffff",
                                 width=120, height=34, command=_do_activate)
         btn_act.pack(side="left")
 
@@ -1721,7 +1759,7 @@ class AutoCapCutApp(ctk.CTk):
         curr = data.get("current_version", CURRENT_VERSION)
         changelog = data.get("changelog", [])
         dl_url = data.get("download_url", "")
-        manual_url = data.get("manual_url", "https://github.com/buoncuoi123/autocapcut/releases/latest")
+        manual_url = data.get("manual_url", "https://github.com/vutrunquan/autocapcut/releases/latest")
 
         dlg = ctk.CTkToplevel(self)
         dlg.title("Cập Nhật AutoCapCut Studio")
@@ -2054,7 +2092,7 @@ class AutoCapCutApp(ctk.CTk):
                     self._log(f"[{pct*100:5.1f}%] {msg}")
                 elif msg_type == 'success':
                     self.is_running = False
-                    self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    self.btn_run.configure(state="normal", text="⚡ Bắt đầu tạo dự án CapCut")
                     self.last_draft_dir = data['draft_dir']
                     self.last_draft_name = data.get('draft_name', 'Dự án CapCut')
                     self.lbl_status.configure(text=f"✅ Đã tạo xong '{self.last_draft_name}'!", text_color="#10b981")
@@ -2080,7 +2118,7 @@ class AutoCapCutApp(ctk.CTk):
 
                 elif msg_type == 'error':
                     self.is_running = False
-                    self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    self.btn_run.configure(state="normal", text="⚡ Bắt đầu tạo dự án CapCut")
                     self.lbl_status.configure(text=f"Lỗi: {data}")
                     self._log(f"\n[Error] ĐÃ XẢY RA LỖI: {data}")
                     messagebox.showerror("Lỗi Quá Trình", f"Đã xảy ra lỗi:\n{data}")
