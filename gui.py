@@ -145,6 +145,7 @@ class AutoCapCutApp(ctk.CTk):
         self.ducking_var = tk.BooleanVar(value=True)
         self.fade_var = tk.BooleanVar(value=True)
         self.cta_sub_var = tk.BooleanVar(value=True)
+        self.auto_open_capcut_var = tk.BooleanVar(value=True)
 
         # Camera Motion & Ken Burns
         self.camera_motion_var = tk.StringVar(value="Smart Pacing AI (Tự phân tích nhịp câu)")
@@ -851,11 +852,52 @@ class AutoCapCutApp(ctk.CTk):
         self.progress_bar.pack(fill="x")
         self.progress_bar.set(0)
 
+        status_row = ctk.CTkFrame(run_inner, fg_color="transparent")
+        status_row.pack(fill="x", pady=(4, 0))
+
         self.lbl_status = ctk.CTkLabel(
-            run_inner, text="Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.",
+            status_row, text="Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.",
             font=("Segoe UI", 10), text_color=self.c_sub
         )
-        self.lbl_status.pack(anchor="w", pady=(3, 0))
+        self.lbl_status.pack(side="left")
+
+        cb_auto_open = ctk.CTkCheckBox(
+            status_row, text=" Tự động mở CapCut",
+            variable=self.auto_open_capcut_var, font=("Segoe UI", 10),
+            text_color=self.c_sub, fg_color=self.c_accent, hover_color=self.c_accent_hover,
+            corner_radius=4
+        )
+        cb_auto_open.pack(side="right")
+
+        # Dynamic Action Buttons (Shown after project creation)
+        self.complete_action_frame = ctk.CTkFrame(run_inner, fg_color="transparent")
+
+        self.btn_open_now = ctk.CTkButton(
+            self.complete_action_frame,
+            text="🚀 Mở Dự Án Trong CapCut Ngay",
+            font=("Segoe UI", 11, "bold"),
+            fg_color="#059669",
+            hover_color="#047857",
+            text_color="#ffffff",
+            corner_radius=6,
+            height=34,
+            command=self._launch_last_draft
+        )
+        self.btn_open_now.pack(side="left", fill="x", expand=True, padx=(0, 6))
+
+        self.btn_open_folder = ctk.CTkButton(
+            self.complete_action_frame,
+            text="📂 Mở Thư Mục",
+            font=("Segoe UI", 11),
+            fg_color=self.c_btn_sec,
+            hover_color=self.c_btn_sec_h,
+            text_color=self.c_text,
+            corner_radius=6,
+            height=34,
+            width=110,
+            command=self._open_last_draft_folder
+        )
+        self.btn_open_folder.pack(side="left")
 
         # ------------------------------------------------------------------
         # CONSOLE LOG (Compact & Clean)
@@ -1281,6 +1323,20 @@ class AutoCapCutApp(ctk.CTk):
         else:
             messagebox.showinfo("Khởi chạy CapCut", "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn.")
 
+    def _launch_last_draft(self):
+        draft_p = getattr(self, 'last_draft_dir', None)
+        ok = launch_capcut_app(draft_p)
+        if ok:
+            self._log(f"[Action] Đã khởi chạy CapCut mở dự án thành công.")
+        else:
+            if draft_p:
+                open_path_in_os(draft_p)
+
+    def _open_last_draft_folder(self):
+        draft_p = getattr(self, 'last_draft_dir', None)
+        if draft_p and os.path.exists(draft_p):
+            open_path_in_os(draft_p)
+
     def _open_settings_dialog(self):
         dlg = ctk.CTkToplevel(self)
         dlg.title("Cài Đặt Thư Mục CapCut")
@@ -1323,20 +1379,27 @@ class AutoCapCutApp(ctk.CTk):
         ).pack(pady=(0, 16))
 
         btn_row = ctk.CTkFrame(dlg, fg_color="transparent")
-        btn_row.pack(pady=4)
+        btn_row.pack(pady=8)
 
         def _open_f():
             open_path_in_os(data['draft_dir'])
             dlg.destroy()
 
         def _open_cc():
-            ok = launch_capcut_app()
+            ok = launch_capcut_app(data.get('draft_dir'))
             if not ok:
                 open_path_in_os(data['draft_dir'])
             dlg.destroy()
 
-        ctk.CTkButton(btn_row, text="Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, corner_radius=6, width=140, height=34, command=_open_f).pack(side="left", padx=6)
-        ctk.CTkButton(btn_row, text="Mở CapCut ngay", fg_color=self.c_accent, hover_color=self.c_accent_hover, corner_radius=6, width=140, height=34, command=_open_cc).pack(side="left", padx=6)
+        ctk.CTkButton(
+            btn_row, text="📂 Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
+            corner_radius=6, width=150, height=36, font=("Segoe UI", 11), command=_open_f
+        ).pack(side="left", padx=6)
+
+        ctk.CTkButton(
+            btn_row, text="🚀 Mở CapCut xem ngay", fg_color="#059669", hover_color="#047857",
+            text_color="#ffffff", corner_radius=6, width=180, height=36, font=("Segoe UI", 12, "bold"), command=_open_cc
+        ).pack(side="left", padx=6)
 
     def _update_license_ui(self):
         info = get_license_info()
@@ -1898,6 +1961,8 @@ class AutoCapCutApp(ctk.CTk):
         self.btn_run.configure(state="disabled", text="Đang xử lý tiến trình...")
         self.progress_bar.set(0)
         self.console_textbox.delete("1.0", "end")
+        if hasattr(self, 'complete_action_frame'):
+            self.complete_action_frame.pack_forget()
 
         threading.Thread(
             target=self._worker_thread,
@@ -1991,7 +2056,8 @@ class AutoCapCutApp(ctk.CTk):
                     self.is_running = False
                     self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
                     self.last_draft_dir = data['draft_dir']
-                    self.lbl_status.configure(text="Tạo project CapCut thành công!")
+                    self.last_draft_name = data.get('draft_name', 'Dự án CapCut')
+                    self.lbl_status.configure(text=f"✅ Đã tạo xong '{self.last_draft_name}'!", text_color="#10b981")
                     self.progress_bar.set(1.0)
                     self._log("\n" + "=" * 50)
                     self._log(f"TẠO DỰ ÁN CAPCUT THÀNH CÔNG")
@@ -2000,6 +2066,16 @@ class AutoCapCutApp(ctk.CTk):
                     self._log(f"  Thời lượng: {data['duration_seconds']:.2f}s ({(data['duration_seconds']/60):.2f} phút)")
                     self._log(f"  Thư mục:    {data['draft_dir']}")
                     self._log("=" * 50)
+
+                    # Show quick action buttons
+                    if hasattr(self, 'complete_action_frame'):
+                        self.btn_open_now.configure(text=f"🚀 Mở '{self.last_draft_name}' Trong CapCut")
+                        self.complete_action_frame.pack(fill="x", pady=(6, 0))
+
+                    if self.auto_open_capcut_var.get():
+                        self._log("[Action] Tự động khởi chạy CapCut mở dự án...")
+                        launch_capcut_app(data.get('draft_dir'))
+
                     self._show_completed_dialog(data)
 
                 elif msg_type == 'error':

@@ -9,6 +9,7 @@ import json
 import time
 import uuid
 import shutil
+import subprocess
 from typing import Optional, Tuple
 from pymediainfo import MediaInfo
 
@@ -39,16 +40,22 @@ def open_path_in_os(path: str):
         subprocess.Popen(['xdg-open', path])
 
 
-def launch_capcut_app() -> bool:
+def launch_capcut_app(draft_path: Optional[str] = None) -> bool:
     """Launch CapCut application across macOS (Intel/M-series) and Windows."""
     exe = get_capcut_exe_path()
     if sys.platform == 'darwin':
         if exe and os.path.exists(exe):
-            subprocess.Popen(['open', exe])
+            cmd = ['open', exe]
+            if draft_path and os.path.exists(draft_path):
+                cmd.extend(['--args', draft_path])
+            subprocess.Popen(cmd)
             return True
         for app_name in ['CapCut', 'JianyingPro']:
             try:
-                res = subprocess.run(['open', '-a', app_name], capture_output=True)
+                cmd = ['open', '-a', app_name]
+                if draft_path and os.path.exists(draft_path):
+                    cmd.extend(['--args', draft_path])
+                res = subprocess.run(cmd, capture_output=True)
                 if res.returncode == 0:
                     return True
             except Exception:
@@ -56,8 +63,16 @@ def launch_capcut_app() -> bool:
         return False
     elif sys.platform == 'win32':
         if exe and os.path.exists(exe):
-            subprocess.Popen([exe])
+            cmd = [exe]
+            if draft_path and os.path.exists(draft_path):
+                cmd.append(draft_path)
+            subprocess.Popen(cmd)
             return True
+        try:
+            os.startfile("capcut:")
+            return True
+        except Exception:
+            pass
     return False
 
 

@@ -172,8 +172,15 @@ def preview_alignment(req: PreviewRequest):
 
 
 @app.post("/api/launch-capcut")
-def launch_capcut():
-    ok = launch_capcut_app()
+async def launch_capcut(request: Request):
+    draft_path = None
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            draft_path = body.get("draft_path")
+    except Exception:
+        pass
+    ok = launch_capcut_app(draft_path)
     if ok:
         return {"status": "success", "message": "Đã khởi chạy CapCut thành công!"}
     return {"status": "error", "message": "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn."}
@@ -909,7 +916,19 @@ def index_page():
             Bắt đầu tạo dự án CapCut
           </button>
           <div class="progress-bar-bg"><div class="progress-bar-fill" id="p-bar"></div></div>
-          <div id="p-status" style="color: var(--sub); font-size: 11px; margin-top: 6px;">Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+            <div id="p-status" style="color: var(--sub); font-size: 11px;">Sẵn sàng. Nhấn nút để xuất dự án sang CapCut PC.</div>
+            <label class="checkbox-label" style="font-size: 11px; margin: 0;">
+              <input type="checkbox" id="cb_auto_open_cc" checked>
+              Tự động mở CapCut khi tạo xong
+            </label>
+          </div>
+          <div id="quick_open_banner" style="display: none; margin-top: 10px; background: rgba(5, 150, 105, 0.15); border: 1px solid #059669; border-radius: 8px; padding: 10px 14px; text-align: center;">
+            <div id="quick_open_title" style="color: #10b981; font-weight: bold; font-size: 12px; margin-bottom: 6px;">🎉 Dự án đã sẵn sàng trong CapCut!</div>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+              <button class="btn btn-primary" style="background: #059669; font-weight: bold; padding: 6px 18px; font-size: 12px;" onclick="openLastDraftCapCut()">🚀 Mở Dự Án Trong CapCut Ngay</button>
+            </div>
+          </div>
         </div>
 
         <!-- Console Log Box -->
@@ -1336,9 +1355,16 @@ def index_page():
       pInput.style.display = 'none';
     }
 
-    async function launchCapCut() {
+    let lastDraftDir = null;
+
+    async function launchCapCut(draftPath = null) {
       try {
-        const res = await fetch('/api/launch-capcut', { method: 'POST' });
+        const bodyData = draftPath ? JSON.stringify({ draft_path: draftPath }) : '{}';
+        const res = await fetch('/api/launch-capcut', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: bodyData
+        });
         const data = await res.json();
         if (data.status === 'success') {
           log('[Action] Đã khởi chạy CapCut: ' + data.message);
@@ -1346,6 +1372,10 @@ def index_page():
           alert('Không thể mở CapCut: ' + data.message);
         }
       } catch (e) { alert(e.message); }
+    }
+
+    function openLastDraftCapCut() {
+      launchCapCut(lastDraftDir);
     }
 
     function startBuild() {
@@ -1441,12 +1471,23 @@ def index_page():
           pStatus.textContent = 'Hoàn tất 100%!';
           btn.disabled = false;
           btn.textContent = 'Bắt đầu tạo dự án CapCut';
-          log('\\nTẠO DỰ ÁN CAPCUT THÀNH CÔNG');
+          lastDraftDir = msg.result.draft_dir;
+          log('\nTẠO DỰ ÁN CAPCUT THÀNH CÔNG');
           log(`  Dự án:      ${msg.result.draft_name}`);
           log(`  Tổng cảnh:  ${msg.result.total_scenes} cảnh`);
           log(`  Thời lượng: ${(msg.result.duration_seconds/60).toFixed(2)} phút`);
           log(`  Thư mục:    ${msg.result.draft_dir}`);
-          alert(`Đã tạo dự án CapCut '${msg.result.draft_name}' thành công!\\nBạn có thể mở CapCut ngay bây giờ.`);
+
+          const qBanner = document.getElementById('quick_open_banner');
+          if (qBanner) {
+            document.getElementById('quick_open_title').textContent = `🎉 Dự án '${msg.result.draft_name}' đã sẵn sàng!`;
+            qBanner.style.display = 'block';
+          }
+
+          if (document.getElementById('cb_auto_open_cc').checked) {
+            log('[Auto] Tự động khởi chạy CapCut mở dự án...');
+            launchCapCut(msg.result.draft_dir);
+          }
         } else if (msg.type === 'error') {
           btn.disabled = false;
           btn.textContent = 'Bắt đầu tạo dự án CapCut';
