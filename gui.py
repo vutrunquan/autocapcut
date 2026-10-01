@@ -1244,7 +1244,13 @@ class AutoCapCutApp(ctk.CTk):
         files = filedialog.askopenfilenames(
             title="Chọn một hoặc nhiều file voice audio",
             initialdir=self.default_init_dir,
-            filetypes=[("Audio Files", "*.wav;*.mp3;*.m4a;*.aac;*.flac"), ("All Files", "*.*")]
+            filetypes=[
+                ("Audio Files", "*.wav *.mp3 *.m4a *.aac *.flac *.WAV *.MP3 *.M4A *.AAC *.FLAC"),
+                ("WAV Audio", "*.wav *.WAV"),
+                ("MP3 Audio", "*.mp3 *.MP3"),
+                ("M4A Audio", "*.m4a *.M4A"),
+                ("All Files", "*.*")
+            ]
         )
         if files:
             self.audio_files_var.set("; ".join(files))
@@ -1254,7 +1260,7 @@ class AutoCapCutApp(ctk.CTk):
         f = filedialog.askopenfilename(
             title="Chọn file phụ đề SRT",
             initialdir=self.default_init_dir,
-            filetypes=[("SRT Subtitles", "*.srt"), ("All Files", "*.*")]
+            filetypes=[("SRT Subtitles", "*.srt *.SRT"), ("All Files", "*.*")]
         )
         if f:
             self.srt_file_var.set(f)
@@ -1264,7 +1270,7 @@ class AutoCapCutApp(ctk.CTk):
         f = filedialog.askopenfilename(
             title="Chọn file kịch bản (.txt, .csv)",
             initialdir=self.default_init_dir,
-            filetypes=[("Text Files", "*.txt"), ("CSV Files", "*.csv"), ("All Files", "*.*")]
+            filetypes=[("Text Files", "*.txt *.TXT"), ("CSV Files", "*.csv *.CSV"), ("All Files", "*.*")]
         )
         if f:
             try:
@@ -1304,7 +1310,13 @@ class AutoCapCutApp(ctk.CTk):
         files = filedialog.askopenfilenames(
             title="Chọn file nhạc nền (BGM)",
             initialdir=self.default_init_dir,
-            filetypes=[("Audio Files", "*.wav;*.mp3;*.m4a;*.aac;*.flac"), ("All Files", "*.*")]
+            filetypes=[
+                ("Audio Files", "*.wav *.mp3 *.m4a *.aac *.flac *.WAV *.MP3 *.M4A *.AAC *.FLAC"),
+                ("WAV Audio", "*.wav *.WAV"),
+                ("MP3 Audio", "*.mp3 *.MP3"),
+                ("M4A Audio", "*.m4a *.M4A"),
+                ("All Files", "*.*")
+            ]
         )
         if files:
             self.bgm_files_var.set("; ".join(files))

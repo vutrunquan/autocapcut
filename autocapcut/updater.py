@@ -18,7 +18,7 @@ import subprocess
 import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
-CURRENT_VERSION = "1.3.5"
+CURRENT_VERSION = "1.3.6"
 GOOGLE_DRIVE_VERSION_URL = "https://drive.usercontent.google.com/download?id=1SfGAiG8cN7vUnpSTq2cF0BAuY8jy5VPU&export=download&confirm=t"
 GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrunquan/autocapcut/contents/version.json"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrunquan/autocapcut/main/version.json"
@@ -44,17 +44,27 @@ def is_newer_version(remote_ver: str, local_ver: str = CURRENT_VERSION) -> bool:
         return False
 
 
+def get_os_download_url(data: Dict[str, Any]) -> str:
+    """Extract appropriate download URL based on current operating system."""
+    if sys.platform == "darwin":
+        return data.get("download_url_mac") or data.get("download_url") or ""
+    elif sys.platform == "win32":
+        return data.get("download_url_win") or data.get("download_url") or ""
+    return data.get("download_url") or ""
+
+
 def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
     """
     Check if a newer version of AutoCapCut is available online.
     Prioritizes Google Drive direct streaming endpoint, then falls back to GitHub.
+    Automatically matches download package for current OS (macOS / Windows).
     """
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Cache-Control": "no-cache"
     }
 
-    # 1. Primary: Google Drive Direct Endpoint (100% independent, zero bans, zero rate limits)
+    # 1. Primary: Google Drive Direct Endpoint
     if GOOGLE_DRIVE_VERSION_URL:
         try:
             req = urllib.request.Request(GOOGLE_DRIVE_VERSION_URL, headers=headers)
@@ -68,8 +78,8 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                         "current_version": CURRENT_VERSION,
                         "release_date": data.get("release_date", ""),
                         "changelog": data.get("changelog", []),
-                        "download_url": data.get("download_url", ""),
-                        "manual_url": data.get("manual_page_url", "https://drive.google.com/file/d/1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW/view?usp=sharing"),
+                        "download_url": get_os_download_url(data),
+                        "manual_url": data.get("manual_page_url", "https://github.com/vutrunquan/autocapcut/releases"),
                         "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                     }
                 elif remote_ver:
@@ -96,8 +106,8 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                     "current_version": CURRENT_VERSION,
                     "release_date": data.get("release_date", ""),
                     "changelog": data.get("changelog", []),
-                    "download_url": data.get("download_url", ""),
-                    "manual_url": data.get("manual_page_url", "https://github.com/vutrunquan/autocapcut"),
+                    "download_url": get_os_download_url(data),
+                    "manual_url": data.get("manual_page_url", "https://github.com/vutrunquan/autocapcut/releases"),
                     "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                 }
             else:
@@ -110,19 +120,27 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
     except Exception:
         pass
 
-    # 2. Fallback to GitHub Releases API
+    # 3. Fallback to GitHub Releases API with OS matching
     try:
         req = urllib.request.Request(GITHUB_API_URL, headers=headers)
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             gh_data = json.loads(resp.read().decode("utf-8"))
             tag = gh_data.get("tag_name", "").strip().lstrip("v")
             if tag and is_newer_version(tag, CURRENT_VERSION):
-                # Look for zip asset
+                target_os_kw = "mac" if sys.platform == "darwin" else "win"
                 download_url = ""
+                # First pass: match exact OS keyword in zip asset name
                 for asset in gh_data.get("assets", []):
-                    if asset.get("name", "").lower().endswith(".zip"):
+                    name_lower = asset.get("name", "").lower()
+                    if name_lower.endswith(".zip") and target_os_kw in name_lower:
                         download_url = asset.get("browser_download_url", "")
                         break
+                # Second pass: fallback to any zip asset
+                if not download_url:
+                    for asset in gh_data.get("assets", []):
+                        if asset.get("name", "").lower().endswith(".zip"):
+                            download_url = asset.get("browser_download_url", "")
+                            break
                 if not download_url:
                     download_url = gh_data.get("zipball_url", "")
 

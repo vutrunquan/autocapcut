@@ -83,6 +83,10 @@ echo "[-] Kiểm tra Node.js (dùng cho công cụ xóa Watermark Gemini AI)..."
 if command -v node &>/dev/null; then
     NODE_VER=$(node -v)
     echo "    -> Node.js sẵn sàng: $NODE_VER"
+    if [ ! -d "tools/gemini-watermark-remover/node_modules/sharp" ]; then
+        echo "    -> Đang cài đặt thư viện xử lý ảnh Sharp cho tính năng xóa watermark..."
+        npm --prefix "tools/gemini-watermark-remover" install sharp --no-audit --no-fund > /dev/null 2>&1 || true
+    fi
 else
     echo "    [i] Chưa phát hiện Node.js (tính năng xóa watermark sẽ bỏ qua nếu không có Node)."
     echo "        Bạn có thể cài đặt thêm Node.js nếu cần: brew install node"

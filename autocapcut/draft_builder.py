@@ -744,6 +744,17 @@ def build_capcut_draft(
     script.save()
 
     draft_dir = os.path.join(draft_root, draft_name)
+
+    # Ensure draft_info.json is created for modern CapCut Desktop versions
+    content_file = os.path.join(draft_dir, 'draft_content.json')
+    info_file = os.path.join(draft_dir, 'draft_info.json')
+    if os.path.exists(content_file) and not os.path.exists(info_file):
+        try:
+            import shutil
+            shutil.copyfile(content_file, info_file)
+        except Exception:
+            pass
+
     cover_image = image_paths[0] if image_paths else None
     register_draft_in_root_meta(
         draft_root=draft_root,

@@ -78,13 +78,24 @@ def main():
     print(f"1. Xác thực GitHub Token... OK ({REPO_OWNER}/{REPO_NAME})")
     print(f"2. Phiên bản phát hành: {tag_name}")
 
-    if not ZIP_PATH.exists():
-        print(f"[X] File zip chưa được đóng gói: {ZIP_PATH}")
-        print("Vui lòng chạy 'python tools/build_dist.py' trước!")
+    zip_files = []
+    win_zip = BASE_DIR / "releases" / "AutoCapCut_Studio_Windows.zip"
+    mac_zip = BASE_DIR / "releases" / "AutoCapCut_Studio_macOS.zip"
+
+    if win_zip.exists():
+        zip_files.append(win_zip)
+    if mac_zip.exists():
+        zip_files.append(mac_zip)
+
+    if not zip_files:
+        print("[X] Không tìm thấy file zip nào trong thư mục releases!")
+        print("Vui lòng chạy 'python tools/build_dist.py' hoặc 'python tools/build_dist_macos.py' trước!")
         sys.exit(1)
 
-    zip_size_mb = os.path.getsize(ZIP_PATH) / (1024 * 1024)
-    print(f"3. File đóng gói: {ZIP_PATH.name} ({zip_size_mb:.1f} MB)")
+    print(f"3. Tìm thấy {len(zip_files)} file nén phát hành:")
+    for z in zip_files:
+        size_mb = os.path.getsize(z) / (1024 * 1024)
+        print(f"   - {z.name} ({size_mb:.1f} MB)")
 
     headers = {
         "Authorization": f"token {token}",
@@ -126,47 +137,49 @@ def main():
 
     release_id = release_info["id"]
 
-    # Step B: Check existing assets and remove old zip if already present
-    for asset in release_info.get("assets", []):
-        if asset.get("name") == ZIP_PATH.name:
-            asset_id = asset["id"]
-            print(f"5. Đang xoá file cũ trên Release (Asset ID: {asset_id})...")
-            del_url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/assets/{asset_id}"
-            del_req = urllib.request.Request(del_url, headers=headers, method="DELETE")
+    # Step B: Upload each ZIP asset
+    for zip_path in zip_files:
+        # Check existing assets and remove old zip if already present
+        for asset in release_info.get("assets", []):
+            if asset.get("name") == zip_path.name:
+                asset_id = asset["id"]
+                print(f"5. Đang xoá file cũ {zip_path.name} trên Release (Asset ID: {asset_id})...")
+                del_url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/assets/{asset_id}"
+                del_req = urllib.request.Request(del_url, headers=headers, method="DELETE")
+                try:
+                    with urllib.request.urlopen(del_req):
+                        print("   Xoá file cũ thành công.")
+                except Exception as del_err:
+                    print(f"   Cảnh báo: Không thể xoá asset cũ: {del_err}")
+
+        upload_url = f"https://uploads.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/{release_id}/assets?name={zip_path.name}"
+        zip_size_mb = os.path.getsize(zip_path) / (1024 * 1024)
+        print(f"6. Đang tải lên {zip_path.name} ({zip_size_mb:.1f} MB) lên GitHub Releases...")
+
+        upload_headers = {
+            "Authorization": f"token {token}",
+            "Content-Type": "application/zip",
+            "Content-Length": str(os.path.getsize(zip_path)),
+            "User-Agent": "AutoCapCut-Publisher"
+        }
+
+        with open(zip_path, "rb") as f_zip:
+            upload_req = urllib.request.Request(upload_url, data=f_zip, headers=upload_headers, method="POST")
             try:
-                with urllib.request.urlopen(del_req):
-                    print("   Xoá file cũ thành công.")
-            except Exception as del_err:
-                print(f"   Cảnh báo: Không thể xoá asset cũ: {del_err}")
+                with urllib.request.urlopen(upload_req) as resp:
+                    asset_res = json.loads(resp.read().decode("utf-8"))
+                    download_url = asset_res.get("browser_download_url")
+                    print(f"   ✓ Đã tải lên: {download_url}")
+            except urllib.error.HTTPError as up_err:
+                err_body = up_err.read().decode("utf-8", errors="ignore")
+                print(f"[X] Lỗi upload asset {zip_path.name}: {up_err} - {err_body}")
 
-    # Step C: Upload ZIP asset
-    upload_url = f"https://uploads.github.com/repos/{REPO_OWNER}/{REPO_NAME}/releases/{release_id}/assets?name={ZIP_PATH.name}"
-    print(f"6. Đang tải lên {ZIP_PATH.name} ({zip_size_mb:.1f} MB) lên GitHub Releases...")
-    print("   Vui lòng đợi vài giây trong khi tải file lên...")
-
-    upload_headers = {
-        "Authorization": f"token {token}",
-        "Content-Type": "application/zip",
-        "Content-Length": str(os.path.getsize(ZIP_PATH)),
-        "User-Agent": "AutoCapCut-Publisher"
-    }
-
-    with open(ZIP_PATH, "rb") as f_zip:
-        upload_req = urllib.request.Request(upload_url, data=f_zip, headers=upload_headers, method="POST")
-        try:
-            with urllib.request.urlopen(upload_req) as resp:
-                asset_res = json.loads(resp.read().decode("utf-8"))
-                download_url = asset_res.get("browser_download_url")
-                print("\n" + "=" * 65)
-                print("🎉 TẢI LÊN GITHUB RELEASES THÀNH CÔNG!")
-                print(f"👉 Direct Download URL:\n   {download_url}")
-                print(f"👉 Release Page:\n   {release_info.get('html_url')}")
-                print("=" * 65 + "\n")
-        except urllib.error.HTTPError as up_err:
-            err_body = up_err.read().decode("utf-8", errors="ignore")
-            print(f"[X] Lỗi upload asset: {up_err} - {err_body}")
-            sys.exit(1)
+    print("\n" + "=" * 65)
+    print("🎉 TẢI LÊN GITHUB RELEASES THÀNH CÔNG!")
+    print(f"👉 Release Page:\n   {release_info.get('html_url')}")
+    print("=" * 65 + "\n")
 
 
 if __name__ == "__main__":
     main()
+

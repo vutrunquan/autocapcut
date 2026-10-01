@@ -12,6 +12,7 @@ import re
 import time
 import json
 import subprocess
+import shutil
 from typing import List, Tuple, Optional, Callable
 from PIL import Image, ImageFilter
 
@@ -80,8 +81,41 @@ def get_image_dimensions(image_path: str) -> Tuple[int, int]:
         return (1920, 1080)
 
 
+def find_node_binary() -> str:
+    """Find Node.js binary across system PATH and typical macOS/Linux/Windows locations."""
+    node_which = shutil.which("node")
+    if node_which:
+        return node_which
+
+    if sys.platform != 'win32':
+        candidates = [
+            "/usr/local/bin/node",
+            "/opt/homebrew/bin/node",
+            "/usr/local/opt/node@20/bin/node",
+            "/usr/local/opt/node/bin/node",
+            "/opt/homebrew/opt/node@20/bin/node",
+            "/opt/homebrew/opt/node/bin/node",
+        ]
+        home = os.path.expanduser("~")
+        nvm_pattern = os.path.join(home, ".nvm", "versions", "node", "*", "bin", "node")
+        import glob
+        for match in glob.glob(nvm_pattern):
+            candidates.append(match)
+
+        for c in candidates:
+            if os.path.isfile(c) and os.access(c, os.X_OK):
+                return c
+
+    return "node"
+
+
 def get_watermark_remover_script() -> Optional[str]:
     """Locate the batch_remover.mjs script in tools/gemini-watermark-remover."""
+    if getattr(sys, 'frozen', False):
+        meipass = getattr(sys, '_MEIPASS', '')
+        cand = os.path.join(meipass, 'tools', 'gemini-watermark-remover', 'batch_remover.mjs')
+        if os.path.exists(cand):
+            return cand
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     script_path = os.path.join(base_dir, 'tools', 'gemini-watermark-remover', 'batch_remover.mjs')
     if os.path.exists(script_path):
@@ -104,7 +138,8 @@ def remove_gemini_watermark_from_image(image_path: str, output_cache_dir: str) -
 
         tool_script = get_watermark_remover_script()
         if tool_script and os.path.exists(tool_script):
-            cmd = ['node', tool_script, '--single', image_path, cached_path]
+            node_bin = find_node_binary()
+            cmd = [node_bin, tool_script, '--single', image_path, cached_path]
             creationflags = 0
             if sys.platform == 'win32':
                 creationflags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
@@ -157,7 +192,8 @@ def batch_remove_gemini_watermarks(
         if sys.platform == 'win32':
             creationflags = getattr(subprocess, 'CREATE_NO_WINDOW', 0)
 
-        cmd = ['node', tool_script]
+        node_bin = find_node_binary()
+        cmd = [node_bin, tool_script]
         if overwrite:
             cmd.append('--overwrite')
         cmd.extend(['--batch', tasks_json_file])

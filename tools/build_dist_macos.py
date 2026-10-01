@@ -52,6 +52,7 @@ def build_executable():
         "--exclude-module", "pytest",
         "--exclude-module", "whisper",
         f"--add-data={str(BASE_DIR / 'assets')}:assets",
+        f"--add-data={str(BASE_DIR / 'tools' / 'gemini-watermark-remover')}:tools/gemini-watermark-remover",
         str(BASE_DIR / "gui.py")
     ]
 

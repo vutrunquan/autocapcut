@@ -1,14 +1,16 @@
 {
-  "version": "1.3.5",
+  "version": "1.3.6",
   "min_compatible_version": "1.0.0",
-  "release_date": "2026-10-01",
-  "title": "AutoCapCut Studio v1.3.5 - Cập Nhật Ổn Định Trên Windows & macOS",
+  "release_date": "2026-10-02",
+  "title": "AutoCapCut Studio v1.3.6 - Tối Ưu macOS & Sửa Lỗi Tương Thích CapCut",
   "changelog": [
-    "Sửa lỗi cập nhật tự động: file không được ghi đè do xung đột khóa tiến trình",
-    "Cải thiện updater: thay timeout bằng ping delay tương thích mọi môi trường Windows",
-    "Tự động đóng tiến trình cũ bằng taskkill trước khi cập nhật",
-    "Loại bỏ cửa sổ CMD nhấp nháy khi cập nhật"
+    "Sửa lỗi văng ứng dụng khi chọn file voice/âm thanh trên macOS (chuẩn hóa filetypes)",
+    "Hỗ trợ hoàn toàn phiên bản CapCut mới (tự động tạo song song draft_info.json và draft_content.json)",
+    "Kích hoạt và tối ưu tính năng xóa watermark Gemini AI trên macOS (tự động tìm Node.js và tích hợp thư viện Sharp)",
+    "Tối ưu đóng gói ứng dụng độc lập AutoCapCut.app cho macOS (Apple Silicon & Intel)"
   ],
+  "download_url_win": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
+  "download_url_mac": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
   "download_url": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
-  "manual_page_url": "https://drive.google.com/file/d/1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW/view?usp=sharing"
+  "manual_page_url": "https://github.com/vutrunquan/autocapcut/releases"
 }

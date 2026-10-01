@@ -269,6 +269,23 @@ def register_draft_in_root_meta(
         except Exception:
             pass
 
+    # Ensure both draft_info.json and draft_content.json exist for legacy and modern CapCut versions
+    content_file = os.path.join(draft_dir, 'draft_content.json')
+    info_file = os.path.join(draft_dir, 'draft_info.json')
+
+    if os.path.exists(content_file) and not os.path.exists(info_file):
+        try:
+            shutil.copyfile(content_file, info_file)
+        except Exception:
+            pass
+    elif os.path.exists(info_file) and not os.path.exists(content_file):
+        try:
+            shutil.copyfile(info_file, content_file)
+        except Exception:
+            pass
+
+    primary_json = info_file if os.path.exists(info_file) else content_file
+
     now_us = int(time.time() * 1000000)
     all_drafts = meta_data.get('all_draft_store', [])
     # Remove older entry with the same draft name to prevent duplicates
@@ -290,7 +307,7 @@ def register_draft_in_root_meta(
         'draft_is_invisible': False,
         'draft_is_pippit_draft': False,
         'draft_is_web_article_video': False,
-        'draft_json_file': os.path.join(draft_dir, 'draft_content.json').replace('\\', '/'),
+        'draft_json_file': primary_json.replace('\\', '/'),
         'draft_name': draft_name,
         'draft_new_version': '',
         'draft_root_path': draft_root.replace('\\', '/'),
