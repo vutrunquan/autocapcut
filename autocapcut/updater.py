@@ -19,9 +19,9 @@ import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
 CURRENT_VERSION = "1.0.1"
-GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrungquan/autocapcut/contents/version.json"
-VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrungquan/autocapcut/main/version.json"
-GITHUB_API_URL = "https://api.github.com/repos/vutrungquan/autocapcut/releases/latest"
+GITHUB_CONTENTS_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/contents/version.json"
+VERSION_CHECK_URL = "https://raw.githubusercontent.com/buoncuoi123/autocapcut/main/version.json"
+GITHUB_API_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/releases/latest"
 
 
 def parse_version_tuple(v_str: str) -> Tuple[int, ...]:
@@ -82,7 +82,7 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                         "release_date": data.get("release_date", ""),
                         "changelog": data.get("changelog", []),
                         "download_url": data.get("download_url", ""),
-                        "manual_url": data.get("manual_page_url", "https://github.com/vutrungquan/autocapcut"),
+                        "manual_url": data.get("manual_page_url", "https://github.com/buoncuoi123/autocapcut"),
                         "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                     }
                 else:
@@ -110,7 +110,7 @@ def check_for_updates(timeout: int = 5) -> Dict[str, Any]:
                     "release_date": data.get("release_date", ""),
                     "changelog": data.get("changelog", []),
                     "download_url": data.get("download_url", ""),
-                    "manual_url": data.get("manual_page_url", "https://github.com/vutrungquan/autocapcut"),
+                    "manual_url": data.get("manual_page_url", "https://github.com/buoncuoi123/autocapcut"),
                     "title": data.get("title", f"AutoCapCut Studio v{remote_ver}")
                 }
             else:

@@ -1605,7 +1605,7 @@ class AutoCapCutApp(ctk.CTk):
         curr = data.get("current_version", CURRENT_VERSION)
         changelog = data.get("changelog", [])
         dl_url = data.get("download_url", "")
-        manual_url = data.get("manual_url", "https://github.com/vutrungquan/autocapcut/releases/latest")
+        manual_url = data.get("manual_url", "https://github.com/buoncuoi123/autocapcut/releases/latest")
 
         dlg = ctk.CTkToplevel(self)
         dlg.title("Cập Nhật AutoCapCut Studio")

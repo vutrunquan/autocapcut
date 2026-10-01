@@ -19,7 +19,7 @@ if sys.platform == 'win32':
     except Exception:
         pass
 
-REPO_OWNER = "vutrungquan"
+REPO_OWNER = "buoncuoi123"
 REPO_NAME = "autocapcut"
 BASE_DIR = Path(__file__).resolve().parent.parent
 ZIP_PATH = BASE_DIR / "releases" / "AutoCapCut_Studio_Windows.zip"
@@ -75,7 +75,7 @@ def main():
         print("Vui lòng thiết lập biến môi trường GITHUB_TOKEN hoặc đăng nhập git với GitHub.")
         sys.exit(1)
 
-    print(f"1. Xác thực GitHub Token... OK (vutrungquan/{REPO_NAME})")
+    print(f"1. Xác thực GitHub Token... OK ({REPO_OWNER}/{REPO_NAME})")
     print(f"2. Phiên bản phát hành: {tag_name}")
 
     if not ZIP_PATH.exists():
