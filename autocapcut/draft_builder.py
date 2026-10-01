@@ -14,6 +14,7 @@ Constructs a complete CapCut draft project with full pro features:
 """
 
 import os
+import sys
 import random
 from typing import List, Dict, Any, Optional, Callable, Union
 import pycapcut as cc
@@ -287,16 +288,71 @@ def build_capcut_draft(
         curr_audio_offset_us += dur
         total_audio_us += dur
 
-    # 2. BGM TRACK (With Audio Ducking & Fade)
+    # 2. BGM TRACK (With Built-in Presets, Audio Ducking & Fade)
+    assets_dir = os.path.join(getattr(sys, '_MEIPASS', ''), 'assets')
+    if not os.path.isdir(assets_dir):
+        assets_dir = os.path.join(os.path.dirname(sys.executable), 'assets')
+    if not os.path.isdir(assets_dir):
+        assets_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets')
+    if not os.path.isdir(assets_dir):
+        assets_dir = os.path.join(os.getcwd(), 'assets')
+
+    bgm_dir = os.path.join(assets_dir, 'bgm')
+    preset_map = {
+        'cinematic': 'cinematic_storytelling.wav',
+        'điện ảnh': 'cinematic_storytelling.wav',
+        'sâu lắng': 'cinematic_storytelling.wav',
+        'storytelling': 'cinematic_storytelling.wav',
+        'news': 'news_finance_tech.wav',
+        'tin tức': 'news_finance_tech.wav',
+        'tài chính': 'news_finance_tech.wav',
+        'finance': 'news_finance_tech.wav',
+        'tech': 'news_finance_tech.wav',
+        'lofi': 'lofi_chill_podcast.wav',
+        'chill': 'lofi_chill_podcast.wav',
+        'thư giãn': 'lofi_chill_podcast.wav',
+        'podcast': 'lofi_chill_podcast.wav',
+        'dramatic': 'dramatic_suspense.wav',
+        'kịch tính': 'dramatic_suspense.wav',
+        'hồi hộp': 'dramatic_suspense.wav',
+        'suspense': 'dramatic_suspense.wav',
+        'thriller': 'dramatic_suspense.wav',
+        'happy': 'happy_vlog_upbeat.wav',
+        'vlog': 'happy_vlog_upbeat.wav',
+        'vui tươi': 'happy_vlog_upbeat.wav',
+        'năng động': 'happy_vlog_upbeat.wav',
+        'upbeat': 'happy_vlog_upbeat.wav',
+    }
+
+    resolved_bgm = []
     if bgm_files:
+        for b_in in bgm_files:
+            b_clean = b_in.strip()
+            if not b_clean or b_clean.lower() in ('none', 'không dùng nhạc nền', 'không'):
+                continue
+            if os.path.exists(b_clean):
+                resolved_bgm.append(b_clean)
+                continue
+            b_lower = b_clean.lower()
+            matched_p = None
+            for kw, fname in preset_map.items():
+                if kw in b_lower:
+                    matched_p = fname
+                    break
+            if matched_p and os.path.isdir(bgm_dir):
+                p_file = os.path.join(bgm_dir, matched_p)
+                if os.path.exists(p_file):
+                    resolved_bgm.append(p_file)
+
+    if resolved_bgm:
         report("Đang cấu hình nhạc nền (BGM) & Audio Ducking...", 0.16)
         script.add_track(cc.TrackType.audio, 'BGM')
         curr_bgm_us = 0
         bgm_idx = 0
         bgm_base_vol = (bgm_volume * 0.75) if audio_ducking else bgm_volume
 
-        while curr_bgm_us < total_audio_us and bgm_files:
-            bgm_p = bgm_files[bgm_idx % len(bgm_files)]
+        while curr_bgm_us < total_audio_us and resolved_bgm:
+            bgm_p = resolved_bgm[bgm_idx % len(resolved_bgm)]
             if not os.path.exists(bgm_p):
                 break
             bgm_mat = cc.AudioMaterial(bgm_p)
@@ -321,20 +377,10 @@ def build_capcut_draft(
             curr_bgm_us += use_dur_us
             bgm_idx += 1
 
-    # 3. SFX AUDIO TRACK (Transition Sound Effects)
-    sfx_candidates = [
-        os.path.join(getattr(sys, '_MEIPASS', ''), 'assets', 'sfx'),
-        os.path.join(os.path.dirname(sys.executable), 'assets', 'sfx'),
-        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'sfx'),
-        os.path.join(os.getcwd(), 'assets', 'sfx')
-    ]
-    sfx_dir = ""
-    for cand in sfx_candidates:
-        if cand and os.path.isdir(cand):
-            sfx_dir = cand
-            break
+    # 3. SFX AUDIO TRACK (Rich Transition Sound Effects Suite)
+    sfx_dir = os.path.join(assets_dir, 'sfx')
     sfx_files = []
-    if enable_sfx and sfx_dir and os.path.isdir(sfx_dir):
+    if enable_sfx and os.path.isdir(sfx_dir):
         all_sfx = [
             os.path.join(sfx_dir, f) for f in os.listdir(sfx_dir)
             if f.lower().endswith(('.wav', '.mp3'))
@@ -343,10 +389,55 @@ def build_capcut_draft(
         if s_target in ('none', 'không dùng sfx'):
             sfx_files = []
         elif s_target in ('random', 'ngẫu nhiên', ''):
-            sfx_files = [f for f in all_sfx if not os.path.basename(f).lower().startswith('ding')]
+            # Smart random: pool of clean transition whooshes/swooshes/pops/clicks
+            sfx_files = [f for f in all_sfx if not os.path.basename(f).lower().startswith(('keyboard', 'ding'))]
+            if not sfx_files:
+                sfx_files = all_sfx
         else:
-            # Filter by keyword (e.g. whoosh, swoosh, pop, ding)
-            matched = [f for f in all_sfx if s_target in os.path.basename(f).lower()]
+            # Keyword matching for specific sound choices
+            keywords = []
+            if 'deep' in s_target or 'trầm' in s_target:
+                keywords = ['whoosh_cinematic_deep', 'whoosh_heavy_bass']
+            elif 'fast whoosh' in s_target or 'lướt nhanh' in s_target:
+                keywords = ['whoosh_fast', 'whoosh_1']
+            elif 'air' in s_target or 'gió' in s_target:
+                keywords = ['whoosh_soft_air']
+            elif 'bass' in s_target:
+                keywords = ['whoosh_heavy_bass']
+            elif 'whoosh' in s_target:
+                keywords = ['whoosh']
+            elif 'whip' in s_target:
+                keywords = ['swoosh_fast_whip']
+            elif 'slide' in s_target or 'trượt' in s_target:
+                keywords = ['swoosh_slide']
+            elif 'swoosh' in s_target or 'vút' in s_target:
+                keywords = ['swoosh']
+            elif 'camera' in s_target or 'chụp' in s_target:
+                keywords = ['camera_shutter']
+            elif 'click' in s_target or 'chuột' in s_target:
+                keywords = ['mouse_click']
+            elif 'phím' in s_target or 'keyboard' in s_target or 'typewriter' in s_target:
+                keywords = ['keyboard_typing']
+            elif 'pop' in s_target or 'bong bóng' in s_target:
+                keywords = ['bubble_pop', 'pop']
+            elif 'kaching' in s_target or 'tiền' in s_target or 'cash' in s_target:
+                keywords = ['cash_register_kaching']
+            elif 'boom' in s_target or 'impact' in s_target or 'va đập' in s_target:
+                keywords = ['cinematic_boom_impact']
+            elif 'ding' in s_target or 'keng' in s_target or 'chuông' in s_target:
+                keywords = ['bell_ding_chime', 'ding']
+            elif 'rewind' in s_target or 'băng' in s_target:
+                keywords = ['tape_rewind']
+            elif 'glitch' in s_target or 'nhiễu' in s_target:
+                keywords = ['glitch_digital']
+
+            matched = []
+            for kw in keywords:
+                for f in all_sfx:
+                    if kw in os.path.basename(f).lower() and f not in matched:
+                        matched.append(f)
+            if not matched:
+                matched = [f for f in all_sfx if any(p in os.path.basename(f).lower() for p in s_target.split())]
             sfx_files = matched if matched else all_sfx
 
     if enable_sfx and sfx_files:
@@ -548,9 +639,9 @@ def build_capcut_draft(
             sfx_p = sfx_files[i % len(sfx_files)]
             try:
                 sfx_mat = cc.AudioMaterial(sfx_p)
-                sfx_dur = min(sfx_mat.duration, 600000)
+                sfx_dur = min(sfx_mat.duration, 2500000)
                 # Center SFX around cut point
-                sfx_st = max(0, st_us - 100000)
+                sfx_st = max(0, st_us - 120000)
                 sfx_seg = cc.AudioSegment(
                     sfx_mat,
                     target_timerange=cc.trange(sfx_st, sfx_dur),

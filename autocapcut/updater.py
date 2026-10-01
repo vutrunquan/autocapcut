@@ -18,7 +18,7 @@ import subprocess
 import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
-CURRENT_VERSION = "1.0.1"
+CURRENT_VERSION = "1.1.0"
 GITHUB_CONTENTS_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/contents/version.json"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/buoncuoi123/autocapcut/main/version.json"
 GITHUB_API_URL = "https://api.github.com/repos/buoncuoi123/autocapcut/releases/latest"
@@ -171,16 +171,24 @@ def download_update_file(
     Download update file with streaming and real-time progress callbacks.
     progress_callback(pct: float 0.0-1.0, downloaded_bytes: int, total_bytes: int)
     """
-    headers = {
-        "User-Agent": f"AutoCapCut-Updater/{CURRENT_VERSION}"
-    }
-    req = urllib.request.Request(download_url, headers=headers)
+    import re
+    actual_url = download_url.strip()
+    if "drive.google.com" in actual_url or "drive.usercontent.google.com" in actual_url:
+        m = re.search(r'(?:/file/d/|id=)([a-zA-Z0-9_-]+)', actual_url)
+        if m:
+            file_id = m.group(1)
+            actual_url = f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
 
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    req = urllib.request.Request(actual_url, headers=headers)
+
+    with urllib.request.urlopen(req, timeout=60) as resp:
         total_len = resp.headers.get("Content-Length")
         total_bytes = int(total_len) if total_len and total_len.isdigit() else 0
         downloaded = 0
-        chunk_size = 64 * 1024  # 64 KB
+        chunk_size = 128 * 1024  # 128 KB chunk
 
         with open(target_path, "wb") as f_out:
             while True:

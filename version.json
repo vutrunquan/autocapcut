@@ -1,13 +1,14 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "min_compatible_version": "1.0.0",
-  "release_date": "2026-09-30",
-  "title": "AutoCapCut Studio v1.0.1 - Cập Nhật Thông Tin Ngân Hàng & Auto-Update",
+  "release_date": "2026-10-01",
+  "title": "AutoCapCut Studio v1.1.0 - Kho Nhạc Nền BGM & Hiệu Ứng Âm Thanh CapCut Đa Dạng",
   "changelog": [
-    "Cập nhật số tài khoản MBBank 0346730482 chính xác",
-    "Tối ưu hoá giao diện và mã quét VietQR",
-    "Hệ thống tự động phát hiện bản cập nhật mới và cập nhật 1-click"
+    "Tích hợp 5 bộ nhạc nền CapCut bản quyền chất lượng cao (Điện ảnh, Tài chính, Lofi, Kịch tính, Vlog)",
+    "Bổ sung 16 hiệu ứng âm thanh chuyển cảnh SFX chuẩn CapCut (Whoosh, Swoosh, Kaching, Boom, Camera, Click...)",
+    "Tối ưu âm lượng tự động thông minh (Audio Ducking) & hiệu ứng Fade In/Fade Out",
+    "Chuyển đổi hạ tầng phân phối và cập nhật tốc độ cao qua Google Drive"
   ],
-  "download_url": "https://github.com/buoncuoi123/autocapcut/releases/latest/download/AutoCapCut_Studio_Windows.zip",
-  "manual_page_url": "https://github.com/buoncuoi123/autocapcut"
+  "download_url": "https://drive.usercontent.google.com/download?id=1MPyLbHp9uCicWdoZ8PrAOd7gF0C5ngXz&export=download&confirm=t",
+  "manual_page_url": "https://drive.google.com/file/d/1MPyLbHp9uCicWdoZ8PrAOd7gF0C5ngXz/view?usp=sharing"
 }

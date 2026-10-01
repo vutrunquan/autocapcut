@@ -559,11 +559,20 @@ def index_page():
           </div>
           <div class="form-row">
             <label>Nhạc Nền (BGM):</label>
-            <input type="text" id="bgm_paths" placeholder="File nhạc nền (tùy chọn)...">
+            <select id="bgm_preset" style="flex: 1;" onchange="onBgmPresetChange()">
+              <option value="none">Không dùng nhạc nền</option>
+              <option value="cinematic">🎵 Điện ảnh & Sâu lắng (Cinematic Piano/Strings)</option>
+              <option value="news">🎵 Tin tức & Tài chính (News / Finance / Tech)</option>
+              <option value="lofi">🎵 Thư giãn & Lofi Chill (Lofi Beats / Acoustic)</option>
+              <option value="dramatic">🎵 Kịch tính & Hồi hộp (Suspense Thriller)</option>
+              <option value="happy">🎵 Vui tươi & Năng động (Happy Vlog / Upbeat)</option>
+              <option value="custom">📂 Tự chọn đường dẫn file trên máy...</option>
+            </select>
+            <input type="text" id="bgm_paths" placeholder="File nhạc nền (tùy chọn)..." style="display: none; flex: 1;">
             <span style="color: var(--sub); font-size: 11px;">Vol:</span>
             <input type="text" id="bgm_volume" value="15" style="width: 36px; text-align: center; flex: none;">
             <span style="color: var(--sub); font-size: 11px;">%</span>
-            <button class="btn btn-secondary" style="padding: 4px 8px;" onclick="document.getElementById('bgm_paths').value=''">✕</button>
+            <button class="btn btn-secondary" style="padding: 4px 8px;" onclick="clearBgm()">✕</button>
           </div>
           <div class="form-row">
             <label>Tên Dự Án CapCut:</label>
@@ -854,11 +863,22 @@ def index_page():
                   Âm thanh SFX:
                 </label>
                 <select id="sfx_name_sel" style="flex: 1;">
-                  <option value="random">Ngẫu nhiên phối hợp (Random)</option>
-                  <option value="whoosh">Whoosh (Lướt gió điện ảnh)</option>
-                  <option value="swoosh">Swoosh (Vút nhanh)</option>
-                  <option value="pop">Pop (Nảy vui nhộn)</option>
-                  <option value="ding">Ding (Keng chuông)</option>
+                  <option value="random">Ngẫu nhiên phối hợp (Smart Random)</option>
+                  <option value="whoosh_cinematic_deep">Whoosh Điện ảnh Trầm (Cinematic Deep)</option>
+                  <option value="whoosh_fast">Whoosh Lướt Nhanh (Fast Wind)</option>
+                  <option value="whoosh_soft_air">Whoosh Gió Nhẹ (Soft Air)</option>
+                  <option value="whoosh_heavy_bass">Whoosh Tiếng Bass Dày (Heavy Bass)</option>
+                  <option value="swoosh_fast_whip">Swoosh Vung Nhanh (Fast Whip)</option>
+                  <option value="swoosh_slide">Swoosh Trượt Mượt (Slide)</option>
+                  <option value="camera_shutter">Camera Shutter (Tiếng chụp ảnh)</option>
+                  <option value="mouse_click">Mouse Click (Click chuột máy tính)</option>
+                  <option value="keyboard_typing">Keyboard Typing (Gõ bàn phím)</option>
+                  <option value="bubble_pop">Bubble Pop (Bong bóng vỡ vui nhộn)</option>
+                  <option value="cash_register_kaching">Cash Register Kaching (Tiền leng keng)</option>
+                  <option value="cinematic_boom_impact">Cinematic Boom (Va đập uy lực)</option>
+                  <option value="bell_ding_chime">Bell Ding (Keng chuông báo)</option>
+                  <option value="tape_rewind">Tape Rewind (Tua băng cassette)</option>
+                  <option value="glitch_digital">Glitch Digital (Nhiễu sóng số)</option>
                 </select>
                 <span style="color: var(--sub); font-size: 11px;">Vol:</span>
                 <input type="text" id="sfx_vol" value="50" style="width: 36px; text-align: center; flex: none;">
@@ -1205,8 +1225,11 @@ def index_page():
         document.getElementById('camera_motion_sel').value = 'smart_pacing';
         document.getElementById('zoom_scale').value = '115';
         document.getElementById('cb_sfx').checked = true;
-        document.getElementById('sfx_name_sel').value = 'whoosh';
+        document.getElementById('sfx_name_sel').value = 'whoosh_fast';
         document.getElementById('sfx_vol').value = '60';
+        document.getElementById('bgm_preset').value = 'happy';
+        document.getElementById('bgm_volume').value = '15';
+        onBgmPresetChange();
         document.getElementById('cb_blur').checked = true;
         document.getElementById('cb_ducking').checked = true;
         document.getElementById('cb_fade').checked = true;
@@ -1232,8 +1255,11 @@ def index_page():
         document.getElementById('camera_motion_sel').value = 'smart_pacing';
         document.getElementById('zoom_scale').value = '110';
         document.getElementById('cb_sfx').checked = true;
-        document.getElementById('sfx_name_sel').value = 'swoosh';
+        document.getElementById('sfx_name_sel').value = 'whoosh_cinematic_deep';
         document.getElementById('sfx_vol').value = '35';
+        document.getElementById('bgm_preset').value = 'cinematic';
+        document.getElementById('bgm_volume').value = '15';
+        onBgmPresetChange();
         document.getElementById('cb_blur').checked = true;
         document.getElementById('cb_ducking').checked = true;
         document.getElementById('cb_fade').checked = true;
@@ -1258,8 +1284,11 @@ def index_page():
         document.getElementById('camera_motion_sel').value = 'pan_left';
         document.getElementById('zoom_scale').value = '108';
         document.getElementById('cb_sfx').checked = true;
-        document.getElementById('sfx_name_sel').value = 'ding';
+        document.getElementById('sfx_name_sel').value = 'bell_ding_chime';
         document.getElementById('sfx_vol').value = '25';
+        document.getElementById('bgm_preset').value = 'news';
+        document.getElementById('bgm_volume').value = '12';
+        onBgmPresetChange();
         document.getElementById('cb_blur').checked = true;
         document.getElementById('cb_ducking').checked = true;
         document.getElementById('cb_fade').checked = true;
@@ -1277,6 +1306,8 @@ def index_page():
         document.getElementById('filter_sel').value = 'none';
         document.getElementById('camera_motion_sel').value = 'none';
         document.getElementById('cb_sfx').checked = false;
+        document.getElementById('bgm_preset').value = 'none';
+        onBgmPresetChange();
         document.getElementById('cb_blur').checked = true;
         document.getElementById('cb_ducking').checked = true;
         document.getElementById('cb_fade').checked = true;
@@ -1284,6 +1315,25 @@ def index_page():
         selectAllMotions(false);
         log('[Preset] Đã áp dụng: Tối giản nhanh (16:9).');
       }
+    }
+
+    function onBgmPresetChange() {
+      const sel = document.getElementById('bgm_preset').value;
+      const pInput = document.getElementById('bgm_paths');
+      if (sel === 'custom') {
+        pInput.style.display = 'block';
+        pInput.focus();
+      } else {
+        pInput.style.display = 'none';
+        pInput.value = '';
+      }
+    }
+
+    function clearBgm() {
+      document.getElementById('bgm_preset').value = 'none';
+      const pInput = document.getElementById('bgm_paths');
+      pInput.value = '';
+      pInput.style.display = 'none';
     }
 
     async function launchCapCut() {
@@ -1299,12 +1349,21 @@ def index_page():
     }
 
     function startBuild() {
+      const bgmPreset = document.getElementById('bgm_preset').value;
+      const customBgm = document.getElementById('bgm_paths').value.trim();
+      let finalBgm = '';
+      if (bgmPreset === 'custom') {
+        finalBgm = customBgm;
+      } else if (bgmPreset !== 'none') {
+        finalBgm = bgmPreset;
+      }
+
       const payload = {
         srt_path: document.getElementById('srt_path').value.trim(),
         script_source: document.getElementById('scenes_text').value.trim(),
         voice_paths: document.getElementById('voice_paths').value.trim(),
         images_dir: document.getElementById('images_dir').value.trim(),
-        bgm_paths: document.getElementById('bgm_paths').value.trim(),
+        bgm_paths: finalBgm,
         bgm_volume: document.getElementById('bgm_volume').value.trim() || '15',
         project_name: document.getElementById('project_name').value.trim() || 'AutoCapCut_Project',
         aspect_ratio: document.getElementById('aspect_ratio').value,

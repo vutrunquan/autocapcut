@@ -105,6 +105,7 @@ class AutoCapCutApp(ctk.CTk):
         self.srt_file_var = tk.StringVar()
         self.media_folder_var = tk.StringVar()
         self.bgm_files_var = tk.StringVar()
+        self.bgm_preset_var = tk.StringVar(value="Không dùng nhạc nền")
         self.bgm_vol_var = tk.StringVar(value="15")
         self.capcut_name_var = tk.StringVar(value=f"AutoCapCut_{time.strftime('%Y%m%d_%H%M')}")
         self.draft_root_var = tk.StringVar(value=get_default_capcut_draft_path() or "")
@@ -139,7 +140,7 @@ class AutoCapCutApp(ctk.CTk):
         self.sub_pos_var = tk.StringVar(value="Dưới cùng (Chuẩn Shorts/Reels)")
 
         self.sfx_var = tk.BooleanVar(value=True)
-        self.sfx_name_var = tk.StringVar(value="Ngẫu nhiên phối hợp (Random)")
+        self.sfx_name_var = tk.StringVar(value="Ngẫu nhiên phối hợp (Smart Random)")
         self.sfx_vol_var = tk.StringVar(value="50")
         self.ducking_var = tk.BooleanVar(value=True)
         self.fade_var = tk.BooleanVar(value=True)
@@ -343,17 +344,27 @@ class AutoCapCutApp(ctk.CTk):
         bgm_row.pack(fill="x", pady=3)
 
         lbl_bgm = ctk.CTkLabel(
-            bgm_row, text="Nhạc Nền (Tùy chọn):", font=("Segoe UI", 11),
+            bgm_row, text="Nhạc Nền (CapCut BGM):", font=("Segoe UI", 11),
             text_color=self.c_text, width=140, anchor="w"
         )
         lbl_bgm.pack(side="left")
 
-        e_bgm = ctk.CTkEntry(
-            bgm_row, textvariable=self.bgm_files_var, placeholder_text="File nhạc nền (nếu có)...",
+        bgm_presets = [
+            "Không dùng nhạc nền",
+            "🎵 Điện ảnh & Sâu lắng (Cinematic Piano/Strings)",
+            "🎵 Tin tức & Tài chính (News / Finance / Tech)",
+            "🎵 Thư giãn & Lofi Chill (Lofi Beats / Acoustic)",
+            "🎵 Kịch tính & Hồi hộp (Suspense Thriller)",
+            "🎵 Vui tươi & Năng động (Happy Vlog / Upbeat)",
+            "📂 Tự chọn file nhạc từ máy tính..."
+        ]
+        self.cb_bgm_preset = ctk.CTkComboBox(
+            bgm_row, variable=self.bgm_preset_var, values=bgm_presets,
+            command=self._on_bgm_preset_change,
             corner_radius=6, fg_color=self.c_input, border_color=self.c_input_border, text_color=self.c_text,
             height=30, font=("Segoe UI", 11)
         )
-        e_bgm.pack(side="left", fill="x", expand=True, padx=(0, 6))
+        self.cb_bgm_preset.pack(side="left", fill="x", expand=True, padx=(0, 6))
 
         ctk.CTkLabel(bgm_row, text="Vol:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 2))
         ctk.CTkEntry(
@@ -365,12 +376,12 @@ class AutoCapCutApp(ctk.CTk):
         btn_bgm_clear = ctk.CTkButton(
             bgm_row, text="✕", width=28, height=30, corner_radius=6,
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
-            command=lambda: self.bgm_files_var.set("")
+            command=self._clear_bgm
         )
         btn_bgm_clear.pack(side="left", padx=(0, 6))
 
         btn_bgm = ctk.CTkButton(
-            bgm_row, text="Chọn BGM", width=95, height=30, corner_radius=6,
+            bgm_row, text="Chọn BGM", width=85, height=30, corner_radius=6,
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, font=("Segoe UI", 11),
             command=self._browse_bgm
         )
@@ -761,9 +772,26 @@ class AutoCapCutApp(ctk.CTk):
             fg_color=self.c_accent, hover_color=self.c_accent_hover, text_color=self.c_text
         ).pack(side="left", padx=(0, 6))
 
-        sfx_opts = ["Ngẫu nhiên phối hợp (Random)", "Whoosh (Lướt gió điện ảnh)", "Swoosh (Vút nhanh)", "Pop (Nảy vui nhộn)", "Ding (Keng chuông)"]
+        sfx_opts = [
+            "Ngẫu nhiên phối hợp (Smart Random)",
+            "Whoosh Điện ảnh Trầm (Cinematic Deep)",
+            "Whoosh Lướt Nhanh (Fast Wind)",
+            "Whoosh Gió Nhẹ (Soft Air)",
+            "Whoosh Tiếng Bass Dày (Heavy Bass)",
+            "Swoosh Vung Nhanh (Fast Whip)",
+            "Swoosh Trượt Mượt (Slide)",
+            "Camera Shutter (Tiếng chụp ảnh)",
+            "Mouse Click (Click chuột máy tính)",
+            "Keyboard Typing (Gõ bàn phím)",
+            "Bubble Pop (Bong bóng vỡ vui nhộn)",
+            "Cash Register Kaching (Tiền leng keng)",
+            "Cinematic Boom (Va đập uy lực)",
+            "Bell Ding (Keng chuông báo)",
+            "Tape Rewind (Tua băng cassette)",
+            "Glitch Digital (Nhiễu sóng số)"
+        ]
         ctk.CTkComboBox(
-            sfx_row, variable=self.sfx_name_var, values=sfx_opts, width=200, height=28, corner_radius=6,
+            sfx_row, variable=self.sfx_name_var, values=sfx_opts, width=260, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border
         ).pack(side="left", padx=(0, 8))
 
@@ -1038,8 +1066,11 @@ class AutoCapCutApp(ctk.CTk):
             self.camera_motion_var.set("Smart Pacing AI (Tự phân tích nhịp câu)")
             self.zoom_scale_var.set("115")
             self.sfx_var.set(True)
-            self.sfx_name_var.set("Whoosh (Lướt gió điện ảnh)")
+            self.sfx_name_var.set("Whoosh Lướt Nhanh (Fast Wind)")
             self.sfx_vol_var.set("60")
+            self.bgm_preset_var.set("🎵 Vui tươi & Năng động (Happy Vlog / Upbeat)")
+            self.bgm_files_var.set("🎵 Vui tươi & Năng động (Happy Vlog / Upbeat)")
+            self.bgm_vol_var.set("15")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
@@ -1066,8 +1097,11 @@ class AutoCapCutApp(ctk.CTk):
             self.camera_motion_var.set("Smart Pacing AI (Tự phân tích nhịp câu)")
             self.zoom_scale_var.set("110")
             self.sfx_var.set(True)
-            self.sfx_name_var.set("Swoosh (Vút nhanh)")
+            self.sfx_name_var.set("Whoosh Điện ảnh Trầm (Cinematic Deep)")
             self.sfx_vol_var.set("35")
+            self.bgm_preset_var.set("🎵 Điện ảnh & Sâu lắng (Cinematic Piano/Strings)")
+            self.bgm_files_var.set("🎵 Điện ảnh & Sâu lắng (Cinematic Piano/Strings)")
+            self.bgm_vol_var.set("15")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
@@ -1093,8 +1127,11 @@ class AutoCapCutApp(ctk.CTk):
             self.camera_motion_var.set("Pan Left (Lia sang trái)")
             self.zoom_scale_var.set("108")
             self.sfx_var.set(True)
-            self.sfx_name_var.set("Ding (Keng chuông)")
+            self.sfx_name_var.set("Bell Ding (Keng chuông báo)")
             self.sfx_vol_var.set("25")
+            self.bgm_preset_var.set("🎵 Tin tức & Tài chính (News / Finance / Tech)")
+            self.bgm_files_var.set("🎵 Tin tức & Tài chính (News / Finance / Tech)")
+            self.bgm_vol_var.set("12")
             self.blur_var.set(True)
             self.smart_pacing_var.set(True)
             self.ducking_var.set(True)
@@ -1113,6 +1150,8 @@ class AutoCapCutApp(ctk.CTk):
             self.filter_var.set("Không dùng filter")
             self.camera_motion_var.set("Cố định (Không chuyển động)")
             self.sfx_var.set(False)
+            self.bgm_preset_var.set("Không dùng nhạc nền")
+            self.bgm_files_var.set("")
             self.blur_var.set(True)
             self.smart_pacing_var.set(False)
             self.ducking_var.set(True)
@@ -1169,6 +1208,18 @@ class AutoCapCutApp(ctk.CTk):
         if d:
             self.media_folder_var.set(d)
 
+    def _on_bgm_preset_change(self, choice: str):
+        if choice == "Không dùng nhạc nền":
+            self.bgm_files_var.set("")
+        elif "Tự chọn file" in choice:
+            self._browse_bgm()
+        else:
+            self.bgm_files_var.set(choice)
+
+    def _clear_bgm(self):
+        self.bgm_files_var.set("")
+        self.bgm_preset_var.set("Không dùng nhạc nền")
+
     def _browse_bgm(self):
         files = filedialog.askopenfilenames(
             title="Chọn file nhạc nền (BGM)",
@@ -1177,6 +1228,8 @@ class AutoCapCutApp(ctk.CTk):
         )
         if files:
             self.bgm_files_var.set("; ".join(files))
+            first_name = os.path.basename(files[0])
+            self.bgm_preset_var.set(f"📂 {first_name}")
 
     def _auto_detect_from_folder(self, folder: str):
         if not os.path.isdir(folder):
