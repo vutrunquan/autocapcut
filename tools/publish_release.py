@@ -175,8 +175,8 @@ def main():
                 print(f"[X] Lỗi upload asset {zip_path.name}: {up_err} - {err_body}")
 
     print("\n" + "=" * 65)
-    print("🎉 TẢI LÊN GITHUB RELEASES THÀNH CÔNG!")
-    print(f"👉 Release Page:\n   {release_info.get('html_url')}")
+    print("TẢI LÊN GITHUB RELEASES THÀNH CÔNG!")
+    print(f"Release Page:\n   {release_info.get('html_url')}")
     print("=" * 65 + "\n")
 
 

@@ -34,7 +34,7 @@ def run_cli(hwid: str):
         print(f"  • Mã thiết bị khách gửi: {hwid.upper()}")
         print(f"  • Gói bản quyền:         Vĩnh viễn (150.000 VNĐ)")
         print("-" * 60)
-        print(f"  👉 MÃ KÍCH HOẠT:         {key}")
+        print(f"  MÃ KÍCH HOẠT:             {key}")
         print("=" * 60)
 
         # Copy to clipboard if possible
@@ -46,7 +46,7 @@ def run_cli(hwid: str):
             r.clipboard_append(key)
             r.update()
             r.destroy()
-            print("  [✓] Đã tự động sao chép mã kích hoạt vào Clipboard!")
+            print("  [OK] Đã tự động sao chép mã kích hoạt vào Clipboard!")
             print("      Bạn có thể dán (Ctrl+V) gửi ngay cho khách hàng.")
         except Exception:
             pass
@@ -143,7 +143,7 @@ def run_gui():
             key_var.set(res_key)
             app.clipboard_clear()
             app.clipboard_append(res_key)
-            lbl_noti.configure(text=f"✓ Đã tạo key và sao chép vào Clipboard: {res_key}", text_color="#10b981")
+            lbl_noti.configure(text=f"Đã tạo key và sao chép vào Clipboard: {res_key}", text_color="#10b981")
         except Exception as e:
             messagebox.showerror("Lỗi", f"Không thể tạo key: {e}")
 
@@ -174,7 +174,7 @@ def run_gui():
         if k:
             app.clipboard_clear()
             app.clipboard_append(k)
-            lbl_noti.configure(text="✓ Đã sao chép mã kích hoạt vào Clipboard!", text_color="#10b981")
+            lbl_noti.configure(text="Đã sao chép mã kích hoạt vào Clipboard!", text_color="#10b981")
 
     btn_copy = ctk.CTkButton(
         key_row, text="Sao Chép", width=80, height=38, corner_radius=6,

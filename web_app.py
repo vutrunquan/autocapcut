@@ -11,7 +11,7 @@ import json
 import asyncio
 import subprocess
 from typing import Optional, List, Dict, Any, Union
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
@@ -527,7 +527,7 @@ def index_page():
         <button class="btn btn-secondary" onclick="autoLoadSamples()">Tự động điền</button>
         <button class="btn btn-secondary" onclick="launchCapCut()">Mở CapCut</button>
         <div id="licenseBadge" class="license-badge trial" onclick="openLicenseModal()">
-          ⏳ Đang kiểm tra...
+          Đang kiểm tra...
         </div>
       </div>
     </header>
@@ -535,7 +535,7 @@ def index_page():
     <!-- Update Alert Banner (shown when a newer version is waiting) -->
     <div id="updateBanner" style="display: none; background: #064e3b; border: 1px solid #059669; border-radius: 8px; padding: 10px 16px; margin-bottom: 16px; justify-content: space-between; align-items: center;">
       <div style="display: flex; align-items: center; gap: 10px;">
-        <span style="background: #047857; color: #ecfdf5; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">🚀 CẬP NHẬT CHỜ CÀI ĐẶT</span>
+        <span style="background: #047857; color: #ecfdf5; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px;">CẬP NHẬT CHỜ CÀI ĐẶT</span>
         <div>
           <div id="updateTitle" style="font-weight: 700; color: #fff; font-size: 13px;">AutoCapCut Studio có bản cập nhật mới</div>
           <div id="updateSubtitle" style="font-size: 11px; color: #a7f3d0; margin-top: 2px;">Nhấn vào đây để tải và nâng cấp.</div>
@@ -570,12 +570,12 @@ def index_page():
             <label>Nhạc Nền (BGM):</label>
             <select id="bgm_preset" style="flex: 1;" onchange="onBgmPresetChange()">
               <option value="none">Không dùng nhạc nền</option>
-              <option value="cinematic">🎵 Điện ảnh & Sâu lắng (Cinematic Piano/Strings)</option>
-              <option value="news">🎵 Tin tức & Tài chính (News / Finance / Tech)</option>
-              <option value="lofi">🎵 Thư giãn & Lofi Chill (Lofi Beats / Acoustic)</option>
-              <option value="dramatic">🎵 Kịch tính & Hồi hộp (Suspense Thriller)</option>
-              <option value="happy">🎵 Vui tươi & Năng động (Happy Vlog / Upbeat)</option>
-              <option value="custom">📂 Tự chọn đường dẫn file trên máy...</option>
+              <option value="cinematic">Điện ảnh & Sâu lắng (Cinematic Piano/Strings)</option>
+              <option value="news">Tin tức & Tài chính (News / Finance / Tech)</option>
+              <option value="lofi">Thư giãn & Lofi Chill (Lofi Beats / Acoustic)</option>
+              <option value="dramatic">Kịch tính & Hồi hộp (Suspense Thriller)</option>
+              <option value="happy">Vui tươi & Năng động (Happy Vlog / Upbeat)</option>
+              <option value="custom">Tự chọn đường dẫn file trên máy...</option>
             </select>
             <input type="text" id="bgm_paths" placeholder="File nhạc nền (tùy chọn)..." style="display: none; flex: 1;">
             <span style="color: var(--sub); font-size: 11px;">Vol:</span>
@@ -926,9 +926,9 @@ def index_page():
             </label>
           </div>
           <div id="quick_open_banner" style="display: none; margin-top: 10px; background: rgba(5, 150, 105, 0.15); border: 1px solid #059669; border-radius: 8px; padding: 10px 14px; text-align: center;">
-            <div id="quick_open_title" style="color: #10b981; font-weight: bold; font-size: 12px; margin-bottom: 6px;">🎉 Dự án đã sẵn sàng trong CapCut!</div>
+            <div id="quick_open_title" style="color: #10b981; font-weight: bold; font-size: 12px; margin-bottom: 6px;">Dự án đã sẵn sàng trong CapCut!</div>
             <div style="display: flex; gap: 8px; justify-content: center;">
-              <button class="btn btn-primary" style="background: #059669; font-weight: bold; padding: 6px 18px; font-size: 12px;" onclick="openLastDraftCapCut()">🚀 Mở Dự Án Trong CapCut Ngay</button>
+              <button class="btn btn-primary" style="background: #059669; font-weight: bold; padding: 6px 18px; font-size: 12px;" onclick="openLastDraftCapCut()">Mở Dự Án Trong CapCut Ngay</button>
             </div>
           </div>
         </div>
@@ -949,7 +949,7 @@ def index_page():
   <div id="licenseModal" class="modal-overlay">
     <div class="modal-card">
       <div class="modal-header">
-        <div id="modalBadge" class="license-badge trial">⏳ Đang tải...</div>
+        <div id="modalBadge" class="license-badge trial">Đang tải...</div>
         <button class="modal-close" onclick="closeLicenseModal()">✕</button>
       </div>
       <h2 style="font-size: 16px; margin: 4px 0 2px 0; color: #fff;">Kích Hoạt Bản Quyền AutoCapCut Studio</h2>
@@ -995,7 +995,7 @@ def index_page():
       </div>
 
       <div style="font-size: 10px; color: var(--sub); margin-top: 8px; text-align: center;">
-        💡 Sau khi chuyển khoản, bạn gửi mã máy qua Zalo/Facebook để nhận mã kích hoạt trong 5 phút.
+        Sau khi chuyển khoản, bạn gửi mã máy qua Zalo/Facebook để nhận mã kích hoạt trong 5 phút.
       </div>
     </div>
   </div>
@@ -1021,7 +1021,7 @@ def index_page():
         const data = await res.json();
         if (data.has_update) {
           const notes = (data.changelog || []).map(i => '• ' + i).join('\n');
-          const ok = confirm(`🚀 ĐÃ CÓ BẢN CẬP NHẬT MỚI (v${data.latest_version})!\n\nĐiểm mới:\n${notes}\n\nBạn có muốn mở trang tải bản cập nhật không?`);
+          const ok = confirm(`ĐÃ CÓ BẢN CẬP NHẬT MỚI (v${data.latest_version})!\n\nĐiểm mới:\n${notes}\n\nBạn có muốn mở trang tải bản cập nhật không?`);
           if (ok) {
             window.open(data.manual_url || data.download_url, '_blank');
           }
@@ -1060,9 +1060,9 @@ def index_page():
 
       if (lic.status === 'lifetime') {
         badge.className = 'license-badge lifetime';
-        badge.textContent = '✨ Bản quyền vĩnh viễn';
+        badge.textContent = 'Bản quyền vĩnh viễn';
         mBadge.className = 'license-badge lifetime';
-        mBadge.textContent = '✨ ĐÃ KÍCH HOẠT VĨNH VIỄN';
+        mBadge.textContent = 'ĐÃ KÍCH HOẠT VĨNH VIỄN';
         mSub.textContent = 'Phần mềm đã được kích hoạt bản quyền vĩnh viễn trên máy tính này.';
         if (btnRun) {
           btnRun.disabled = false;
@@ -1073,9 +1073,9 @@ def index_page():
         const h = lic.hours_left || 0;
         const timeStr = d > 0 ? `${d} ngày ${h}h` : `${h} giờ`;
         badge.className = 'license-badge trial';
-        badge.textContent = `⏳ Dùng thử: Còn ${timeStr}`;
+        badge.textContent = `Dùng thử: Còn ${timeStr}`;
         mBadge.className = 'license-badge trial';
-        mBadge.textContent = `⏳ DÙNG THỬ (CÒN ${d} NGÀY ${h} GIỜ)`;
+        mBadge.textContent = `DÙNG THỬ (CÒN ${d} NGÀY ${h} GIỜ)`;
         mSub.textContent = 'Bạn đang trong thời gian dùng thử 3 ngày miễn phí. Nâng cấp 150k để dùng trọn đời.';
         if (btnRun) {
           btnRun.disabled = false;
@@ -1083,13 +1083,13 @@ def index_page():
         }
       } else {
         badge.className = 'license-badge expired';
-        badge.textContent = '🔒 Hết hạn (Kích hoạt 150k)';
+        badge.textContent = 'Hết hạn (Kích hoạt 150k)';
         mBadge.className = 'license-badge expired';
-        mBadge.textContent = '🔒 HẾT HẠN DÙNG THỬ 3 NGÀY';
+        mBadge.textContent = 'HẾT HẠN DÙNG THỬ 3 NGÀY';
         mSub.textContent = 'Thời gian dùng thử 3 ngày đã hết. Vui lòng thanh toán 150.000 VNĐ để mở khóa vĩnh viễn.';
         if (btnRun) {
           btnRun.disabled = true;
-          btnRun.textContent = '🔒 Đã hết hạn dùng thử 3 ngày (Kích hoạt 150k)';
+          btnRun.textContent = 'Đã hết hạn dùng thử 3 ngày (Kích hoạt 150k)';
         }
         openLicenseModal();
       }
@@ -1482,7 +1482,7 @@ def index_page():
 
           const qBanner = document.getElementById('quick_open_banner');
           if (qBanner) {
-            document.getElementById('quick_open_title').textContent = `🎉 Dự án '${msg.result.draft_name}' đã sẵn sàng!`;
+            document.getElementById('quick_open_title').textContent = `Dự án '${msg.result.draft_name}' đã sẵn sàng!`;
             qBanner.style.display = 'block';
           }
 

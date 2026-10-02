@@ -88,7 +88,7 @@ def main():
         ok, msg = activate_license(args.activate)
         print("\n" + "=" * 60)
         if ok:
-            print("🎉 " + msg)
+            print("[OK] " + msg)
         else:
             print("[X] KÍCH HOẠT THẤT BẠI: " + msg)
         print("=" * 60 + "\n")
@@ -99,13 +99,13 @@ def main():
         check_license_valid()
         lic = get_license_info()
         if lic["status"] == "lifetime":
-            print("[i] Bản quyền: ✨ Vĩnh viễn (Đã kích hoạt trọn đời)")
+            print("[i] Bản quyền: Vĩnh viễn (Đã kích hoạt trọn đời)")
         else:
-            print(f"[i] Bản quyền: ⏳ Dùng thử miễn phí (Còn {lic['days_left']} ngày {lic['hours_left']} giờ)")
+            print(f"[i] Bản quyền: Dùng thử miễn phí (Còn {lic['days_left']} ngày {lic['hours_left']} giờ)")
     except LicenseExpiredError:
         pay = get_payment_info()
         print("\n" + "!" * 70)
-        print("🔒 BẢN DÙNG THỬ 3 NGÀY ĐÃ HẾT HẠN!")
+        print("BẢN DÙNG THỬ 3 NGÀY ĐÃ HẾT HẠN!")
         print(f"Mã thiết bị của máy bạn (Machine ID): {pay['hwid']}")
         print("-" * 70)
         print("Vui lòng thanh toán 150.000 VNĐ để nhận mã kích hoạt bản quyền VĨNH VIỄN:")
@@ -190,13 +190,13 @@ def main():
         )
 
         print("\n" + "=" * 60)
-        print("🎉 TẠO PROJECT THÀNH CÔNG!")
+        print("TẠO PROJECT THÀNH CÔNG!")
         print(f"  • Tên project:   {result['draft_name']}")
         print(f"  • Tổng số cảnh:  {result['total_scenes']} cảnh")
         print(f"  • Thời lượng:    {result['duration_seconds']:.2f} giây ({result['duration_seconds']/60:.2f} phút)")
         print(f"  • Đường dẫn:     {result['draft_dir']}")
         print("=" * 60)
-        print("\n👉 Bạn hãy mở phần mềm CapCut Desktop lên, project sẽ xuất hiện ngay ở đầu danh sách!")
+        print("\nBạn hãy mở phần mềm CapCut Desktop lên, project sẽ xuất hiện ngay ở đầu danh sách!")
 
         if args.open_capcut:
             if launch_capcut_app():

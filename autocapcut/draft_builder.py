@@ -710,7 +710,7 @@ def build_capcut_draft(
 
             script.add_track(cc.TrackType.text, 'CTA_Subscribe')
             cta_seg = cc.TextSegment(
-                "🔔 ĐĂNG KÝ KÊNH ĐỂ XEM TIẾP!",
+                "ĐĂNG KÝ KÊNH ĐỂ XEM TIẾP!",
                 cc.trange(cta_start_us, cta_dur_us),
                 style=cc.TextStyle(
                     size=9.5,

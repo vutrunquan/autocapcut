@@ -226,13 +226,6 @@ class AutoCapCutApp(ctk.CTk):
         brand_box = ctk.CTkFrame(nav_inner, fg_color="transparent")
         brand_box.pack(side="left")
 
-        logo_badge = ctk.CTkLabel(
-            brand_box, text="AC", font=("Segoe UI", 12, "bold"),
-            fg_color=self.c_accent, text_color="#ffffff", corner_radius=10,
-            width=36, height=36
-        )
-        logo_badge.pack(side="left", padx=(0, 10))
-
         title_box = ctk.CTkFrame(brand_box, fg_color="transparent")
         title_box.pack(side="left")
 
@@ -313,32 +306,6 @@ class AutoCapCutApp(ctk.CTk):
             corner_radius=10, height=32, command=self._open_license_dialog
         )
         self.btn_license.pack(side="left", padx=(6, 0))
-
-        # ------------------------------------------------------------------
-        # 2. METRIC STAT CARDS ROW (Horizon Homes 4 Metric Cards)
-        # ------------------------------------------------------------------
-        stats_frame = ctk.CTkFrame(self, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=22, pady=(4, 10))
-
-        for i in range(4):
-            stats_frame.columnconfigure(i, weight=1, uniform="stat_col")
-
-        self.lbl_stat_scenes_val, self.lbl_stat_scenes_sub = self._create_stat_card(
-            stats_frame, col=0, title_text="PHÂN CẢNH KỊCH BẢN",
-            init_val="0", init_sub="Chưa nạp cảnh"
-        )
-        self.lbl_stat_audio_val, self.lbl_stat_audio_sub = self._create_stat_card(
-            stats_frame, col=1, title_text="DỮ LIỆU VOICE AUDIO",
-            init_val="0 file", init_sub="Chưa nạp audio"
-        )
-        self.lbl_stat_ratio_val, self.lbl_stat_ratio_sub = self._create_stat_card(
-            stats_frame, col=2, title_text="ĐỊNH DẠNG KHUNG HÌNH",
-            init_val="9:16", init_sub="TikTok / Shorts", val_color=self.c_accent
-        )
-        self.lbl_stat_status_val, self.lbl_stat_status_sub = self._create_stat_card(
-            stats_frame, col=3, title_text="TRẠNG THÁI HỆ THỐNG",
-            init_val="Sẵn sàng", init_sub="Bản quyền hợp lệ", val_color="#4ade80"
-        )
 
         # ------------------------------------------------------------------
         # 4. MAIN BODY — Balanced 2-Column Grid Layout (50/50)
@@ -1007,38 +974,10 @@ class AutoCapCutApp(ctk.CTk):
         content.pack(fill="both", expand=True, padx=16, pady=(0, 12))
         return content
 
-    def _create_stat_card(self, parent, col, title_text, init_val, init_sub, val_color=None):
-        card = ctk.CTkFrame(
-            parent, fg_color=self.c_card, corner_radius=12,
-            border_color=self.c_card_border, border_width=1
-        )
-        card.grid(row=0, column=col, sticky="nsew", padx=5)
-
-        lbl_top = ctk.CTkLabel(
-            card, text=title_text, font=("Segoe UI", 9, "bold"), text_color=self.c_sub
-        )
-        lbl_top.pack(anchor="w", padx=14, pady=(10, 2))
-
-        lbl_val = ctk.CTkLabel(
-            card, text=init_val, font=("Segoe UI", 20, "bold"),
-            text_color=val_color or "#ffffff"
-        )
-        lbl_val.pack(anchor="w", padx=14, pady=(0, 4))
-
-        badge = ctk.CTkLabel(
-            card, text=init_sub, font=("Segoe UI", 9, "bold"),
-            text_color=self.c_sub, fg_color="#24252b", corner_radius=6,
-            height=20, padx=8
-        )
-        badge.pack(anchor="w", padx=14, pady=(0, 10))
-
-        return lbl_val, badge
-
     def _select_preset_pill(self, full_name: str):
         self.preset_var.set(full_name)
         self._apply_preset(full_name)
         self._update_preset_pills_ui()
-        self._update_stat_cards()
 
     def _update_preset_pills_ui(self):
         cur = self.preset_var.get()
@@ -1065,74 +1004,7 @@ class AutoCapCutApp(ctk.CTk):
                 )
 
     def _update_stat_cards(self):
-        try:
-            # 1. Scenes
-            text = self.scenes_textbox.get("1.0", "end").strip() if hasattr(self, "scenes_textbox") else ""
-            if text and text != SCENES_PLACEHOLDER.strip():
-                lines = [l for l in text.splitlines() if l.strip()]
-                count = len(lines)
-                if hasattr(self, "lbl_stat_scenes_val"):
-                    self.lbl_stat_scenes_val.configure(text=str(count))
-                    self.lbl_stat_scenes_sub.configure(text=f"{count} cảnh đã nạp", text_color="#4ade80", fg_color="#143b2a")
-            else:
-                if hasattr(self, "lbl_stat_scenes_val"):
-                    self.lbl_stat_scenes_val.configure(text="0")
-                    self.lbl_stat_scenes_sub.configure(text="Chưa nạp cảnh", text_color=self.c_sub, fg_color="#24252b")
-
-            # 2. Audio
-            audio = self.audio_files_var.get().strip() if hasattr(self, "audio_files_var") else ""
-            if audio:
-                files = [f.strip() for f in audio.split(";") if f.strip()]
-                num_audio = len(files)
-                if hasattr(self, "lbl_stat_audio_val"):
-                    self.lbl_stat_audio_val.configure(text=f"{num_audio} file")
-                    self.lbl_stat_audio_sub.configure(text="Đã sẵn sàng", text_color="#4ade80", fg_color="#143b2a")
-            else:
-                if hasattr(self, "lbl_stat_audio_val"):
-                    self.lbl_stat_audio_val.configure(text="0 file")
-                    self.lbl_stat_audio_sub.configure(text="Chưa nạp audio", text_color=self.c_sub, fg_color="#24252b")
-
-            # 3. Ratio
-            ratio = self.aspect_ratio_var.get() if hasattr(self, "aspect_ratio_var") else ""
-            if "9:16" in ratio:
-                short_ratio = "9:16"
-                desc = "TikTok / Shorts"
-            elif "16:9" in ratio:
-                short_ratio = "16:9"
-                desc = "YouTube Ngang"
-            elif "1:1" in ratio:
-                short_ratio = "1:1"
-                desc = "Vuông Instagram"
-            elif "4:3" in ratio:
-                short_ratio = "4:3"
-                desc = "Khung chuẩn 4:3"
-            else:
-                short_ratio = "Tùy chọn"
-                desc = "Tự động"
-            if hasattr(self, "lbl_stat_ratio_val"):
-                self.lbl_stat_ratio_val.configure(text=short_ratio)
-                self.lbl_stat_ratio_sub.configure(text=desc)
-
-            # 4. License / Engine Status
-            if hasattr(self, "lbl_stat_status_val"):
-                if getattr(self, "is_running", False):
-                    self.lbl_stat_status_val.configure(text="Đang chạy", text_color=self.c_accent)
-                    self.lbl_stat_status_sub.configure(text="Đang tạo dự án...", text_color=self.c_accent, fg_color="#3d211a")
-                else:
-                    info = get_license_info()
-                    st = info.get("status")
-                    if st == "lifetime":
-                        self.lbl_stat_status_val.configure(text="Sẵn sàng", text_color="#4ade80")
-                        self.lbl_stat_status_sub.configure(text="Bản quyền Pro", text_color="#4ade80", fg_color="#143b2a")
-                    elif st == "trial":
-                        self.lbl_stat_status_val.configure(text="Dùng thử", text_color="#fbbf24")
-                        d = info.get("days_left", 0)
-                        self.lbl_stat_status_sub.configure(text=f"Còn {d} ngày", text_color="#fbbf24", fg_color="#3e2810")
-                    else:
-                        self.lbl_stat_status_val.configure(text="Chờ active", text_color="#f87171")
-                        self.lbl_stat_status_sub.configure(text="Hết hạn dùng thử", text_color="#f87171", fg_color="#40181d")
-        except Exception:
-            pass
+        pass
 
     def _add_row(self, parent, label, var, placeholder, btn_text, cmd, btn_color=None, btn_hover=None, btn_text_color=None):
         row = ctk.CTkFrame(parent, fg_color="transparent")
