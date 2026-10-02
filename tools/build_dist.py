@@ -123,6 +123,14 @@ def prepare_dist_folder():
     assets_dest = target_app_dir / "assets"
     shutil.copytree(BASE_DIR / "assets", assets_dest, dirs_exist_ok=True)
 
+    # 1b. Copy tools/gemini-watermark-remover to app root
+    wm_src = BASE_DIR / "tools" / "gemini-watermark-remover"
+    wm_dest = target_app_dir / "tools" / "gemini-watermark-remover"
+    if wm_src.exists():
+        def ignore_heavy(dir, files):
+            return [f for f in files if f in {'release', 'public', 'tests', 'docs', '.git', '.github', 'samples', 'video-samples'}]
+        shutil.copytree(wm_src, wm_dest, ignore=ignore_heavy, dirs_exist_ok=True)
+
     # 2. Copy current license_config.json (contains seller banking details)
     cfg_src = BASE_DIR / "license_config.json"
     if cfg_src.exists():

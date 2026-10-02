@@ -214,6 +214,21 @@ def detect_watermark_position(width: int, height: int, gray_img: Optional[np.nda
         primary_size = 48
         primary_margin = 32
 
+    # Known official fixed variants from GargantuaX/geminiSizeCatalog
+    KNOWN_FIXED_CONFIGS = {
+        '1376x768': (48, 73, 73),
+        '768x1376': (48, 73, 73),
+        '1408x768': (48, 32, 32),
+        '2752x1536': (48, 89, 89),
+        '2816x1536': (96, 64, 64),
+    }
+
+    size_key = f"{width}x{height}"
+    if size_key in KNOWN_FIXED_CONFIGS:
+        fixed_size, fixed_mr, fixed_mb = KNOWN_FIXED_CONFIGS[size_key]
+        primary_size = fixed_size
+        primary_margin = fixed_mr
+
     primary_alpha = get_alpha_map(primary_size)
     px = width - primary_margin - primary_size
     py = height - primary_margin - primary_size
@@ -224,10 +239,11 @@ def detect_watermark_position(width: int, height: int, gray_img: Optional[np.nda
     # 2. Candidate evaluation using NCC
     candidates = [
         (primary_size, primary_margin, primary_margin, primary_alpha),
-        (48, 96, 96, get_alpha_map(48)),
-        (96, 192, 192, get_alpha_map(96)),
+        (48, 73, 73, get_alpha_map(48)),
         (48, 32, 32, get_alpha_map(48)),
+        (48, 96, 96, get_alpha_map(48)),
         (96, 64, 64, get_alpha_map(96)),
+        (96, 192, 192, get_alpha_map(96)),
     ]
 
     best_cand = candidates[0]
