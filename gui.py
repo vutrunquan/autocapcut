@@ -61,8 +61,8 @@ class AutoCapCutApp(ctk.CTk):
         ctk.set_default_color_theme("blue")
 
         self.title("AutoCapCut Studio - Tự Động Biên Tập Video CapCut")
-        self.geometry("1200x820")
-        self.minsize(1080, 720)
+        self.geometry("1280x900")
+        self.minsize(1160, 780)
 
         # Application Icon
         for p in [
@@ -79,20 +79,20 @@ class AutoCapCutApp(ctk.CTk):
                     pass
 
         # ------------------------------------------------------------------
-        # BESPOKE MODERN DASHBOARD PALETTE (Warm Slate Charcoal & Coral Orange)
-        # Inspired by modern clean analytics & creative studio dashboards
+        # BESPOKE HORIZON HOMES DASHBOARD PALETTE
+        # Warm Slate Charcoal Canvas, Elevated Surface Cards & Vibrant Coral Orange
         # ------------------------------------------------------------------
-        self.c_bg = "#1e1e24"           # Deep warm slate obsidian canvas
-        self.c_card = "#282930"         # Smooth elevated card surface
-        self.c_card_border = "#363742"  # Subtle crisp boundary
-        self.c_input = "#202127"        # Inset container for text & inputs
-        self.c_input_border = "#3a3c48" # Clean input border
+        self.c_bg = "#222227"           # Deep warm slate obsidian canvas
+        self.c_card = "#2c2d34"         # Smooth elevated card surface
+        self.c_card_border = "#3a3b45"  # Subtle crisp card boundary
+        self.c_input = "#24252b"        # Inset container for text & inputs
+        self.c_input_border = "#383944" # Clean input border
         self.c_text = "#f4f4f6"         # Crisp pearl white text
         self.c_sub = "#9ca3af"          # Soothing neutral gray helper text
-        self.c_accent = "#ff5a36"       # Warm vibrant terracotta coral accent
+        self.c_accent = "#ff5a36"       # Vibrant terracotta coral orange accent
         self.c_accent_hover = "#ff6e4d" # Energetic warm hover glow
-        self.c_btn_sec = "#343642"      # Refined slate pill button
-        self.c_btn_sec_h = "#424554"    # Natural hover
+        self.c_btn_sec = "#383944"      # Refined slate pill button
+        self.c_btn_sec_h = "#464754"    # Natural hover
         self.c_btn_sec_text = "#f4f4f6" # Secondary button text
         self.c_success = "#22c55e"      # Emerald green indicator
         self.c_danger = "#ef4444"       # Soft rose red
@@ -200,6 +200,8 @@ class AutoCapCutApp(ctk.CTk):
 
         self._build_layout()
         self._auto_detect_sample_files()
+        self._update_preset_pills_ui()
+        self._update_stat_cards()
         self._update_license_ui()
         self.after(100, self._process_queue)
         if not get_license_info().get("is_valid", False):
@@ -209,31 +211,36 @@ class AutoCapCutApp(ctk.CTk):
 
     def _build_layout(self):
         # ------------------------------------------------------------------
-        # 1. TOP HEADER — 2 Rows for breathing room
+        # 1. TOP FLOATING NAVBAR (Horizon Homes Architecture)
         # ------------------------------------------------------------------
-        # Row 1: Brand + Quick Preset
-        header_row1 = ctk.CTkFrame(self, fg_color="transparent", height=40)
-        header_row1.pack(fill="x", padx=22, pady=(12, 0))
+        nav_card = ctk.CTkFrame(
+            self, fg_color=self.c_card, corner_radius=14,
+            border_color=self.c_card_border, border_width=1
+        )
+        nav_card.pack(fill="x", padx=22, pady=(14, 8))
+
+        nav_inner = ctk.CTkFrame(nav_card, fg_color="transparent")
+        nav_inner.pack(fill="x", padx=16, pady=8)
 
         # Brand Badge & Title
-        title_box = ctk.CTkFrame(header_row1, fg_color="transparent")
-        title_box.pack(side="left")
+        brand_box = ctk.CTkFrame(nav_inner, fg_color="transparent")
+        brand_box.pack(side="left")
 
         logo_badge = ctk.CTkLabel(
-            title_box, text="AC", font=("Segoe UI", 12, "bold"),
+            brand_box, text="AC", font=("Segoe UI", 12, "bold"),
             fg_color=self.c_accent, text_color="#ffffff", corner_radius=10,
             width=36, height=36
         )
         logo_badge.pack(side="left", padx=(0, 10))
 
-        text_sub_box = ctk.CTkFrame(title_box, fg_color="transparent")
-        text_sub_box.pack(side="left")
+        title_box = ctk.CTkFrame(brand_box, fg_color="transparent")
+        title_box.pack(side="left")
 
-        title_row = ctk.CTkFrame(text_sub_box, fg_color="transparent")
+        title_row = ctk.CTkFrame(title_box, fg_color="transparent")
         title_row.pack(anchor="w")
 
         lbl_title = ctk.CTkLabel(
-            title_row, text="AutoCapCut Studio", font=("Segoe UI", 16, "bold"),
+            title_row, text="AutoCapCut Studio", font=("Segoe UI", 15, "bold"),
             text_color="#ffffff"
         )
         lbl_title.pack(side="left")
@@ -241,75 +248,123 @@ class AutoCapCutApp(ctk.CTk):
         self.btn_ver = ctk.CTkButton(
             title_row, text=f"v{CURRENT_VERSION}", font=("Segoe UI", 9, "bold"),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
-            corner_radius=10, height=20, width=52, command=self._manual_check_update
+            corner_radius=10, height=22, width=54, command=self._manual_check_update
         )
         self.btn_ver.pack(side="left", padx=(8, 0))
 
         lbl_sub = ctk.CTkLabel(
-            text_sub_box, text="Đồng bộ media, phụ đề & biên tập timeline CapCut tự động",
+            title_box, text="Đồng bộ media, phụ đề & biên tập timeline CapCut tự động",
             font=("Segoe UI", 10), text_color=self.c_sub
         )
         lbl_sub.pack(anchor="w")
 
-        # License Badge — right side of row 1 (clean rounded pill)
-        self.btn_license = ctk.CTkButton(
-            header_row1, text="Đang kiểm tra...", font=("Segoe UI", 11, "bold"),
-            fg_color="#3e2810", hover_color="#543716", text_color="#fbbf24",
-            corner_radius=12, height=32, command=self._open_license_dialog
-        )
-        self.btn_license.pack(side="right", padx=(6, 0))
-
-        # Row 2: Action bar — Preset + Quick Buttons
-        header_row2 = ctk.CTkFrame(self, fg_color="transparent", height=38)
-        header_row2.pack(fill="x", padx=22, pady=(8, 8))
-
-        # Left: Preset selector
-        preset_box = ctk.CTkFrame(header_row2, fg_color="transparent")
-        preset_box.pack(side="left")
-
-        ctk.CTkLabel(preset_box, text="Mẫu nhanh:", font=("Segoe UI", 11, "bold"), text_color=self.c_sub).pack(side="left", padx=(0, 8))
-
-        preset_opts = [
-            "Tùy chỉnh thủ công (Custom)",
-            "Video ngắn dọc TikTok / Shorts (9:16)",
-            "Video ngang điện ảnh YouTube (16:9)",
-            "Bản tin & Tin tức tài chính (16:9)",
-            "Tối giản nhanh (16:9)"
-        ]
-        self.preset_combo = ctk.CTkComboBox(
-            preset_box, variable=self.preset_var, values=preset_opts, width=285, height=32, corner_radius=8,
-            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec,
-            font=("Segoe UI", 11), command=self._apply_preset
-        )
-        self.preset_combo.pack(side="left")
-
-        # Right: Quick action buttons (clean uniform pills)
-        actions_box = ctk.CTkFrame(header_row2, fg_color="transparent")
-        actions_box.pack(side="right")
+        # Right Actions on Navbar
+        nav_actions = ctk.CTkFrame(nav_inner, fg_color="transparent")
+        nav_actions.pack(side="right")
 
         btn_auto = ctk.CTkButton(
-            actions_box, text="Tự động điền", font=("Segoe UI", 11, "bold"),
+            nav_actions, text="Tự động điền", font=("Segoe UI", 11, "bold"),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
             corner_radius=10, width=105, height=32, command=self._auto_detect_sample_files
         )
         btn_auto.pack(side="left", padx=3)
 
         btn_cc = ctk.CTkButton(
-            actions_box, text="Mở CapCut", font=("Segoe UI", 11, "bold"),
+            nav_actions, text="Mở CapCut", font=("Segoe UI", 11, "bold"),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
             corner_radius=10, width=100, height=32, command=self._launch_capcut
         )
         btn_cc.pack(side="left", padx=3)
 
         btn_settings = ctk.CTkButton(
-            actions_box, text="Cài đặt", font=("Segoe UI", 11),
+            nav_actions, text="Cài đặt", font=("Segoe UI", 11),
             fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h, text_color=self.c_text,
             corner_radius=10, width=80, height=32, command=self._open_settings_dialog
         )
         btn_settings.pack(side="left", padx=3)
 
+        # License Pill
+        self.btn_license = ctk.CTkButton(
+            nav_actions, text="Đang kiểm tra...", font=("Segoe UI", 11, "bold"),
+            fg_color="#3e2810", hover_color="#543716", text_color="#fbbf24",
+            corner_radius=10, height=32, command=self._open_license_dialog
+        )
+        self.btn_license.pack(side="left", padx=(6, 0))
+
         # ------------------------------------------------------------------
-        # 2. MAIN BODY — Balanced 2-Column Grid Layout (50/50)
+        # 2. DASHBOARD TITLE & PRESET PILLS (Horizon Homes Capsule Row)
+        # ------------------------------------------------------------------
+        dash_header = ctk.CTkFrame(self, fg_color="transparent")
+        dash_header.pack(fill="x", padx=22, pady=(4, 8))
+
+        dash_title_box = ctk.CTkFrame(dash_header, fg_color="transparent")
+        dash_title_box.pack(side="left")
+
+        lbl_dash_title = ctk.CTkLabel(
+            dash_title_box, text="Bảng điều khiển biên tập", font=("Segoe UI", 17, "bold"),
+            text_color="#ffffff"
+        )
+        lbl_dash_title.pack(anchor="w")
+
+        # Preset Capsule Pills on the right
+        preset_pills_box = ctk.CTkFrame(dash_header, fg_color="transparent")
+        preset_pills_box.pack(side="right")
+
+        self.preset_pill_buttons = {}
+        self.preset_pill_map = [
+            ("TikTok / Shorts (9:16)", "Video ngắn dọc TikTok / Shorts (9:16)"),
+            ("YouTube Điện ảnh (16:9)", "Video ngang điện ảnh YouTube (16:9)"),
+            ("Tin tức & Tài chính", "Bản tin & Tin tức tài chính (16:9)"),
+            ("Tối giản", "Tối giản nhanh (16:9)"),
+            ("Tùy chỉnh", "Tùy chỉnh thủ công (Custom)"),
+        ]
+
+        for short_name, full_name in self.preset_pill_map:
+            btn_pill = ctk.CTkButton(
+                preset_pills_box, text=short_name, font=("Segoe UI", 10, "bold"),
+                fg_color=self.c_card, hover_color=self.c_btn_sec, text_color=self.c_sub,
+                border_color=self.c_card_border, border_width=1,
+                corner_radius=14, height=28,
+                command=lambda fn=full_name: self._select_preset_pill(fn)
+            )
+            btn_pill.pack(side="left", padx=3)
+            self.preset_pill_buttons[full_name] = btn_pill
+
+        # Hidden combo kept for API compatibility
+        self.preset_combo = ctk.CTkComboBox(
+            preset_pills_box, variable=self.preset_var,
+            values=[fn for _, fn in self.preset_pill_map],
+            width=1, height=1
+        )
+
+        # ------------------------------------------------------------------
+        # 3. METRIC STAT CARDS ROW (Horizon Homes 4 Metric Cards)
+        # ------------------------------------------------------------------
+        stats_frame = ctk.CTkFrame(self, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=22, pady=(0, 10))
+
+        for i in range(4):
+            stats_frame.columnconfigure(i, weight=1, uniform="stat_col")
+
+        self.lbl_stat_scenes_val, self.lbl_stat_scenes_sub = self._create_stat_card(
+            stats_frame, col=0, title_text="PHÂN CẢNH KỊCH BẢN",
+            init_val="0", init_sub="Chưa nạp cảnh"
+        )
+        self.lbl_stat_audio_val, self.lbl_stat_audio_sub = self._create_stat_card(
+            stats_frame, col=1, title_text="DỮ LIỆU VOICE AUDIO",
+            init_val="0 file", init_sub="Chưa nạp audio"
+        )
+        self.lbl_stat_ratio_val, self.lbl_stat_ratio_sub = self._create_stat_card(
+            stats_frame, col=2, title_text="ĐỊNH DẠNG KHUNG HÌNH",
+            init_val="9:16", init_sub="TikTok / Shorts", val_color=self.c_accent
+        )
+        self.lbl_stat_status_val, self.lbl_stat_status_sub = self._create_stat_card(
+            stats_frame, col=3, title_text="TRẠNG THÁI HỆ THỐNG",
+            init_val="Sẵn sàng", init_sub="Bản quyền hợp lệ", val_color="#4ade80"
+        )
+
+        # ------------------------------------------------------------------
+        # 4. MAIN BODY — Balanced 2-Column Grid Layout (50/50)
         # ------------------------------------------------------------------
         # Update Alert Banner (shown when update is available)
         self.update_banner_frame = ctk.CTkFrame(
@@ -317,7 +372,7 @@ class AutoCapCutApp(ctk.CTk):
         )
 
         self.main_body = ctk.CTkFrame(self, fg_color="transparent")
-        self.main_body.pack(fill="both", expand=True, padx=22, pady=(2, 14))
+        self.main_body.pack(fill="both", expand=True, padx=22, pady=(0, 14))
 
         # Use grid for precise 50/50 split
         self.main_body.columnconfigure(0, weight=1, uniform="col")
@@ -975,6 +1030,131 @@ class AutoCapCutApp(ctk.CTk):
         content.pack(fill="both", expand=True, padx=16, pady=(0, 12))
         return content
 
+    def _create_stat_card(self, parent, col, title_text, init_val, init_sub, val_color=None):
+        card = ctk.CTkFrame(
+            parent, fg_color=self.c_card, corner_radius=12,
+            border_color=self.c_card_border, border_width=1
+        )
+        card.grid(row=0, column=col, sticky="nsew", padx=5)
+
+        lbl_top = ctk.CTkLabel(
+            card, text=title_text, font=("Segoe UI", 9, "bold"), text_color=self.c_sub
+        )
+        lbl_top.pack(anchor="w", padx=14, pady=(10, 2))
+
+        lbl_val = ctk.CTkLabel(
+            card, text=init_val, font=("Segoe UI", 20, "bold"),
+            text_color=val_color or "#ffffff"
+        )
+        lbl_val.pack(anchor="w", padx=14, pady=(0, 4))
+
+        badge = ctk.CTkLabel(
+            card, text=init_sub, font=("Segoe UI", 9, "bold"),
+            text_color=self.c_sub, fg_color="#24252b", corner_radius=6,
+            height=20, padx=8
+        )
+        badge.pack(anchor="w", padx=14, pady=(0, 10))
+
+        return lbl_val, badge
+
+    def _select_preset_pill(self, full_name: str):
+        self.preset_var.set(full_name)
+        self._apply_preset(full_name)
+        self._update_preset_pills_ui()
+        self._update_stat_cards()
+
+    def _update_preset_pills_ui(self):
+        cur = self.preset_var.get()
+        for short_name, full_name in getattr(self, "preset_pill_map", []):
+            btn = self.preset_pill_buttons.get(full_name)
+            if not btn:
+                continue
+            if cur == full_name or (full_name in cur) or (short_name in cur):
+                btn.configure(
+                    fg_color=self.c_accent,
+                    hover_color=self.c_accent_hover,
+                    text_color="#ffffff",
+                    border_width=0
+                )
+            else:
+                btn.configure(
+                    fg_color=self.c_card,
+                    hover_color=self.c_btn_sec,
+                    text_color=self.c_sub,
+                    border_color=self.c_card_border,
+                    border_width=1
+                )
+
+    def _update_stat_cards(self):
+        try:
+            # 1. Scenes
+            text = self.scenes_textbox.get("1.0", "end").strip() if hasattr(self, "scenes_textbox") else ""
+            if text and text != SCENES_PLACEHOLDER.strip():
+                lines = [l for l in text.splitlines() if l.strip()]
+                count = len(lines)
+                if hasattr(self, "lbl_stat_scenes_val"):
+                    self.lbl_stat_scenes_val.configure(text=str(count))
+                    self.lbl_stat_scenes_sub.configure(text=f"{count} cảnh đã nạp", text_color="#4ade80", fg_color="#143b2a")
+            else:
+                if hasattr(self, "lbl_stat_scenes_val"):
+                    self.lbl_stat_scenes_val.configure(text="0")
+                    self.lbl_stat_scenes_sub.configure(text="Chưa nạp cảnh", text_color=self.c_sub, fg_color="#24252b")
+
+            # 2. Audio
+            audio = self.audio_files_var.get().strip() if hasattr(self, "audio_files_var") else ""
+            if audio:
+                files = [f.strip() for f in audio.split(";") if f.strip()]
+                num_audio = len(files)
+                if hasattr(self, "lbl_stat_audio_val"):
+                    self.lbl_stat_audio_val.configure(text=f"{num_audio} file")
+                    self.lbl_stat_audio_sub.configure(text="Đã sẵn sàng", text_color="#4ade80", fg_color="#143b2a")
+            else:
+                if hasattr(self, "lbl_stat_audio_val"):
+                    self.lbl_stat_audio_val.configure(text="0 file")
+                    self.lbl_stat_audio_sub.configure(text="Chưa nạp audio", text_color=self.c_sub, fg_color="#24252b")
+
+            # 3. Ratio
+            ratio = self.aspect_ratio_var.get() if hasattr(self, "aspect_ratio_var") else ""
+            if "9:16" in ratio:
+                short_ratio = "9:16"
+                desc = "TikTok / Shorts"
+            elif "16:9" in ratio:
+                short_ratio = "16:9"
+                desc = "YouTube Ngang"
+            elif "1:1" in ratio:
+                short_ratio = "1:1"
+                desc = "Vuông Instagram"
+            elif "4:3" in ratio:
+                short_ratio = "4:3"
+                desc = "Khung chuẩn 4:3"
+            else:
+                short_ratio = "Tùy chọn"
+                desc = "Tự động"
+            if hasattr(self, "lbl_stat_ratio_val"):
+                self.lbl_stat_ratio_val.configure(text=short_ratio)
+                self.lbl_stat_ratio_sub.configure(text=desc)
+
+            # 4. License / Engine Status
+            if hasattr(self, "lbl_stat_status_val"):
+                if getattr(self, "is_running", False):
+                    self.lbl_stat_status_val.configure(text="Đang chạy", text_color=self.c_accent)
+                    self.lbl_stat_status_sub.configure(text="Đang tạo dự án...", text_color=self.c_accent, fg_color="#3d211a")
+                else:
+                    info = get_license_info()
+                    st = info.get("status")
+                    if st == "lifetime":
+                        self.lbl_stat_status_val.configure(text="Sẵn sàng", text_color="#4ade80")
+                        self.lbl_stat_status_sub.configure(text="Bản quyền Pro", text_color="#4ade80", fg_color="#143b2a")
+                    elif st == "trial":
+                        self.lbl_stat_status_val.configure(text="Dùng thử", text_color="#fbbf24")
+                        d = info.get("days_left", 0)
+                        self.lbl_stat_status_sub.configure(text=f"Còn {d} ngày", text_color="#fbbf24", fg_color="#3e2810")
+                    else:
+                        self.lbl_stat_status_val.configure(text="Chờ active", text_color="#f87171")
+                        self.lbl_stat_status_sub.configure(text="Hết hạn dùng thử", text_color="#f87171", fg_color="#40181d")
+        except Exception:
+            pass
+
     def _add_row(self, parent, label, var, placeholder, btn_text, cmd, btn_color=None, btn_hover=None, btn_text_color=None):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x", pady=4)
@@ -1068,6 +1248,7 @@ class AutoCapCutApp(ctk.CTk):
             self.lbl_scenes_count.configure(
                 text="0 cảnh", text_color=self.c_sub, fg_color="#212227"
             )
+        self._update_stat_cards()
 
     def _copy_scenes(self):
         text = self.scenes_textbox.get("1.0", "end").strip()
@@ -1239,6 +1420,8 @@ class AutoCapCutApp(ctk.CTk):
             self.cta_sub_var.set(False)
             self._select_all_motions(False)
             self._log("[Preset] Đã áp dụng: Tối giản nhanh (16:9).")
+        self._update_preset_pills_ui()
+        self._update_stat_cards()
 
     def _browse_audio(self):
         files = filedialog.askopenfilenames(
@@ -1255,6 +1438,7 @@ class AutoCapCutApp(ctk.CTk):
         if files:
             self.audio_files_var.set("; ".join(files))
             self._auto_detect_from_folder(os.path.dirname(files[0]))
+            self._update_stat_cards()
 
     def _browse_srt(self):
         f = filedialog.askopenfilename(
@@ -1484,6 +1668,7 @@ class AutoCapCutApp(ctk.CTk):
             )
             if hasattr(self, "btn_run") and not self.is_running:
                 self.btn_run.configure(state="disabled", text="Hết hạn dùng thử 3 ngày (Kích hoạt 150k)")
+        self._update_stat_cards()
 
     def _open_license_dialog(self):
         info = get_license_info()
@@ -2011,6 +2196,7 @@ class AutoCapCutApp(ctk.CTk):
         self.btn_run.configure(state="disabled", text="Đang xử lý tiến trình...")
         self.progress_bar.set(0)
         self.console_textbox.delete("1.0", "end")
+        self._update_stat_cards()
         if hasattr(self, 'complete_action_frame'):
             self.complete_action_frame.pack_forget()
 
@@ -2105,6 +2291,7 @@ class AutoCapCutApp(ctk.CTk):
                 elif msg_type == 'success':
                     self.is_running = False
                     self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    self._update_stat_cards()
                     self.last_draft_dir = data['draft_dir']
                     self.last_draft_name = data.get('draft_name', 'Dự án CapCut')
                     self.lbl_status.configure(text=f"Hoàn tất: Đã tạo xong '{self.last_draft_name}'!", text_color=self.c_success)
@@ -2131,6 +2318,7 @@ class AutoCapCutApp(ctk.CTk):
                 elif msg_type == 'error':
                     self.is_running = False
                     self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    self._update_stat_cards()
                     self.lbl_status.configure(text=f"Lỗi: {data}", text_color=self.c_danger)
                     self._log(f"\n[Error] ĐÃ XẢY RA LỖI: {data}")
                     messagebox.showerror("Lỗi Quá Trình", f"Đã xảy ra lỗi:\n{data}")
