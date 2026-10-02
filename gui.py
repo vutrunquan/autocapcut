@@ -258,6 +258,29 @@ class AutoCapCutApp(ctk.CTk):
         )
         lbl_sub.pack(anchor="w")
 
+        # Preset Selector in Navbar
+        preset_box = ctk.CTkFrame(nav_inner, fg_color="transparent")
+        preset_box.pack(side="left", padx=(28, 0))
+
+        ctk.CTkLabel(preset_box, text="Mẫu:", font=("Segoe UI", 11, "bold"), text_color=self.c_sub).pack(side="left", padx=(0, 8))
+
+        preset_opts = [
+            "Tùy chỉnh thủ công (Custom)",
+            "Video ngắn dọc TikTok / Shorts (9:16)",
+            "Video ngang điện ảnh YouTube (16:9)",
+            "Bản tin & Tin tức tài chính (16:9)",
+            "Tối giản nhanh (16:9)"
+        ]
+        self.preset_combo = ctk.CTkComboBox(
+            preset_box, variable=self.preset_var, values=preset_opts, width=270, height=32, corner_radius=8,
+            fg_color=self.c_input, border_color=self.c_input_border, button_color=self.c_btn_sec,
+            font=("Segoe UI", 11), command=self._apply_preset
+        )
+        self.preset_combo.pack(side="left")
+
+        self.preset_pill_buttons = {}
+        self.preset_pill_map = []
+
         # Right Actions on Navbar
         nav_actions = ctk.CTkFrame(nav_inner, fg_color="transparent")
         nav_actions.pack(side="right")
@@ -292,56 +315,10 @@ class AutoCapCutApp(ctk.CTk):
         self.btn_license.pack(side="left", padx=(6, 0))
 
         # ------------------------------------------------------------------
-        # 2. DASHBOARD TITLE & PRESET PILLS (Horizon Homes Capsule Row)
-        # ------------------------------------------------------------------
-        dash_header = ctk.CTkFrame(self, fg_color="transparent")
-        dash_header.pack(fill="x", padx=22, pady=(4, 8))
-
-        dash_title_box = ctk.CTkFrame(dash_header, fg_color="transparent")
-        dash_title_box.pack(side="left")
-
-        lbl_dash_title = ctk.CTkLabel(
-            dash_title_box, text="Bảng điều khiển biên tập", font=("Segoe UI", 17, "bold"),
-            text_color="#ffffff"
-        )
-        lbl_dash_title.pack(anchor="w")
-
-        # Preset Capsule Pills on the right
-        preset_pills_box = ctk.CTkFrame(dash_header, fg_color="transparent")
-        preset_pills_box.pack(side="right")
-
-        self.preset_pill_buttons = {}
-        self.preset_pill_map = [
-            ("TikTok / Shorts (9:16)", "Video ngắn dọc TikTok / Shorts (9:16)"),
-            ("YouTube Điện ảnh (16:9)", "Video ngang điện ảnh YouTube (16:9)"),
-            ("Tin tức & Tài chính", "Bản tin & Tin tức tài chính (16:9)"),
-            ("Tối giản", "Tối giản nhanh (16:9)"),
-            ("Tùy chỉnh", "Tùy chỉnh thủ công (Custom)"),
-        ]
-
-        for short_name, full_name in self.preset_pill_map:
-            btn_pill = ctk.CTkButton(
-                preset_pills_box, text=short_name, font=("Segoe UI", 10, "bold"),
-                fg_color=self.c_card, hover_color=self.c_btn_sec, text_color=self.c_sub,
-                border_color=self.c_card_border, border_width=1,
-                corner_radius=14, height=28,
-                command=lambda fn=full_name: self._select_preset_pill(fn)
-            )
-            btn_pill.pack(side="left", padx=3)
-            self.preset_pill_buttons[full_name] = btn_pill
-
-        # Hidden combo kept for API compatibility
-        self.preset_combo = ctk.CTkComboBox(
-            preset_pills_box, variable=self.preset_var,
-            values=[fn for _, fn in self.preset_pill_map],
-            width=1, height=1
-        )
-
-        # ------------------------------------------------------------------
-        # 3. METRIC STAT CARDS ROW (Horizon Homes 4 Metric Cards)
+        # 2. METRIC STAT CARDS ROW (Horizon Homes 4 Metric Cards)
         # ------------------------------------------------------------------
         stats_frame = ctk.CTkFrame(self, fg_color="transparent")
-        stats_frame.pack(fill="x", padx=22, pady=(0, 10))
+        stats_frame.pack(fill="x", padx=22, pady=(4, 10))
 
         for i in range(4):
             stats_frame.columnconfigure(i, weight=1, uniform="stat_col")
@@ -1065,6 +1042,8 @@ class AutoCapCutApp(ctk.CTk):
 
     def _update_preset_pills_ui(self):
         cur = self.preset_var.get()
+        if hasattr(self, "preset_combo") and self.preset_combo.get() != cur:
+            self.preset_combo.set(cur)
         for short_name, full_name in getattr(self, "preset_pill_map", []):
             btn = self.preset_pill_buttons.get(full_name)
             if not btn:
