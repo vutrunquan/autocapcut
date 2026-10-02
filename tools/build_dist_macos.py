@@ -32,6 +32,12 @@ def clean_old_builds():
 def build_executable():
     log("Starting PyInstaller build for AutoCapCut on macOS...")
 
+    # Ensure gemini alpha maps npz exists
+    npz_path = BASE_DIR / "assets" / "gemini_alpha_maps.npz"
+    if not npz_path.exists():
+        log("Generating assets/gemini_alpha_maps.npz...")
+        subprocess.run([sys.executable, str(BASE_DIR / "tools" / "save_npz.py")], cwd=str(BASE_DIR))
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",

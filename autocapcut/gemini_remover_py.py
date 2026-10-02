@@ -129,7 +129,7 @@ B64_ALPHA_48 = (
 _CACHED_MAPS = {}
 
 def find_alpha_maps_npz() -> Optional[str]:
-    """Locate assets/gemini_alpha_maps.npz across source and PyInstaller environments."""
+    """Locate assets/gemini_alpha_maps.npz across source and PyInstaller environments (Windows & macOS)."""
     candidates = []
     if getattr(sys, 'frozen', False):
         meipass = getattr(sys, '_MEIPASS', '')
@@ -137,6 +137,10 @@ def find_alpha_maps_npz() -> Optional[str]:
             candidates.append(os.path.join(meipass, 'assets', 'gemini_alpha_maps.npz'))
         exe_dir = os.path.dirname(sys.executable)
         candidates.append(os.path.join(exe_dir, 'assets', 'gemini_alpha_maps.npz'))
+        # macOS App bundle structure: AutoCapCut.app/Contents/MacOS/AutoCapCut
+        candidates.append(os.path.join(exe_dir, '..', 'Resources', 'assets', 'gemini_alpha_maps.npz'))
+        candidates.append(os.path.join(exe_dir, '..', 'Resources', 'gemini_alpha_maps.npz'))
+        candidates.append(os.path.join(exe_dir, '..', 'Frameworks', 'assets', 'gemini_alpha_maps.npz'))
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     candidates.append(os.path.join(base_dir, 'assets', 'gemini_alpha_maps.npz'))
