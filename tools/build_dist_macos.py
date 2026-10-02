@@ -77,6 +77,14 @@ def prepare_dist_folder():
     if app_bundle.exists():
         shutil.move(str(app_bundle), str(target_app_dir / "AutoCapCut.app"))
 
+    # Ensure assets and tools are copied into macOS App Bundle Resources
+    res_dir = target_app_dir / "AutoCapCut.app" / "Contents" / "Resources"
+    if res_dir.exists():
+        shutil.copytree(BASE_DIR / "assets", res_dir / "assets", dirs_exist_ok=True)
+        def ignore_heavy(dir, files):
+            return [f for f in files if f in {'release', 'public', 'tests', 'docs', '.git', '.github', 'samples', 'video-samples'}]
+        shutil.copytree(BASE_DIR / "tools" / "gemini-watermark-remover", res_dir / "tools" / "gemini-watermark-remover", ignore=ignore_heavy, dirs_exist_ok=True)
+
     # Copy license_config.json
     cfg_src = BASE_DIR / "license_config.json"
     if cfg_src.exists():
