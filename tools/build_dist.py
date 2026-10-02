@@ -32,6 +32,13 @@ def log(msg: str):
 
 def clean_old_builds():
     log("Cleaning previous build artifacts...")
+    if sys.platform == 'win32':
+        try:
+            subprocess.run(["taskkill", "/F", "/IM", "AutoCapCut.exe"], capture_output=True)
+            import time
+            time.sleep(1)
+        except Exception:
+            pass
     for d in [DIST_DIR, BUILD_DIR]:
         if d.exists():
             shutil.rmtree(d, ignore_errors=True)
@@ -44,6 +51,12 @@ def build_executable():
     if not icon_path.exists():
         from generate_icon import make_icon
         make_icon()
+
+    # Ensure gemini alpha maps npz exists
+    npz_path = BASE_DIR / "assets" / "gemini_alpha_maps.npz"
+    if not npz_path.exists():
+        log("Generating assets/gemini_alpha_maps.npz...")
+        subprocess.run([sys.executable, str(BASE_DIR / "tools" / "save_npz.py")], cwd=str(BASE_DIR))
 
     # PyInstaller arguments
     cmd = [
@@ -88,14 +101,27 @@ def prepare_dist_folder():
 
     if target_app_dir.exists():
         shutil.rmtree(target_app_dir, ignore_errors=True)
+        import time
+        for _ in range(6):
+            if not target_app_dir.exists():
+                break
+            time.sleep(0.5)
+            shutil.rmtree(target_app_dir, ignore_errors=True)
 
     if raw_dist.exists():
-        raw_dist.rename(target_app_dir)
+        if not target_app_dir.exists():
+            try:
+                raw_dist.rename(target_app_dir)
+            except Exception:
+                shutil.copytree(raw_dist, target_app_dir, dirs_exist_ok=True)
+                shutil.rmtree(raw_dist, ignore_errors=True)
+        else:
+            shutil.copytree(raw_dist, target_app_dir, dirs_exist_ok=True)
+            shutil.rmtree(raw_dist, ignore_errors=True)
 
     # 1. Copy assets to app root so both internal and external paths resolve
     assets_dest = target_app_dir / "assets"
-    if not assets_dest.exists():
-        shutil.copytree(BASE_DIR / "assets", assets_dest, dirs_exist_ok=True)
+    shutil.copytree(BASE_DIR / "assets", assets_dest, dirs_exist_ok=True)
 
     # 2. Copy current license_config.json (contains seller banking details)
     cfg_src = BASE_DIR / "license_config.json"

@@ -1,13 +1,13 @@
 {
-  "version": "1.3.6",
+  "version": "1.3.7",
   "min_compatible_version": "1.0.0",
   "release_date": "2026-10-02",
-  "title": "AutoCapCut Studio v1.3.6 - Tối Ưu macOS & Sửa Lỗi Tương Thích CapCut",
+  "title": "AutoCapCut Studio v1.3.7 - Tích Hợp Bộ Xóa Watermark Gemini AI Độc Lập",
   "changelog": [
-    "Sửa lỗi văng ứng dụng khi chọn file voice/âm thanh trên macOS (chuẩn hóa filetypes)",
-    "Hỗ trợ hoàn toàn phiên bản CapCut mới (tự động tạo song song draft_info.json và draft_content.json)",
-    "Kích hoạt và tối ưu tính năng xóa watermark Gemini AI trên macOS (tự động tìm Node.js và tích hợp thư viện Sharp)",
-    "Tối ưu đóng gói ứng dụng độc lập AutoCapCut.app cho macOS (Apple Silicon & Intel)"
+    "Tích hợp bộ thuật toán Reverse Alpha Blending thuần Python (NumPy/PIL) trực tiếp vào app",
+    "Xóa watermark Gemini AI siêu tốc, hoạt động 100% trên mọi máy khách mà không cần cài Node.js hay Sharp",
+    "Tự động nhận diện chuẩn kích thước (0.5K, 1K, 2K, 4K) và khớp tọa độ watermark chính xác",
+    "Khắc phục triệt để lỗi không xóa watermark khi chạy ứng dụng đóng gói độc lập AutoCapCut.exe"
   ],
   "download_url_win": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
   "download_url_mac": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",

@@ -18,7 +18,7 @@ import subprocess
 import urllib.request
 from typing import Optional, Dict, Any, Callable, Tuple
 
-CURRENT_VERSION = "1.3.6"
+CURRENT_VERSION = "1.3.7"
 GOOGLE_DRIVE_VERSION_URL = "https://drive.usercontent.google.com/download?id=1SfGAiG8cN7vUnpSTq2cF0BAuY8jy5VPU&export=download&confirm=t"
 GITHUB_CONTENTS_URL = "https://api.github.com/repos/vutrunquan/autocapcut/contents/version.json"
 VERSION_CHECK_URL = "https://raw.githubusercontent.com/vutrunquan/autocapcut/main/version.json"

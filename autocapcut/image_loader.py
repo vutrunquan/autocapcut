@@ -125,8 +125,8 @@ def get_watermark_remover_script() -> Optional[str]:
 
 def remove_gemini_watermark_from_image(image_path: str, output_cache_dir: str) -> str:
     """
-    Remove Gemini spark watermark using Reverse Alpha Blending (GargantuaX/gemini-watermark-remover).
-    Creates a mathematically exact clean copy in output_cache_dir and returns the new image path.
+    Remove Gemini spark watermark using Reverse Alpha Blending.
+    Uses pure Python (NumPy/PIL) engine with automatic fallback.
     """
     try:
         os.makedirs(output_cache_dir, exist_ok=True)
@@ -136,6 +136,16 @@ def remove_gemini_watermark_from_image(image_path: str, output_cache_dir: str) -
         if os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
             return cached_path
 
+        # 1. Primary: High-speed pure Python engine (zero external dependencies)
+        try:
+            from .gemini_remover_py import clean_image
+            if clean_image(image_path, cached_path, overwrite=True):
+                if os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
+                    return cached_path
+        except Exception as py_err:
+            print(f"[Watermark] Python engine warning: {py_err}")
+
+        # 2. Secondary: Node.js worker if available
         tool_script = get_watermark_remover_script()
         if tool_script and os.path.exists(tool_script):
             node_bin = find_node_binary()
@@ -146,8 +156,8 @@ def remove_gemini_watermark_from_image(image_path: str, output_cache_dir: str) -
             res = subprocess.run(cmd, capture_output=True, text=True, creationflags=creationflags)
             if res.returncode == 0 and os.path.exists(cached_path) and os.path.getsize(cached_path) > 0:
                 return cached_path
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[Watermark] Failed to remove watermark from {image_path}: {e}")
     return image_path
 
 
@@ -159,9 +169,25 @@ def batch_remove_gemini_watermarks(
 ) -> List[str]:
     """
     Batch remove Gemini watermarks from multiple images using Reverse Alpha Blending.
-    Runs multi-threaded concurrency in Node.js for blazing fast performance.
+    Uses high-speed multithreaded pure Python engine (NumPy/PIL) with Node.js fallback.
     """
     os.makedirs(output_cache_dir, exist_ok=True)
+
+    # 1. Primary: Multithreaded pure Python engine
+    try:
+        from .gemini_remover_py import batch_clean_images
+        cleaned = batch_clean_images(
+            image_paths=image_paths,
+            output_cache_dir=output_cache_dir,
+            progress_callback=progress_callback,
+            overwrite=overwrite
+        )
+        if cleaned and len(cleaned) == len(image_paths):
+            return cleaned
+    except Exception as py_err:
+        print(f"[Watermark] Python batch engine error, falling back to Node.js: {py_err}")
+
+    # 2. Secondary: Node.js batch worker
     tool_script = get_watermark_remover_script()
     if not tool_script or not os.path.exists(tool_script):
         return image_paths
@@ -180,7 +206,6 @@ def batch_remove_gemini_watermarks(
             cleaned_paths.append(p)
 
     if not tasks:
-        # All already cached or non-images
         return [c if os.path.exists(c) else orig for orig, c in zip(image_paths, cleaned_paths)]
 
     tasks_json_file = os.path.join(output_cache_dir, f"_tasks_{int(time.time()*1000)}.json")
@@ -220,8 +245,8 @@ def batch_remove_gemini_watermarks(
                         progress_callback(f"Xóa watermark ({processed}/{total_tasks})", pct)
 
         proc.wait()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[Watermark] Node.js batch remover failed: {e}")
     finally:
         if os.path.exists(tasks_json_file):
             try:
@@ -237,3 +262,4 @@ def batch_remove_gemini_watermarks(
             final_paths.append(orig)
 
     return final_paths
+
