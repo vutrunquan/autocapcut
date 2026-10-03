@@ -158,6 +158,32 @@ SUBTITLE_COLORS = {
 }
 
 
+def normalize_camera_motion(raw_motion: Optional[str]) -> str:
+    """Normalize camera motion string from GUI, Web App, or CLI to canonical key."""
+    if not raw_motion:
+        return 'smart_pacing'
+    raw = str(raw_motion).strip().lower()
+    if any(k in raw for k in ('cố định', 'không', 'none', 'still', 'off', 'disable')):
+        return 'none'
+    if any(k in raw for k in ('smart', 'pacing', 'nhịp', 'thông minh')):
+        return 'smart_pacing'
+    if any(k in raw for k in ('zoom out', 'zoom_out', 'thu nhỏ')):
+        return 'zoom_out'
+    if any(k in raw for k in ('zoom in', 'zoom_in', 'phóng to')):
+        return 'zoom_in'
+    if any(k in raw for k in ('pan left', 'pan_left', 'sang trái', 'lia trái', 'left')):
+        return 'pan_left'
+    if any(k in raw for k in ('pan right', 'pan_right', 'sang phải', 'lia phải', 'right')):
+        return 'pan_right'
+    if any(k in raw for k in ('pan up', 'pan_up', 'lên trên', 'lia lên', 'up')):
+        return 'pan_up'
+    if any(k in raw for k in ('pan down', 'pan_down', 'xuống dưới', 'lia xuống', 'down')):
+        return 'pan_down'
+    if any(k in raw for k in ('random', 'ngẫu nhiên', 'ken burns', 'dynamic')):
+        return 'random'
+    return 'smart_pacing'
+
+
 def apply_keyframe_motion(
     seg: cc.VideoSegment,
     motion_type: str,
@@ -167,44 +193,63 @@ def apply_keyframe_motion(
     canvas_h: int = 1080
 ):
     """Apply configured motion keyframes to a VideoSegment."""
-    scale_val = float(params.get('scale', 110)) / 100.0
-    param_x = float(params.get('x', 0))
-    param_y = float(params.get('y', 0))
+    try:
+        raw_scale = float(params.get('scale', 112) or 112)
+        if raw_scale > 2.0:
+            scale_val = raw_scale / 100.0
+        else:
+            scale_val = raw_scale
+        scale_val = max(1.02, min(1.50, scale_val))
 
-    norm_x = (param_x / float(canvas_w)) * 0.5
-    norm_y = (param_y / float(canvas_h)) * 0.5
+        param_x = float(params.get('x', 0) or 0)
+        param_y = float(params.get('y', 0) or 0)
+        if motion_type in ('pan_left', 'pan_right') and param_x <= 0:
+            param_x = 190.0
+        if motion_type in ('pan_up', 'pan_down') and param_y <= 0:
+            param_y = 100.0
 
-    if motion_type == 'zoom_in':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
+        # Safe maximum displacement so the image never slips outside canvas edges
+        max_safe_offset = max(0.02, (scale_val - 1.0) * 0.45)
 
-    elif motion_type == 'zoom_out':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
+        norm_x = (param_x / float(canvas_w)) * 0.5 if param_x > 0 else 0.05
+        norm_y = (param_y / float(canvas_h)) * 0.5 if param_y > 0 else 0.05
 
-    elif motion_type == 'pan_up':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.position_y, 0, 0.0)
-        seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, norm_y)
+        norm_x = min(max(0.01, norm_x), max_safe_offset)
+        norm_y = min(max(0.01, norm_y), max_safe_offset)
 
-    elif motion_type == 'pan_down':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.position_y, 0, norm_y)
-        seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, 0.0)
+        if motion_type == 'zoom_in':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
 
-    elif motion_type == 'pan_left':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.0)
-        seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -norm_x)
+        elif motion_type == 'zoom_out':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
 
-    elif motion_type == 'pan_right':
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
-        seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -norm_x)
-        seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, 0.0)
+        elif motion_type == 'pan_up':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.position_y, 0, -norm_y)
+            seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, norm_y)
+
+        elif motion_type == 'pan_down':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.position_y, 0, norm_y)
+            seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, -norm_y)
+
+        elif motion_type == 'pan_left':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.position_x, 0, norm_x)
+            seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -norm_x)
+
+        elif motion_type == 'pan_right':
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_val)
+            seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -norm_x)
+            seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, norm_x)
+    except Exception:
+        pass
 
 
 def build_capcut_draft(
@@ -472,11 +517,31 @@ def build_capcut_draft(
     f_key = filter_name.strip().lower()
     cinematic_filter = FILTERS_MAP.get(f_key)
 
-    # Motion scale
-    scale_factor = max(1.02, min(1.50, float(zoom_scale) / 100.0))
-    cam_mode = camera_motion.strip().lower()
+    # Motion scale & keyframe configuration
+    scale_factor = max(1.02, min(1.50, float(zoom_scale) / 100.0 if float(zoom_scale) > 2.0 else float(zoom_scale)))
+    cam_mode = normalize_camera_motion(camera_motion)
     if not smart_pacing and cam_mode == 'smart_pacing':
         cam_mode = 'zoom_in'
+
+    active_kf_cfg = {
+        'zoom_in': {'enabled': True, 'scale': zoom_scale},
+        'zoom_out': {'enabled': True, 'scale': zoom_scale},
+        'pan_up': {'enabled': True, 'x': 0, 'y': 100, 'scale': zoom_scale},
+        'pan_down': {'enabled': True, 'x': 0, 'y': 100, 'scale': zoom_scale},
+        'pan_left': {'enabled': True, 'x': 190, 'y': 0, 'scale': zoom_scale},
+        'pan_right': {'enabled': True, 'x': 190, 'y': 0, 'scale': zoom_scale},
+    }
+    if isinstance(keyframe_config, dict):
+        for m_k, m_v in keyframe_config.items():
+            if m_k in active_kf_cfg and isinstance(m_v, dict):
+                active_kf_cfg[m_k].update(m_v)
+
+    enabled_motions = [
+        m for m in ['zoom_in', 'zoom_out', 'pan_left', 'pan_right', 'pan_up', 'pan_down']
+        if active_kf_cfg.get(m, {}).get('enabled', True)
+    ]
+    if not enabled_motions:
+        enabled_motions = ['zoom_in', 'zoom_out', 'pan_left', 'pan_right', 'pan_up', 'pan_down']
 
     # Clean watermark if requested using GargantuaX/gemini-watermark-remover
     if remove_gemini_watermark and image_paths:
@@ -553,69 +618,27 @@ def build_capcut_draft(
                 pass
 
         # 4e. Camera Motion / Ken Burns
-        if cam_mode in ('smart_pacing', 'thông minh'):
-            if dur_s < 3.0:
-                # Fast zoom-in for punchy energy
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            elif dur_s > 6.0:
-                # Long line: Slow Pan across with zoom
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
-            else:
-                # Alternate zoom in / slow pan
-                if i % 2 == 0:
-                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
+        if cam_mode != 'none':
+            selected_motion = None
+            if cam_mode == 'smart_pacing':
+                if dur_s < 3.0:
+                    # Punchy short sentence: fast zoom in
+                    selected_motion = 'zoom_in' if 'zoom_in' in enabled_motions else enabled_motions[0]
+                elif dur_s > 6.0:
+                    # Long line: slow pan across with zoom
+                    pans = [m for m in enabled_motions if m.startswith('pan_')]
+                    selected_motion = pans[i % len(pans)] if pans else enabled_motions[i % len(enabled_motions)]
                 else:
-                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-                    v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
-        elif cam_mode in ('zoom_in', 'phóng to'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-        elif cam_mode in ('zoom_out', 'thu nhỏ'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
-        elif cam_mode in ('pan_left', 'sang trái'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
-        elif cam_mode in ('pan_right', 'sang phải'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -0.05)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, 0.05)
-        elif cam_mode in ('pan_up', 'lên trên'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_y, 0, -0.05)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, 0.05)
-        elif cam_mode in ('pan_down', 'xuống dưới'):
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_y, 0, 0.05)
-            v_seg.add_keyframe(cc.KeyframeProperty.position_y, dur_us, -0.05)
-        elif cam_mode in ('random', 'ngẫu nhiên'):
-            rand_m = i % 4
-            if rand_m == 0:
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, 1.0)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-            elif rand_m == 1:
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, 1.0)
-            elif rand_m == 2:
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, 0.05)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, -0.05)
+                    # Alternate through enabled motions
+                    selected_motion = enabled_motions[i % len(enabled_motions)]
+            elif cam_mode == 'random':
+                selected_motion = enabled_motions[i % len(enabled_motions)]
             else:
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, 0, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.uniform_scale, dur_us, scale_factor)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, 0, -0.05)
-                v_seg.add_keyframe(cc.KeyframeProperty.position_x, dur_us, 0.05)
+                selected_motion = cam_mode
+
+            if selected_motion:
+                motion_params = active_kf_cfg.get(selected_motion, {'scale': zoom_scale})
+                apply_keyframe_motion(v_seg, selected_motion, motion_params, dur_us, width, height)
 
         # 4f. Transition at scene boundary
         if i < num_scenes - 1:
