@@ -1,13 +1,13 @@
 {
-  "version": "1.3.7",
+  "version": "1.3.8",
   "min_compatible_version": "1.0.0",
-  "release_date": "2026-10-02",
-  "title": "AutoCapCut Studio v1.3.7 - Tích Hợp Bộ Xóa Watermark Gemini AI Độc Lập",
+  "release_date": "2026-10-03",
+  "title": "AutoCapCut Studio v1.3.8 - Giao Diện Tinh Gọn & Kèm Hướng Dẫn Chi Tiết",
   "changelog": [
-    "Tích hợp bộ thuật toán Reverse Alpha Blending thuần Python (NumPy/PIL) trực tiếp vào app",
-    "Xóa watermark Gemini AI siêu tốc, hoạt động 100% trên mọi máy khách mà không cần cài Node.js hay Sharp",
-    "Tự động nhận diện chuẩn kích thước (0.5K, 1K, 2K, 4K) và khớp tọa độ watermark chính xác",
-    "Khắc phục triệt để lỗi không xóa watermark khi chạy ứng dụng đóng gói độc lập AutoCapCut.exe"
+    "Cập nhật giao diện tinh gọn, chuyên nghiệp, loại bỏ toàn bộ icon/emoji rườm rà",
+    "Tối ưu không gian làm việc phân cảnh, loại bỏ các bảng thống kê phụ",
+    "Đính kèm sẵn tài liệu Hướng dẫn sử dụng chi tiết (Huong_Dan_Su_Dung.txt) trong bộ cài",
+    "Tối ưu hóa bộ xóa watermark Gemini AI và tính ổn định khi xuất dự án CapCut"
   ],
   "download_url_win": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
   "download_url_mac": "https://drive.usercontent.google.com/download?id=1LGPOhzymUH6owBLvKBeRxKbctAdgiLhW&export=download&confirm=t",
