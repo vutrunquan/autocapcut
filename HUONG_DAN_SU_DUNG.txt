@@ -1,0 +1,80 @@
+================================================================================
+                    AUTOCAPCUT STUDIO - HƯỚNG DẪN SỬ DỤNG
+           Tự động dựng dự án CapCut PC từ Voice, Subtitle & Media
+================================================================================
+
+I. CHUẨN BỊ BAN ĐẦU
+--------------------------------------------------------------------------------
+1. Máy tính của bạn cần cài sẵn phần mềm CapCut PC (Desktop).
+2. Tải file AutoCapCut_Studio về máy -> Bấm chuột phải chọn "Extract All" (Giải nén).
+3. Mở thư mục vừa giải nén -> Nhấp đúp chuột vào file: AutoCapCut.exe để bắt đầu.
+   (Không cần cài đặt phức tạp, click là chạy ngay).
+
+
+II. QUY TRÌNH 3 BƯỚC TẠO VIDEO TỰ ĐỘNG
+--------------------------------------------------------------------------------
+Bước 1: Nạp dữ liệu vào phần mềm
+  - File Voice (Âm thanh): Bấm "Chọn audio" -> Chọn file đọc voice (.mp3, .wav...).
+  - File Phụ Đề (.srt): Bấm "Chọn SRT" -> Chọn file phụ đề tương ứng.
+  - Thư Mục Media: Bấm "Chọn thư mục" -> Chọn thư mục chứa ảnh hoặc clip minh họa.
+  - Kịch Bản Phân Cảnh: Dán kịch bản vào khung lớn (Mỗi dòng văn bản là 1 cảnh ảnh).
+    * Mẹo: Bạn có thể bấm "Đọc .txt" để nạp file kịch bản có sẵn.
+    * Mẹo dùng thử: Bấm nút "Tự động điền" ở góc trên để nạp nhanh dữ liệu mẫu.
+
+Bước 2: Chọn phong cách video (Tùy chọn)
+  - Tại thanh trên cùng (Mục "Mẫu"): Chọn kiểu video bạn muốn làm:
+    + Video ngắn dọc TikTok / Shorts (9:16)
+    + Video ngang điện ảnh YouTube (16:9)
+    + Bản tin & Tin tức tài chính (16:9)
+    + Tối giản nhanh (16:9)
+  - Phần mềm đã tự động cấu hình tối ưu sẵn: Chuyển cảnh (Transition), Chuyển động
+    máy quay (Camera Motion), Màu sắc phụ đề và Nhạc nền (BGM).
+
+Bước 3: Bấm tạo dự án
+  - Nhập "Tên Dự Án CapCut" (ví dụ: Video_So_01).
+  - Bấm nút lớn: "Bắt đầu tạo dự án CapCut".
+  - Chờ thanh tiến trình chạy 100% (khoảng 3 - 10 giây).
+  - Bấm nút "Mở Dự Án Trong CapCut Ngay": Toàn bộ timeline video với hình ảnh, 
+    âm thanh, phụ đề khớp nhịp và hiệu ứng đã sẵn sàng trong CapCut để bạn xuất video!
+
+
+III. CÁC TÍNH NĂNG TỰ ĐỘNG NỔI BẬT
+--------------------------------------------------------------------------------
+1. Khớp nhịp tự động (Smart Pacing):
+   Tự động căn chỉnh độ dài từng bức ảnh khớp chính xác theo từng câu thoại trong file phụ đề SRT.
+
+2. Chống viền đen thông minh (Canvas Blur):
+   Khi ảnh ngang đưa vào video dọc (hoặc ngược lại), phần mềm tự làm mờ hậu cảnh để video luôn đầy khung, không bị viền đen xấu.
+
+3. Nhạc nền thông minh (Audio Ducking):
+   Nhạc nền sẽ tự động giảm âm lượng vừa phải khi có giọng nói và tự động chuyển bài mượt mà.
+
+4. Tự động xóa Watermark Gemini AI:
+   Nếu dùng ảnh tạo từ Google Gemini / Imagen có logo sao 4 cánh ở góc, phần mềm tự động xóa sạch 100% không để lại tì vết.
+
+
+IV. CHẾ ĐỘ DÙNG THỬ & KÍCH HOẠT BẢN QUYỀN
+--------------------------------------------------------------------------------
+- Dùng thử: Bạn được tặng 3 NGÀY TRẢI NGHIỆM MIỄN PHÍ toàn bộ tính năng.
+- Nâng cấp vĩnh viễn (150.000 VNĐ dùng trọn đời trên máy):
+  1. Bấm vào nút bản quyền ở góc trên bên phải phần mềm.
+  2. Bấm "Sao chép" Mã Máy (Machine ID).
+  3. Quét mã VietQR chuyển khoản 150.000đ.
+  4. Gửi mã máy qua Zalo/Facebook cho Admin để nhận Mã Kích Hoạt trong 5 phút.
+  5. Dán mã kích hoạt vào ô và bấm "Kích hoạt ngay" để mở khóa vĩnh viễn.
+
+
+V. CÂU HỎI THƯỜNG GẶP (FAQ)
+--------------------------------------------------------------------------------
+1. Tại sao mở CapCut không thấy dự án vừa tạo?
+   -> Hãy đóng phần mềm CapCut PC trước khi bấm "Bắt đầu tạo dự án", sau đó mở lại 
+      CapCut là dự án sẽ nằm ngay đầu danh sách.
+   -> Nếu vẫn không thấy, bấm nút "Cài đặt" trên AutoCapCut Studio để kiểm tra 
+      đường dẫn thư mục Draft của CapCut (thường là trong C:\Users\Tên_Máy\AppData\Local\CapCut\User Data\Projects\com.lveditor.draft).
+
+2. Số lượng ảnh ít hơn số câu trong kịch bản có được không?
+   -> Hoàn toàn được. Phần mềm sẽ tự động lặp lại vòng lặp các ảnh để khớp đủ toàn bộ kịch bản.
+
+3. Cần hỗ trợ thêm?
+   -> Liên hệ trực tiếp Admin để được hỗ trợ từ xa qua UltraViewer / AnyDesk / Zalo.
+================================================================================

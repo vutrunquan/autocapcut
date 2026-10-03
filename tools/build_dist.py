@@ -147,35 +147,10 @@ def prepare_dist_folder():
     if ver_src.exists():
         shutil.copy2(ver_src, target_app_dir / "version.json")
 
-    # 3. Create user instructions file (Huong_Dan_Su_Dung.txt)
-    guide_content = """========================================================================
-             AUTOCAPCUT STUDIO - HƯỚNG DẪN SỬ DỤNG NHANH
-========================================================================
-
-Cảm ơn bạn đã sử dụng AutoCapCut Studio!
-
-1. CÁCH MỞ PHẦN MỀM:
-   - Nhấp đúp chuột vào file: AutoCapCut.exe
-   - Phần mềm sẽ mở lên ngay lập tức mà không cần cài đặt thêm bất kỳ thứ gì.
-
-2. CHẾ ĐỘ DÙNG THỬ MIỄN PHÍ:
-   - Bạn được tặng 3 NGÀY DÙNG THỬ HOÀN TOÀN MIỄN PHÍ (đầy đủ mọi tính năng).
-   - Thời gian đếm ngược hiển thị ở góc trên bên phải giao diện.
-
-3. KÍCH HOẠT BẢN QUYỀN VĨNH VIỄN (150.000 VNĐ):
-   - Khi hết 3 ngày (hoặc bất cứ lúc nào bạn muốn nâng cấp trọn đời):
-     + Bấm vào nút bản quyền góc trên ứng dụng.
-     + Bấm "Sao chép" Mã Thiết Bị (Machine ID).
-     + Quét mã VietQR để chuyển 150.000đ (Dùng trọn đời trên máy này).
-     + Gửi mã máy cho Admin qua Zalo để nhận Mã Kích Hoạt trong 5 phút.
-     + Dán mã kích hoạt vào ô và bấm "Kích hoạt ngay".
-
-4. HỖ TRỢ KỸ THUẬT:
-   - Vui lòng liên hệ Admin qua Zalo hiển thị trong phần mềm nếu cần hỗ trợ.
-========================================================================
-"""
-    with open(target_app_dir / "Huong_Dan_Su_Dung.txt", "w", encoding="utf-8") as f:
-        f.write(guide_content)
+    # 3. Copy user instructions file (Huong_Dan_Su_Dung.txt)
+    guide_src = BASE_DIR / "HUONG_DAN_SU_DUNG.txt"
+    if guide_src.exists():
+        shutil.copy2(guide_src, target_app_dir / "Huong_Dan_Su_Dung.txt")
 
     # 4. Optional helper launcher .bat (some users prefer clicking a .bat)
     bat_content = """@echo off
