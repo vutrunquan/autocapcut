@@ -13,7 +13,7 @@ import time
 import json
 import subprocess
 import shutil
-from typing import List, Tuple, Optional, Callable
+from typing import List, Tuple, Optional, Callable, Any
 from PIL import Image, ImageFilter
 
 
@@ -189,13 +189,17 @@ def batch_remove_gemini_watermarks(
     image_paths: List[str],
     output_cache_dir: str,
     progress_callback: Optional[Callable[[str, float], None]] = None,
-    overwrite: bool = True
+    overwrite: bool = True,
+    cancel_event: Optional[Any] = None
 ) -> List[str]:
     """
     Batch remove Gemini watermarks from multiple images using Reverse Alpha Blending.
     Primary: Official gemini-watermark-remover engine via Node.js / Sharp (multi-worker).
     Fallback: Multithreaded pure Python engine (NumPy/PIL) if Node.js is unavailable.
     """
+    if cancel_event and cancel_event.is_set():
+        raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
+
     os.makedirs(output_cache_dir, exist_ok=True)
     tool_script = get_watermark_remover_script()
     node_bin = find_node_binary()
@@ -245,6 +249,14 @@ def batch_remove_gemini_watermarks(
 
             if proc.stdout:
                 for line in proc.stdout:
+                    if cancel_event and cancel_event.is_set():
+                        proc.terminate()
+                        try:
+                            proc.wait(timeout=1)
+                        except Exception:
+                            proc.kill()
+                        raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
+
                     line_str = line.strip()
                     if line_str.startswith('[PROGRESS]'):
                         processed += 1
@@ -253,6 +265,9 @@ def batch_remove_gemini_watermarks(
                             progress_callback(f"Xóa watermark ({processed}/{total_tasks})", pct)
 
             proc.wait()
+            if cancel_event and cancel_event.is_set():
+                raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
+
             if proc.returncode == 0:
                 final_paths = []
                 for orig, cleaned in zip(image_paths, cleaned_paths):
@@ -261,6 +276,8 @@ def batch_remove_gemini_watermarks(
                     else:
                         final_paths.append(orig)
                 return final_paths
+        except InterruptedError:
+            raise
         except Exception as node_err:
             print(f"[Watermark] Node.js batch remover failed, falling back to Python: {node_err}")
         finally:
@@ -277,8 +294,11 @@ def batch_remove_gemini_watermarks(
             image_paths=image_paths,
             output_cache_dir=output_cache_dir,
             progress_callback=progress_callback,
-            overwrite=overwrite
+            overwrite=overwrite,
+            cancel_event=cancel_event
         )
+    except InterruptedError:
+        raise
     except Exception as py_err:
         print(f"[Watermark] Python batch engine error: {py_err}")
 

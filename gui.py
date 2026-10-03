@@ -183,6 +183,7 @@ class AutoCapCutApp(ctk.CTk):
 
         self.msg_queue = queue.Queue()
         self.is_running = False
+        self.cancel_event = threading.Event()
         self.last_draft_dir = None
         self.pending_update_data = None
 
@@ -860,8 +861,11 @@ class AutoCapCutApp(ctk.CTk):
         run_inner = ctk.CTkFrame(run_card, fg_color="transparent")
         run_inner.pack(fill="x", padx=14, pady=10)
 
+        self.run_btn_row = ctk.CTkFrame(run_inner, fg_color="transparent")
+        self.run_btn_row.pack(fill="x", pady=(0, 8))
+
         self.btn_run = ctk.CTkButton(
-            run_inner,
+            self.run_btn_row,
             text="Bắt đầu tạo dự án CapCut",
             font=("Segoe UI", 13, "bold"),
             fg_color=self.c_accent,
@@ -870,7 +874,21 @@ class AutoCapCutApp(ctk.CTk):
             height=44,
             command=self._start_processing
         )
-        self.btn_run.pack(fill="x", pady=(0, 8))
+        self.btn_run.pack(side="left", fill="x", expand=True)
+
+        self.btn_stop = ctk.CTkButton(
+            self.run_btn_row,
+            text="Dừng lại",
+            font=("Segoe UI", 12, "bold"),
+            fg_color=self.c_danger,
+            hover_color="#dc2626",
+            text_color="#ffffff",
+            corner_radius=12,
+            width=110,
+            height=44,
+            command=self._stop_processing
+        )
+        self.btn_stop.pack_forget()
 
         self.progress_bar = ctk.CTkProgressBar(
             run_inner, corner_radius=6, height=6, fg_color="#212228", progress_color=self.c_accent
@@ -2043,8 +2061,12 @@ class AutoCapCutApp(ctk.CTk):
             'pan_right': {'enabled': self.m_pan_right_var.get(), 'x': self.m_pan_right_x.get(), 'y': self.m_pan_right_y.get(), 'scale': self.m_pan_right_scale.get()},
         }
 
+        self.cancel_event.clear()
         self.is_running = True
         self.btn_run.configure(state="disabled", text="Đang xử lý tiến trình...")
+        if hasattr(self, 'btn_stop'):
+            self.btn_stop.pack(side="right", padx=(8, 0))
+            self.btn_stop.configure(state="normal", text="Dừng lại")
         self.progress_bar.set(0)
         self.console_textbox.delete("1.0", "end")
         self._update_stat_cards()
@@ -2068,6 +2090,15 @@ class AutoCapCutApp(ctk.CTk):
             ),
             daemon=True
         ).start()
+
+    def _stop_processing(self):
+        if not self.is_running:
+            return
+        self.cancel_event.set()
+        if hasattr(self, 'btn_stop'):
+            self.btn_stop.configure(state="disabled", text="Đang dừng...")
+        self.lbl_status.configure(text="Đang dừng tiến trình...", text_color=self.c_amber)
+        self._log("\n[Hủy] Người dùng đã nhấn nút dừng tiến trình...")
 
     def _worker_thread(
         self, srt_path, script_source, voice_files, media_dir, capcut_name, draft_root,
@@ -2124,11 +2155,17 @@ class AutoCapCutApp(ctk.CTk):
                 enable_cta_subscribe=enable_cta,
                 remove_gemini_watermark=remove_wm,
                 aspect_ratio=aspect_ratio,
-                progress_callback=on_progress
+                progress_callback=on_progress,
+                cancel_event=self.cancel_event
             )
             self.msg_queue.put(('success', res))
+        except (InterruptedError, KeyboardInterrupt):
+            self.msg_queue.put(('cancelled', None))
         except Exception as e:
-            self.msg_queue.put(('error', str(e)))
+            if self.cancel_event and self.cancel_event.is_set():
+                self.msg_queue.put(('cancelled', None))
+            else:
+                self.msg_queue.put(('error', str(e)))
 
     def _process_queue(self):
         try:
@@ -2142,6 +2179,9 @@ class AutoCapCutApp(ctk.CTk):
                 elif msg_type == 'success':
                     self.is_running = False
                     self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    if hasattr(self, 'btn_stop'):
+                        self.btn_stop.pack_forget()
+                        self.btn_stop.configure(state="normal", text="Dừng lại")
                     self._update_stat_cards()
                     self.last_draft_dir = data['draft_dir']
                     self.last_draft_name = data.get('draft_name', 'Dự án CapCut')
@@ -2166,9 +2206,24 @@ class AutoCapCutApp(ctk.CTk):
 
                     self._show_completed_dialog(data)
 
+                elif msg_type == 'cancelled':
+                    self.is_running = False
+                    self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    if hasattr(self, 'btn_stop'):
+                        self.btn_stop.pack_forget()
+                        self.btn_stop.configure(state="normal", text="Dừng lại")
+                    self._update_stat_cards()
+                    self.lbl_status.configure(text="Đã dừng tiến trình.", text_color=self.c_amber)
+                    self.progress_bar.set(0)
+                    self._log("\n[Đã dừng] Tiến trình đã được dừng lại thành công.")
+                    messagebox.showinfo("Đã Dừng", "Tiến trình tạo dự án CapCut đã được dừng lại.")
+
                 elif msg_type == 'error':
                     self.is_running = False
                     self.btn_run.configure(state="normal", text="Bắt đầu tạo dự án CapCut")
+                    if hasattr(self, 'btn_stop'):
+                        self.btn_stop.pack_forget()
+                        self.btn_stop.configure(state="normal", text="Dừng lại")
                     self._update_stat_cards()
                     self.lbl_status.configure(text=f"Lỗi: {data}", text_color=self.c_danger)
                     self._log(f"\n[Error] ĐÃ XẢY RA LỖI: {data}")

@@ -299,7 +299,8 @@ def build_capcut_draft(
     audio_fade: bool = True,
     enable_cta_subscribe: bool = True,
     remove_gemini_watermark: bool = False,
-    progress_callback: Optional[Callable[[str, float], None]] = None
+    progress_callback: Optional[Callable[[str, float], None]] = None,
+    cancel_event: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Build complete CapCut draft project with full pro features and extensive effect controls.
@@ -307,6 +308,15 @@ def build_capcut_draft(
     def report(msg: str, pct: float):
         if progress_callback:
             progress_callback(msg, pct)
+
+    def check_cancelled():
+        if cancel_event and cancel_event.is_set():
+            draft_dir = os.path.join(draft_root, draft_name)
+            if os.path.exists(draft_dir):
+                shutil.rmtree(draft_dir, ignore_errors=True)
+            raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
+
+    check_cancelled()
 
     # Normalize audio paths
     voice_files = [audio_paths] if isinstance(audio_paths, str) else list(audio_paths)
@@ -318,6 +328,8 @@ def build_capcut_draft(
     os.makedirs(draft_root, exist_ok=True)
     df = cc.DraftFolder(draft_root)
     script = df.create_draft(draft_name, width, height, fps, allow_replace=True)
+
+    check_cancelled()
 
     # 1. AUDIO TRACK (VOICE)
     report("Đang nạp file voice âm thanh...", 0.10)
@@ -560,7 +572,8 @@ def build_capcut_draft(
         cleaned_subset = batch_remove_gemini_watermarks(
             image_paths=images_to_clean,
             output_cache_dir=cache_dir,
-            progress_callback=lambda msg, p: report(f"{msg}", 0.24 + 0.04 * p)
+            progress_callback=lambda msg, p: report(f"{msg}", 0.24 + 0.04 * p),
+            cancel_event=cancel_event
         )
         clean_map = dict(zip(images_to_clean, cleaned_subset))
         image_paths = [clean_map.get(p, p) for p in image_paths]
@@ -568,6 +581,7 @@ def build_capcut_draft(
     sfx_mat_cache: Dict[str, cc.AudioMaterial] = {}
 
     for i, sc in enumerate(scenes):
+        check_cancelled()
         img_p = image_paths[i] if i < num_images else image_paths[-1]
 
         st_us = sc['start_us']
@@ -695,6 +709,7 @@ def build_capcut_draft(
             report(f"Đã thêm cảnh {i + 1}/{num_scenes} ({os.path.basename(img_p)})", 0.28 + 0.45 * ((i + 1) / num_scenes))
 
     # 5. SUBTITLE TRACK (With Animation, Color Palettes & Stroke)
+    check_cancelled()
     if import_subtitles and srt_path and os.path.exists(srt_path):
         report("Đang nạp phụ đề phong cách hiện đại...", 0.78)
         color_rgb = SUBTITLE_COLORS.get(subtitle_style.lower(), SUBTITLE_COLORS['yellow'])
@@ -741,6 +756,7 @@ def build_capcut_draft(
             report(f"Lỗi nạp phụ đề: {e}", 0.86)
 
     # 6. CTA SUBSCRIBE BANNER & CHIME
+    check_cancelled()
     if enable_cta_subscribe and total_audio_us > 10000000:
         report("Đang chèn CTA Kêu gọi Đăng ký (Subscribe)...", 0.90)
         try:
@@ -781,6 +797,7 @@ def build_capcut_draft(
             pass
 
     # 7. SAVE AND REGISTER
+    check_cancelled()
     report("Đang lưu dự án và đăng ký vào CapCut...", 0.94)
     script.save()
 

@@ -76,6 +76,7 @@ def run_autocapcut(
     fps: int = 30,
     aspect_ratio: str = "16:9",
     progress_callback: Optional[Callable[[str, float], None]] = None,
+    cancel_event: Optional[Any] = None,
     # Fallback aliases
     script_path: Optional[str] = None,
     voice_path: Optional[Union[str, List[str]]] = None,
@@ -91,6 +92,12 @@ def run_autocapcut(
     def log(msg: str, pct: float = 0.0):
         if progress_callback:
             progress_callback(msg, pct)
+
+    def check_cancelled():
+        if cancel_event and cancel_event.is_set():
+            raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
+
+    check_cancelled()
 
     # Resolve aliases
     actual_script = script_source or script_path
@@ -133,6 +140,7 @@ def run_autocapcut(
         draft_root = get_default_capcut_draft_path()
 
     # Audio duration
+    check_cancelled()
     log("Đang phân tích thời lượng file Voice...", 0.05)
     total_audio_ms = 0
     for vf in v_list:
@@ -141,22 +149,26 @@ def run_autocapcut(
     log(f"Tổng thời lượng voice ({len(v_list)} file): {format_time_ms(total_audio_ms)} ({total_audio_ms / 1000:.2f}s)", 0.08)
 
     # Parse SRT
+    check_cancelled()
     log("Đang phân tích file phụ đề SRT...", 0.10)
     subtitles = parse_srt(srt_path)
     log(f"Đã đọc thành công {len(subtitles)} đoạn phụ đề từ SRT.", 0.14)
 
     # Parse Script
+    check_cancelled()
     log("Đang phân tích các cảnh trong kịch bản...", 0.18)
     script_lines = parse_script_input(actual_script)
     log(f"Đã đọc thành công {len(script_lines)} dòng kịch bản (cảnh phim).", 0.22)
 
     # Media loading & sorting
+    check_cancelled()
     sort_desc = "theo tên ABC" if sort_mode == 'abc' else ("Cũ đến Mới" if sort_mode == 'oldest_first' else "Mới đến Cũ")
     log(f"Đang nạp và sắp xếp media {sort_desc}...", 0.25)
     media_paths = load_sorted_media(images_dir, sort_mode=sort_mode)
     log(f"Đã nạp {len(media_paths)} file media (Từ '{os.path.basename(media_paths[0])}' đến '{os.path.basename(media_paths[-1])}').", 0.28)
 
     # Align scenes
+    check_cancelled()
     log("Đang khớp nội dung kịch bản với thời gian của phụ đề SRT...", 0.32)
     scenes = align_scenes_with_srt(
         script_lines=script_lines,
@@ -164,6 +176,8 @@ def run_autocapcut(
         total_audio_ms=total_audio_ms
     )
     log(f"Khớp thành công {len(scenes)} cảnh liên tục (Gapless timeline).", 0.35)
+
+    check_cancelled()
 
     # Build CapCut draft with full pro options
     result = build_capcut_draft(
@@ -212,7 +226,8 @@ def run_autocapcut(
         audio_fade=audio_fade,
         enable_cta_subscribe=enable_cta_subscribe,
         remove_gemini_watermark=remove_gemini_watermark,
-        progress_callback=progress_callback
+        progress_callback=progress_callback,
+        cancel_event=cancel_event
     )
 
     result['scenes_info'] = scenes

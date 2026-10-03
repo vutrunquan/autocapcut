@@ -8,7 +8,7 @@ import os
 import sys
 import base64
 import concurrent.futures
-from typing import List, Optional, Tuple, Callable
+from typing import List, Optional, Tuple, Callable, Any
 import numpy as np
 from PIL import Image
 
@@ -357,7 +357,8 @@ def batch_clean_images(
     output_cache_dir: str,
     progress_callback: Optional[Callable[[str, float], None]] = None,
     overwrite: bool = True,
-    max_workers: int = 4
+    max_workers: int = 4,
+    cancel_event: Optional[Any] = None
 ) -> List[str]:
     """
     Batch clean Gemini watermarks from multiple images using multithreaded Python workers.
@@ -383,6 +384,8 @@ def batch_clean_images(
     completed = 0
 
     def worker(task):
+        if cancel_event and cancel_event.is_set():
+            return False, task[0]
         inp, outp = task
         ok = clean_image(inp, outp, overwrite=overwrite)
         return ok, outp if ok else inp
@@ -390,6 +393,9 @@ def batch_clean_images(
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = {executor.submit(worker, t): t for t in tasks}
         for fut in concurrent.futures.as_completed(futures):
+            if cancel_event and cancel_event.is_set():
+                executor.shutdown(wait=False, cancel_futures=True)
+                raise InterruptedError("Tiến trình đã được dừng bởi người dùng.")
             completed += 1
             if progress_callback:
                 pct = completed / total
