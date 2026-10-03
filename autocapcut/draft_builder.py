@@ -15,6 +15,7 @@ Constructs a complete CapCut draft project with full pro features:
 
 import os
 import sys
+import shutil
 import random
 from typing import List, Dict, Any, Optional, Callable, Union
 import pycapcut as cc
@@ -336,6 +337,8 @@ def build_capcut_draft(
     # 2. BGM TRACK (With Built-in Presets, Audio Ducking & Fade)
     assets_dir = os.path.join(getattr(sys, '_MEIPASS', ''), 'assets')
     if not os.path.isdir(assets_dir):
+        assets_dir = os.path.join(os.path.dirname(sys.executable), '_internal', 'assets')
+    if not os.path.isdir(assets_dir):
         assets_dir = os.path.join(os.path.dirname(sys.executable), 'assets')
     if not os.path.isdir(assets_dir):
         assets_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets')
@@ -395,6 +398,20 @@ def build_capcut_draft(
         curr_bgm_us = 0
         bgm_idx = 0
         bgm_base_vol = (bgm_volume * 0.75) if audio_ducking else bgm_volume
+
+        # Ensure draft resources directory exists so BGM is self-contained in draft on SSD C:
+        draft_bgm_dir = os.path.join(draft_root, draft_name, "resources", "bgm")
+        os.makedirs(draft_bgm_dir, exist_ok=True)
+        local_bgm_list = []
+        for bp in resolved_bgm:
+            try:
+                dest_bp = os.path.abspath(os.path.join(draft_bgm_dir, os.path.basename(bp)))
+                if not os.path.exists(dest_bp) or os.path.getsize(dest_bp) != os.path.getsize(bp):
+                    shutil.copy2(bp, dest_bp)
+                local_bgm_list.append(dest_bp)
+            except Exception:
+                local_bgm_list.append(bp)
+        resolved_bgm = local_bgm_list
 
         while curr_bgm_us < total_audio_us and resolved_bgm:
             bgm_p = resolved_bgm[bgm_idx % len(resolved_bgm)]
@@ -485,6 +502,21 @@ def build_capcut_draft(
                 matched = [f for f in all_sfx if any(p in os.path.basename(f).lower() for p in s_target.split())]
             sfx_files = matched if matched else all_sfx
 
+    # Copy selected SFX files into draft resources folder so they reside on high-speed NVMe SSD C:
+    if enable_sfx and sfx_files:
+        draft_sfx_dir = os.path.abspath(os.path.join(draft_root, draft_name, "resources", "sfx"))
+        os.makedirs(draft_sfx_dir, exist_ok=True)
+        local_sfx_list = []
+        for sp in sfx_files:
+            try:
+                dest_sp = os.path.abspath(os.path.join(draft_sfx_dir, os.path.basename(sp)))
+                if not os.path.exists(dest_sp) or os.path.getsize(dest_sp) != os.path.getsize(sp):
+                    shutil.copy2(sp, dest_sp)
+                local_sfx_list.append(dest_sp)
+            except Exception:
+                local_sfx_list.append(sp)
+        sfx_files = local_sfx_list
+
     if enable_sfx and sfx_files:
         report("Đang nạp hiệu ứng âm thanh chuyển cảnh (SFX)...", 0.22)
         script.add_track(cc.TrackType.audio, 'SFX')
@@ -557,6 +589,7 @@ def build_capcut_draft(
         clean_map = dict(zip(images_to_clean, cleaned_subset))
         image_paths = [clean_map.get(p, p) for p in image_paths]
         num_images = len(image_paths)
+    sfx_mat_cache: Dict[str, cc.AudioMaterial] = {}
 
     for i, sc in enumerate(scenes):
         img_p = image_paths[i] if i < num_images else image_paths[-1]
@@ -661,8 +694,15 @@ def build_capcut_draft(
         if enable_sfx and sfx_files and i > 0:
             sfx_p = sfx_files[i % len(sfx_files)]
             try:
-                sfx_mat = cc.AudioMaterial(sfx_p)
-                sfx_dur = min(sfx_mat.duration, 2500000)
+                if sfx_p not in sfx_mat_cache:
+                    sfx_mat_cache[sfx_p] = cc.AudioMaterial(sfx_p)
+                sfx_mat = sfx_mat_cache[sfx_p]
+
+                # Safety buffer: leave at least 100,000 us (100ms) before the physical end of file
+                # so CapCut video frame-snapping (30fps = 33.3ms) will NEVER read past EOF!
+                safe_max_dur = max(60000, sfx_mat.duration - 100000)
+                sfx_dur = min(safe_max_dur, 2000000)
+
                 # Center SFX around cut point
                 sfx_st = max(0, st_us - 120000)
                 sfx_seg = cc.AudioSegment(
@@ -747,15 +787,24 @@ def build_capcut_draft(
             script.add_segment(cta_seg, 'CTA_Subscribe')
 
             # Chime ding sound for CTA
-            ding_p = os.path.join(sfx_dir, 'ding.wav')
-            if os.path.exists(ding_p):
+            ding_source = os.path.join(sfx_dir, 'ding.wav')
+            if os.path.exists(ding_source):
                 if 'SFX' not in script.tracks:
                     script.add_track(cc.TrackType.audio, 'SFX')
+                draft_sfx_dir = os.path.abspath(os.path.join(draft_root, draft_name, "resources", "sfx"))
+                os.makedirs(draft_sfx_dir, exist_ok=True)
+                ding_p = os.path.abspath(os.path.join(draft_sfx_dir, 'ding.wav'))
+                if not os.path.exists(ding_p):
+                    try:
+                        shutil.copy2(ding_source, ding_p)
+                    except Exception:
+                        ding_p = ding_source
                 ding_mat = cc.AudioMaterial(ding_p)
+                ding_dur = min(max(60000, ding_mat.duration - 80000), 1500000)
                 ding_seg = cc.AudioSegment(
                     ding_mat,
-                    target_timerange=cc.trange(cta_start_us, min(ding_mat.duration, 1500000)),
-                    source_timerange=cc.trange(0, min(ding_mat.duration, 1500000)),
+                    target_timerange=cc.trange(cta_start_us, ding_dur),
+                    source_timerange=cc.trange(0, ding_dur),
                     volume=0.55
                 )
                 script.add_segment(ding_seg, 'SFX')
@@ -773,7 +822,6 @@ def build_capcut_draft(
     info_file = os.path.join(draft_dir, 'draft_info.json')
     if os.path.exists(content_file) and not os.path.exists(info_file):
         try:
-            import shutil
             shutil.copyfile(content_file, info_file)
         except Exception:
             pass

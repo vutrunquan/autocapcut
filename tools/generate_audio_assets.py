@@ -32,11 +32,16 @@ BGM_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def save_stereo_wav(filepath: Path, left_ch: np.ndarray, right_ch: np.ndarray):
-    """Normalize and write stereo 16-bit PCM WAV."""
+    """Normalize and write stereo 16-bit PCM WAV with 1.0s trailing silence safety buffer."""
     peak = max(np.max(np.abs(left_ch)), np.max(np.abs(right_ch)), 1e-6)
     if peak > 0.98:
         left_ch = (left_ch / peak) * 0.95
         right_ch = (right_ch / peak) * 0.95
+
+    # Append 1.0s clean digital silence buffer to prevent CapCut timeline frame quantization EOF errors
+    silence_len = int(SAMPLE_RATE * 1.0)
+    left_ch = np.pad(left_ch, (0, silence_len), 'constant')
+    right_ch = np.pad(right_ch, (0, silence_len), 'constant')
 
     left_int16 = np.int16(np.clip(left_ch, -1.0, 1.0) * 32767)
     right_int16 = np.int16(np.clip(right_ch, -1.0, 1.0) * 32767)
