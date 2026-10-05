@@ -40,40 +40,184 @@ def open_path_in_os(path: str):
         subprocess.Popen(['xdg-open', path])
 
 
+def is_capcut_running() -> bool:
+    """Check if CapCut or JianYing desktop application is currently running."""
+    if sys.platform == 'win32':
+        try:
+            res = subprocess.run(['tasklist', '/fi', 'imagename eq CapCut.exe'], capture_output=True, text=True, timeout=3)
+            if 'CapCut.exe' in res.stdout:
+                return True
+            res_jy = subprocess.run(['tasklist', '/fi', 'imagename eq JianyingPro.exe'], capture_output=True, text=True, timeout=3)
+            return 'JianyingPro.exe' in res_jy.stdout
+        except Exception:
+            return False
+    elif sys.platform == 'darwin':
+        try:
+            for proc_name in ['CapCut', 'JianyingPro']:
+                res = subprocess.run(['pgrep', '-x', proc_name], capture_output=True, text=True, timeout=3)
+                if bool(res.stdout.strip()):
+                    return True
+        except Exception:
+            return False
+    return False
+
+
+def get_capcut_window_hwnd() -> Optional[int]:
+    """Find visible CapCut or JianYing main window handle on Windows."""
+    if sys.platform != 'win32':
+        return None
+    try:
+        import ctypes
+        from ctypes import wintypes
+        user32 = ctypes.windll.user32
+
+        found_hwnd = []
+        def enum_proc(hwnd, lParam):
+            if user32.IsWindowVisible(hwnd):
+                length = user32.GetWindowTextLengthW(hwnd)
+                if length > 0:
+                    buff = ctypes.create_unicode_buffer(length + 1)
+                    user32.GetWindowTextW(hwnd, buff, length + 1)
+                    title = buff.value.lower()
+                    if 'capcut' in title or 'jianying' in title:
+                        # Exclude AutoCapCut's own windows
+                        if 'autocapcut' not in title:
+                            found_hwnd.append(hwnd)
+            return 1
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+        user32.EnumWindows(WNDENUMPROC(enum_proc), 0)
+        return found_hwnd[0] if found_hwnd else None
+    except Exception:
+        return None
+
+
+def focus_capcut_window() -> bool:
+    """Bring running CapCut window to the foreground."""
+    if sys.platform == 'win32':
+        try:
+            hwnd = get_capcut_window_hwnd()
+            if hwnd:
+                import ctypes
+                user32 = ctypes.windll.user32
+                kernel32 = ctypes.windll.kernel32
+
+                user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+                fore_hwnd = user32.GetForegroundWindow()
+                fore_thread = user32.GetWindowThreadProcessId(fore_hwnd, None)
+                cur_thread = kernel32.GetCurrentThreadId()
+
+                if fore_thread != cur_thread:
+                    user32.AttachThreadInput(cur_thread, fore_thread, True)
+                    user32.BringWindowToTop(hwnd)
+                    user32.SetForegroundWindow(hwnd)
+                    user32.SetFocus(hwnd)
+                    user32.AttachThreadInput(cur_thread, fore_thread, False)
+                else:
+                    user32.BringWindowToTop(hwnd)
+                    user32.SetForegroundWindow(hwnd)
+                    user32.SetFocus(hwnd)
+                return True
+        except Exception:
+            pass
+    elif sys.platform == 'darwin':
+        try:
+            subprocess.run(['osascript', '-e', 'tell application "CapCut" to activate'], capture_output=True, timeout=3)
+            return True
+        except Exception:
+            pass
+    return False
+
+
+def restart_capcut_app() -> bool:
+    """Safely terminate lingering CapCut processes and launch fresh so projects update immediately."""
+    if sys.platform == 'win32':
+        try:
+            subprocess.run(['taskkill', '/F', '/IM', 'CapCut.exe'], capture_output=True, timeout=5)
+            subprocess.run(['taskkill', '/F', '/IM', 'JianyingPro.exe'], capture_output=True, timeout=5)
+            time.sleep(1.0)
+        except Exception:
+            pass
+        return launch_capcut_app()
+    elif sys.platform == 'darwin':
+        try:
+            subprocess.run(['pkill', '-x', 'CapCut'], capture_output=True, timeout=5)
+            subprocess.run(['pkill', '-x', 'JianyingPro'], capture_output=True, timeout=5)
+            time.sleep(1.0)
+        except Exception:
+            pass
+        return launch_capcut_app()
+    return False
+
+
 def launch_capcut_app(draft_path: Optional[str] = None) -> bool:
-    """Launch CapCut application across macOS (Intel/M-series) and Windows."""
-    exe = get_capcut_exe_path()
+    """
+    Launch CapCut application across macOS (Intel/M-series) and Windows.
+    On Windows, uses official Start Menu shortcut, URI protocol, or direct versioned binary.
+    Drafts appear at the top of CapCut's homepage via root_meta_info.json.
+    """
     if sys.platform == 'darwin':
+        exe = get_capcut_exe_path()
         if exe and os.path.exists(exe):
-            cmd = ['open', exe]
-            if draft_path and os.path.exists(draft_path):
-                cmd.extend(['--args', draft_path])
-            subprocess.Popen(cmd)
+            subprocess.Popen(['open', exe])
             return True
         for app_name in ['CapCut', 'JianyingPro']:
             try:
-                cmd = ['open', '-a', app_name]
-                if draft_path and os.path.exists(draft_path):
-                    cmd.extend(['--args', draft_path])
-                res = subprocess.run(cmd, capture_output=True)
+                res = subprocess.run(['open', '-a', app_name], capture_output=True)
                 if res.returncode == 0:
                     return True
             except Exception:
                 pass
-        return False
-    elif sys.platform == 'win32':
-        if exe and os.path.exists(exe):
-            cmd = [exe]
-            if draft_path and os.path.exists(draft_path):
-                cmd.append(draft_path)
-            subprocess.Popen(cmd)
+        if draft_path and os.path.exists(draft_path):
+            open_path_in_os(draft_path)
             return True
+        return False
+
+    elif sys.platform == 'win32':
+        # 1. Try launching through Start Menu or Desktop shortcut (most reliable on Windows)
+        lnk_candidates = [
+            os.path.expanduser(r'~/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/CapCut/CapCut.lnk'),
+            os.path.expanduser(r'~/Desktop/CapCut.lnk'),
+            r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\CapCut\CapCut.lnk',
+            os.path.expanduser(r'~/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/JianyingPro/JianyingPro.lnk'),
+            os.path.expanduser(r'~/Desktop/JianyingPro.lnk'),
+            r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\JianyingPro\JianyingPro.lnk',
+        ]
+        for lnk in lnk_candidates:
+            if os.path.isfile(lnk):
+                try:
+                    os.startfile(lnk)
+                    return True
+                except Exception:
+                    pass
+
+        # 2. Try URI protocol
         try:
             os.startfile("capcut:")
             return True
         except Exception:
             pass
-    return False
+
+        # 3. Direct executable launch
+        exe = get_capcut_exe_path()
+        if exe and os.path.isfile(exe):
+            try:
+                is_shim = os.path.basename(exe).lower() == 'capcut.exe' and 'apps' in os.path.dirname(exe).lower() and not any(ch.isdigit() for ch in os.path.basename(os.path.dirname(exe)))
+                args = [exe, '--src3'] if is_shim else [exe]
+                subprocess.Popen(args, cwd=os.path.dirname(exe), creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+                return True
+            except Exception:
+                try:
+                    os.startfile(exe)
+                    return True
+                except Exception:
+                    pass
+
+        if draft_path and os.path.exists(draft_path):
+            open_path_in_os(draft_path)
+            return True
+
+        return False
 
 
 def get_default_capcut_draft_path() -> Optional[str]:
@@ -118,7 +262,7 @@ def get_default_capcut_draft_path() -> Optional[str]:
 
 def get_capcut_exe_path() -> Optional[str]:
     """
-    Detect CapCut application location on Windows and macOS.
+    Detect CapCut or JianYing application location on Windows and macOS.
     Supports both Intel (x86_64) and Apple Silicon (arm64).
     """
     if sys.platform == 'darwin':
@@ -136,17 +280,40 @@ def get_capcut_exe_path() -> Optional[str]:
     elif sys.platform == 'win32':
         local_app_data = os.environ.get('LOCALAPPDATA', '')
         if not local_app_data:
-            return None
+            user_profile = os.environ.get('USERPROFILE', '')
+            local_app_data = os.path.join(user_profile, 'AppData', 'Local')
 
-        capcut_app = os.path.join(local_app_data, 'CapCut', 'Apps', 'CapCut.exe')
-        if os.path.exists(capcut_app):
-            return capcut_app
+        for app_folder in ['CapCut', 'JianyingPro']:
+            apps_dir = os.path.join(local_app_data, app_folder, 'Apps')
+            if os.path.isdir(apps_dir):
+                # 1. Prefer latest versioned binary (e.g. Apps/9.5.0.4050/CapCut.exe)
+                try:
+                    subdirs = sorted([d for d in os.listdir(apps_dir) if os.path.isdir(os.path.join(apps_dir, d))], reverse=True)
+                    for d in subdirs:
+                        for exe_name in ['CapCut.exe', 'JianyingPro.exe']:
+                            candidate = os.path.join(apps_dir, d, exe_name)
+                            if os.path.isfile(candidate):
+                                return candidate
+                except Exception:
+                    pass
 
-        apps_dir = os.path.join(local_app_data, 'CapCut', 'Apps')
-        if os.path.isdir(apps_dir):
-            for root, dirs, files in os.walk(apps_dir):
-                if 'CapCut.exe' in files:
-                    return os.path.join(root, 'CapCut.exe')
+                # 2. Check root Apps launcher
+                for exe_name in ['CapCut.exe', 'JianyingPro.exe']:
+                    candidate = os.path.join(apps_dir, exe_name)
+                    if os.path.isfile(candidate):
+                        return candidate
+
+        # 3. Check Program Files
+        for pf in [os.environ.get('ProgramFiles'), os.environ.get('ProgramFiles(x86)')]:
+            if pf:
+                for candidate in [
+                    os.path.join(pf, 'CapCut', 'CapCut.exe'),
+                    os.path.join(pf, 'ByteDance', 'CapCut', 'CapCut.exe'),
+                    os.path.join(pf, 'JianyingPro', 'JianyingPro.exe'),
+                ]:
+                    if os.path.isfile(candidate):
+                        return candidate
+
         return None
     return None
 
@@ -304,6 +471,7 @@ def register_draft_in_root_meta(
         'draft_id': draft_id,
         'draft_is_ai_shorts': False,
         'draft_is_cloud_temp_draft': False,
+        'draft_is_infinite_canvas_draft': False,
         'draft_is_invisible': False,
         'draft_is_pippit_draft': False,
         'draft_is_web_article_video': False,

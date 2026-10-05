@@ -21,6 +21,10 @@ from .utils import (
     format_time_ms,
     open_path_in_os,
     launch_capcut_app,
+    is_capcut_running,
+    get_capcut_window_hwnd,
+    focus_capcut_window,
+    restart_capcut_app,
     ensure_macos_path
 )
 
@@ -61,6 +65,10 @@ __all__ = [
     'format_time_ms',
     'open_path_in_os',
     'launch_capcut_app',
+    'is_capcut_running',
+    'get_capcut_window_hwnd',
+    'focus_capcut_window',
+    'restart_capcut_app',
     'ensure_macos_path',
     'get_machine_id',
     'get_license_info',

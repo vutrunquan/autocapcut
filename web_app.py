@@ -33,6 +33,10 @@ from autocapcut import (
     align_scenes_with_srt,
     format_time_ms,
     launch_capcut_app,
+    is_capcut_running,
+    get_capcut_window_hwnd,
+    focus_capcut_window,
+    restart_capcut_app,
     open_path_in_os,
     ensure_macos_path,
     get_machine_id,
@@ -174,16 +178,54 @@ def preview_alignment(req: PreviewRequest):
 @app.post("/api/launch-capcut")
 async def launch_capcut(request: Request):
     draft_path = None
+    force_restart = False
     try:
         body = await request.json()
         if isinstance(body, dict):
             draft_path = body.get("draft_path")
+            force_restart = bool(body.get("restart", False))
     except Exception:
         pass
+
+    if is_capcut_running():
+        hwnd = get_capcut_window_hwnd()
+        if hwnd and not force_restart:
+            focus_capcut_window()
+            return {
+                "status": "already_running",
+                "message": "CapCut hiện đang mở trên máy tính. Để dự án mới xuất hiện ngay trên trang chủ CapCut, CapCut cần được khởi động lại.",
+                "draft_path": draft_path
+            }
+        ok = restart_capcut_app()
+        if ok:
+            return {"status": "success", "message": "Đã khởi động lại CapCut và tải dự án mới thành công!"}
+        if draft_path and os.path.exists(draft_path):
+            open_path_in_os(draft_path)
+            return {"status": "success", "message": "Đã mở thư mục dự án trong File Explorer."}
+        return {"status": "error", "message": "Không thể khởi động lại CapCut. Vui lòng mở CapCut thủ công."}
+
     ok = launch_capcut_app(draft_path)
     if ok:
         return {"status": "success", "message": "Đã khởi chạy CapCut thành công!"}
+    if draft_path and os.path.exists(draft_path):
+        open_path_in_os(draft_path)
+        return {"status": "success", "message": "Đã mở thư mục dự án trong File Explorer."}
     return {"status": "error", "message": "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn."}
+
+
+@app.post("/api/open-folder")
+async def open_folder(request: Request):
+    folder_path = None
+    try:
+        body = await request.json()
+        if isinstance(body, dict):
+            folder_path = body.get("path")
+    except Exception:
+        pass
+    if folder_path and os.path.exists(folder_path):
+        open_path_in_os(folder_path)
+        return {"status": "success", "message": f"Đã mở thư mục: {folder_path}"}
+    return {"status": "error", "message": "Thư mục không tồn tại."}
 
 
 @app.get("/api/update-check")
@@ -939,8 +981,9 @@ def index_page():
           </div>
           <div id="quick_open_banner" style="display: none; margin-top: 10px; background: rgba(5, 150, 105, 0.15); border: 1px solid #059669; border-radius: 8px; padding: 10px 14px; text-align: center;">
             <div id="quick_open_title" style="color: #10b981; font-weight: bold; font-size: 12px; margin-bottom: 6px;">Dự án đã sẵn sàng trong CapCut!</div>
-            <div style="display: flex; gap: 8px; justify-content: center;">
+            <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
               <button class="btn btn-primary" style="background: #059669; font-weight: bold; padding: 6px 18px; font-size: 12px;" onclick="openLastDraftCapCut()">Mở Dự Án Trong CapCut Ngay</button>
+              <button class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;" onclick="openLastDraftFolder()">Mở Thư Mục Dự Án</button>
             </div>
           </div>
         </div>
@@ -1408,17 +1451,30 @@ def index_page():
 
     let lastDraftDir = null;
 
-    async function launchCapCut(draftPath = null) {
+    async function launchCapCut(draftPath = null, restart = false) {
       try {
-        const bodyData = draftPath ? JSON.stringify({ draft_path: draftPath }) : '{}';
+        const payload = { draft_path: draftPath, restart: restart };
         const res = await fetch('/api/launch-capcut', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: bodyData
+          body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data.status === 'success') {
-          log('[Action] Đã khởi chạy CapCut: ' + data.message);
+          log('[Action] ' + data.message);
+        } else if (data.status === 'already_running') {
+          const ans = confirm(
+            "CapCut hiện đang mở trên máy tính.\n\n" +
+            "Để dự án mới xuất hiện ngay trên trang chủ CapCut, CapCut cần được khởi động lại.\n\n" +
+            "• Bấm [OK]: Khởi động lại CapCut và tải dự án mới ngay.\n" +
+            "• Bấm [Cancel/Hủy]: Mở thư mục dự án trong File Explorer."
+          );
+          if (ans) {
+            log('[Action] Đang khởi động lại CapCut...');
+            await launchCapCut(draftPath, true);
+          } else {
+            openLastDraftFolder();
+          }
         } else {
           alert('Không thể mở CapCut: ' + data.message);
         }
@@ -1427,6 +1483,23 @@ def index_page():
 
     function openLastDraftCapCut() {
       launchCapCut(lastDraftDir);
+    }
+
+    async function openLastDraftFolder() {
+      if (!lastDraftDir) return;
+      try {
+        const res = await fetch('/api/open-folder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: lastDraftDir })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          log('[Action] ' + data.message);
+        } else {
+          alert(data.message);
+        }
+      } catch (e) { alert(e.message); }
     }
 
     function startBuild() {

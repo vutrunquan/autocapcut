@@ -29,6 +29,10 @@ from autocapcut import (
     get_capcut_exe_path,
     open_path_in_os,
     launch_capcut_app,
+    is_capcut_running,
+    get_capcut_window_hwnd,
+    focus_capcut_window,
+    restart_capcut_app,
     ensure_macos_path,
     get_machine_id,
     get_license_info,
@@ -1483,6 +1487,21 @@ class AutoCapCutApp(ctk.CTk):
         self.console_textbox.see("end")
 
     def _launch_capcut(self):
+        if is_capcut_running():
+            hwnd = get_capcut_window_hwnd()
+            if hwnd:
+                focus_capcut_window()
+                self._log("[CapCut] CapCut đang mở, đã đưa cửa sổ lên màn hình.")
+                return
+            else:
+                self._log("[CapCut] Phát hiện tiến trình CapCut chạy ngầm, đang khởi động lại...")
+                ok = restart_capcut_app()
+                if ok:
+                    self._log("[Action] Đã khởi chạy CapCut thành công.")
+                else:
+                    messagebox.showinfo("Khởi chạy CapCut", "Không tìm thấy CapCut tự động. Vui lòng mở CapCut từ máy tính của bạn.")
+                return
+
         ok = launch_capcut_app()
         if ok:
             self._log("[Action] Đã khởi chạy CapCut.")
@@ -1491,12 +1510,50 @@ class AutoCapCutApp(ctk.CTk):
 
     def _launch_last_draft(self):
         draft_p = getattr(self, 'last_draft_dir', None)
+        draft_n = getattr(self, 'last_draft_name', 'mới')
+
+        if not draft_p or not os.path.exists(draft_p):
+            self._launch_capcut()
+            return
+
+        if is_capcut_running():
+            hwnd = get_capcut_window_hwnd()
+            if hwnd:
+                ans = messagebox.askyesno(
+                    "CapCut Đang Chạy",
+                    f"CapCut hiện đang mở trên máy tính.\n\n"
+                    f"Để dự án '{draft_n}' xuất hiện ngay trên trang chủ CapCut, "
+                    f"CapCut cần được khởi động lại.\n\n"
+                    f"• Bấm [Yes]: Khởi động lại CapCut và tải dự án mới ngay.\n"
+                    f"• Bấm [No]: Chuyển sang cửa sổ CapCut hiện tại và mở thư mục dự án.",
+                    icon="question"
+                )
+                if ans:
+                    self._log("[Action] Đang khởi động lại CapCut để tải dự án mới...")
+                    ok = restart_capcut_app()
+                    if ok:
+                        self._log("[Action] Đã khởi động lại CapCut thành công!")
+                    else:
+                        open_path_in_os(draft_p)
+                else:
+                    focus_capcut_window()
+                    open_path_in_os(draft_p)
+                    self._log(f"[Action] Đã chuyển sang CapCut và mở thư mục: {draft_p}")
+                return
+            else:
+                self._log("[CapCut] Phát hiện tiến trình CapCut chạy ngầm, đang khởi động lại...")
+                ok = restart_capcut_app()
+                if ok:
+                    self._log(f"[Action] Đã khởi chạy CapCut mở dự án thành công.")
+                else:
+                    open_path_in_os(draft_p)
+                return
+
         ok = launch_capcut_app(draft_p)
         if ok:
             self._log(f"[Action] Đã khởi chạy CapCut mở dự án thành công.")
         else:
-            if draft_p:
-                open_path_in_os(draft_p)
+            open_path_in_os(draft_p)
 
     def _open_last_draft_folder(self):
         draft_p = getattr(self, 'last_draft_dir', None)
@@ -1552,10 +1609,8 @@ class AutoCapCutApp(ctk.CTk):
             dlg.destroy()
 
         def _open_cc():
-            ok = launch_capcut_app(data.get('draft_dir'))
-            if not ok:
-                open_path_in_os(data['draft_dir'])
             dlg.destroy()
+            self._launch_last_draft()
 
         ctk.CTkButton(
             btn_row, text="Mở thư mục Draft", fg_color=self.c_btn_sec, hover_color=self.c_btn_sec_h,
@@ -2282,7 +2337,7 @@ class AutoCapCutApp(ctk.CTk):
 
                     if self.auto_open_capcut_var.get():
                         self._log("[Action] Tự động khởi chạy CapCut mở dự án...")
-                        launch_capcut_app(data.get('draft_dir'))
+                        self._launch_last_draft()
 
                     self._show_completed_dialog(data)
 
