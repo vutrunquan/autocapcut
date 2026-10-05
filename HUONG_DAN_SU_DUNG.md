@@ -44,6 +44,7 @@ Tại mục **"Mẫu"** trên thanh điều hướng, chọn phong cách mong mu
 | Tính năng | Mô tả chi tiết |
 | :--- | :--- |
 | **Smart Pacing AI** | Tự động khớp độ dài hiển thị của từng ảnh theo đúng từng câu thoại trong file phụ đề SRT. |
+| **Phụ đề nảy viền nổi theo giọng** | Chữ nảy sinh động với viền nét tương phản (Karaoke Bounce), voice đọc đến đâu chữ nổi lên đến đó chuẩn phong cách viral TikTok / Shorts. |
 | **Canvas Blur** | Tự động làm mờ hậu cảnh để lấp đầy khung hình khi ảnh ngang đưa vào video dọc (hoặc ngược lại), không lo bị sọc đen. |
 | **Audio Ducking** | Nhạc nền tự động hạ âm lượng vừa phải khi có giọng đọc voice và tự đẩy lên nhẹ khi hết câu. |
 | **Xóa Watermark Gemini AI** | Tự động quét và xóa sạch 100% logo dấu sao 4 cánh của Google Gemini / Imagen trên ảnh minh họa. |

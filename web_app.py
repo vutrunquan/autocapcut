@@ -253,7 +253,8 @@ async def ws_build(websocket: WebSocket):
                 # Subtitles
                 import_subtitles=bool(req.get("import_subtitles", True)),
                 subtitle_style=req.get("subtitle_style", "yellow"),
-                subtitle_animation=req.get("subtitle_animation", "bounce"),
+                subtitle_border_color=req.get("subtitle_border_color", "black"),
+                subtitle_animation=req.get("subtitle_animation", "karaoke_bounce"),
                 subtitle_font_size=float(req.get("subtitle_font_size", 8.5)),
                 subtitle_position=req.get("subtitle_position", "bottom"),
                 # Audio Suite
@@ -850,8 +851,9 @@ def index_page():
               </div>
 
               <div class="form-row">
-                <label>Hiệu ứng & Vị trí:</label>
+                <label>Hiệu ứng & Viền:</label>
                 <select id="sub_anim" style="flex: 1;">
+                  <option value="karaoke_bounce">Chữ nảy viền nổi theo giọng (Karaoke Bounce)</option>
                   <option value="bounce">Nảy chữ lên (Bounce Pop)</option>
                   <option value="karaoke">Chạy từng chữ (Karaoke Reveal)</option>
                   <option value="playful">Nhịp điệu vui nhộn (Playful Bounce)</option>
@@ -859,7 +861,15 @@ def index_page():
                   <option value="slide right">Quét từ trái sang (Slide Right)</option>
                   <option value="none">Tĩnh (Không animation)</option>
                 </select>
-                <select id="sub_pos" style="width: 140px; flex: none;">
+                <select id="sub_stroke" style="width: 140px; flex: none;">
+                  <option value="black">Viền Đen tương phản</option>
+                  <option value="white">Viền Trắng sáng</option>
+                  <option value="dark_red">Viền Đỏ đậm</option>
+                  <option value="dark_blue">Viền Xanh đậm</option>
+                  <option value="dark_purple">Viền Tím đậm</option>
+                  <option value="none">Không viền</option>
+                </select>
+                <select id="sub_pos" style="width: 110px; flex: none;">
                   <option value="bottom">Dưới cùng</option>
                   <option value="center">Chính giữa</option>
                   <option value="top">Phía trên</option>
@@ -1420,6 +1430,7 @@ def index_page():
         // Subtitles
         import_subtitles: document.getElementById('cb_subs').checked,
         subtitle_style: document.getElementById('sub_color').value,
+        subtitle_border_color: document.getElementById('sub_stroke').value,
         subtitle_animation: document.getElementById('sub_anim').value,
         subtitle_font_size: parseFloat(document.getElementById('sub_size').value) || 8.5,
         subtitle_position: document.getElementById('sub_pos').value,

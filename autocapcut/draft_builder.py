@@ -21,6 +21,7 @@ from typing import List, Dict, Any, Optional, Callable, Union
 import pycapcut as cc
 from .utils import register_draft_in_root_meta, get_audio_duration_ms
 from .image_loader import remove_gemini_watermark_from_image, batch_remove_gemini_watermarks
+from .srt_parser import parse_srt
 
 
 # Mapping user transition names to pycapcut TransitionType enums
@@ -136,10 +137,18 @@ FILTERS_MAP = {
 TEXT_INTROS_MAP = {
     "none": None,
     "tĩnh (không animation)": None,
+    "karaoke_bounce": getattr(cc.TextIntro, "逐字冒出", None),
+    "chữ nảy viền nổi theo giọng (karaoke bounce)": getattr(cc.TextIntro, "逐字冒出", None),
+    "chữ nảy viền nổi theo giọng": getattr(cc.TextIntro, "逐字冒出", None),
+    "karaoke bounce": getattr(cc.TextIntro, "逐字冒出", None),
+    "word_by_word": getattr(cc.TextIntro, "逐字冒出", None),
     "bounce": getattr(cc.TextIntro, "向上弹入", None),
     "nảy chữ lên (bounce pop)": getattr(cc.TextIntro, "向上弹入", None),
+    "nảy chữ lên": getattr(cc.TextIntro, "向上弹入", None),
+    "bounce pop": getattr(cc.TextIntro, "向上弹入", None),
     "karaoke": getattr(cc.TextIntro, "卡拉OK", None),
     "chạy từng chữ (karaoke reveal)": getattr(cc.TextIntro, "卡拉OK", None),
+    "chạy từng chữ": getattr(cc.TextIntro, "卡拉OK", None),
     "playful": getattr(cc.TextIntro, "可爱悦动", None),
     "nhịp điệu vui nhộn (playful bounce)": getattr(cc.TextIntro, "可爱悦动", None),
     "slide up": getattr(cc.TextIntro, "向上滑动", None),
@@ -156,6 +165,24 @@ SUBTITLE_COLORS = {
     "green": (0.29, 0.87, 0.50),   # Finance Green (#4ade80)
     "red": (0.94, 0.27, 0.27),     # Ruby Red (#ef4444)
     "purple": (0.66, 0.33, 0.97),  # Neon Purple (#a855f7)
+}
+
+# Subtitle border / stroke colors (R, G, B in 0.0 - 1.0)
+SUBTITLE_BORDER_COLORS = {
+    "black": (0.0, 0.0, 0.0),
+    "đen": (0.0, 0.0, 0.0),
+    "đen tương phản (black stroke)": (0.0, 0.0, 0.0),
+    "đen tương phản (black)": (0.0, 0.0, 0.0),
+    "white": (1.0, 1.0, 1.0),
+    "trắng": (1.0, 1.0, 1.0),
+    "trắng sáng (white outline)": (1.0, 1.0, 1.0),
+    "trắng sáng (white)": (1.0, 1.0, 1.0),
+    "dark_blue": (0.05, 0.1, 0.35),
+    "xanh đậm (deep blue)": (0.05, 0.1, 0.35),
+    "dark_red": (0.45, 0.05, 0.05),
+    "đỏ đậm (dark red)": (0.45, 0.05, 0.05),
+    "dark_purple": (0.3, 0.05, 0.45),
+    "tím đậm (dark purple)": (0.3, 0.05, 0.45),
 }
 
 
@@ -287,9 +314,11 @@ def build_capcut_draft(
     # Subtitles & Typography
     import_subtitles: bool = True,
     subtitle_style: str = "yellow",
-    subtitle_animation: str = "bounce",
+    subtitle_animation: str = "karaoke_bounce",
     subtitle_font_size: float = 8.5,
     subtitle_position: str = "bottom",  # 'bottom', 'center', 'top'
+    subtitle_border_color: str = "black",
+    subtitle_border_width: float = 50.0,
     # Audio Suite
     enable_sfx: bool = True,
     sfx_name: str = "random",           # 'random', 'whoosh', 'swoosh', 'pop', 'ding'
@@ -717,41 +746,95 @@ def build_capcut_draft(
         trans_y = pos_y_map.get(subtitle_position.lower(), -0.75)
         f_size = max(5.0, min(16.0, float(subtitle_font_size)))
 
+        # Subtitle In-Animation detection
+        sub_anim_key = subtitle_animation.strip().lower()
+        is_karaoke_bounce = sub_anim_key in [
+            'karaoke_bounce', 'chữ nảy viền nổi theo giọng (karaoke bounce)',
+            'chữ nảy viền nổi theo giọng', 'karaoke bounce', 'word_by_word'
+        ]
+        is_karaoke = sub_anim_key in [
+            'karaoke', 'chạy từng chữ (karaoke reveal)', 'chạy từng chữ'
+        ]
+        text_intro_enum = TEXT_INTROS_MAP.get(sub_anim_key)
+
+        # Border / Stroke styling
+        border_col_key = subtitle_border_color.strip().lower()
+        if border_col_key in ["none", "không viền", "no"]:
+            if is_karaoke_bounce:
+                # Karaoke bounce highlights contrasting border around the text
+                border_obj = cc.TextBorder(alpha=1.0, color=(0.0, 0.0, 0.0), width=float(subtitle_border_width))
+            else:
+                border_obj = None
+        else:
+            border_rgb = SUBTITLE_BORDER_COLORS.get(border_col_key, (0.0, 0.0, 0.0))
+            border_obj = cc.TextBorder(alpha=1.0, color=border_rgb, width=float(subtitle_border_width))
+
         try:
-            style_template = cc.TextSegment(
-                "Template",
-                cc.trange(0, 1000),
-                style=cc.TextStyle(
-                    size=f_size,
-                    bold=True,
-                    color=color_rgb,
-                    align=1,
-                    auto_wrapping=True,
-                    max_line_width=0.85
-                ),
-                border=cc.TextBorder(
-                    alpha=1.0,
-                    color=(0.0, 0.0, 0.0),
-                    width=45.0
+            sub_items = parse_srt(srt_path)
+            if sub_items:
+                if 'Subtitles' not in script.tracks:
+                    script.add_track(cc.TrackType.text, 'Subtitles', relative_index=999)
+
+                for item in sub_items:
+                    clean_txt = item.get('text', '').strip()
+                    if not clean_txt:
+                        continue
+                    st_us = int(item['start_ms'] * 1000)
+                    dur_us = max(100000, int(item['duration_ms'] * 1000))
+
+                    seg = cc.TextSegment(
+                        clean_txt,
+                        cc.Timerange(st_us, dur_us),
+                        style=cc.TextStyle(
+                            size=f_size,
+                            bold=True,
+                            color=color_rgb,
+                            align=1,
+                            auto_wrapping=True,
+                            max_line_width=0.85
+                        ),
+                        border=border_obj,
+                        clip_settings=cc.ClipSettings(transform_y=trans_y)
+                    )
+
+                    if is_karaoke_bounce:
+                        # Words pop up and emerge across the full sentence speech duration
+                        bounce_intro = getattr(cc.TextIntro, "逐字冒出", None) or getattr(cc.TextIntro, "向上弹入", None)
+                        if bounce_intro:
+                            seg.add_animation(bounce_intro, duration=dur_us)
+                    elif is_karaoke:
+                        karaoke_intro = getattr(cc.TextIntro, "卡拉OK", None)
+                        if karaoke_intro:
+                            seg.add_animation(karaoke_intro, duration=dur_us)
+                    elif text_intro_enum:
+                        # Entrance animations (Bounce Pop 向上弹入, Playful 可爱悦动, Slide Up, etc.)
+                        # Visible duration of 450ms (or full dur_us if short), eliminating the 1ms clamp bug!
+                        anim_dur = min(dur_us, 450000)
+                        seg.add_animation(text_intro_enum, duration=anim_dur)
+
+                    script.add_segment(seg, 'Subtitles')
+
+                report(f"Đã hoàn tất nạp {len(sub_items)} câu phụ đề có hiệu ứng hoạt ảnh!", 0.86)
+            else:
+                # Fallback to script.import_srt if parser found no items
+                style_template = cc.TextSegment(
+                    "Template",
+                    cc.trange(0, 5000000),
+                    style=cc.TextStyle(size=f_size, bold=True, color=color_rgb, align=1, auto_wrapping=True, max_line_width=0.85),
+                    border=border_obj
                 )
-            )
-
-            # Subtitle In-Animation
-            sub_anim_key = subtitle_animation.strip().lower()
-            text_intro_enum = TEXT_INTROS_MAP.get(sub_anim_key)
-            if text_intro_enum:
-                try:
-                    style_template.add_animation(text_intro_enum, duration=400000)
-                except Exception:
-                    pass
-
-            script.import_srt(
-                srt_path,
-                'Subtitles',
-                style_reference=style_template,
-                clip_settings=cc.ClipSettings(transform_y=trans_y)
-            )
-            report("Đã hoàn tất nạp phụ đề!", 0.86)
+                if text_intro_enum:
+                    try:
+                        style_template.add_animation(text_intro_enum, duration=450000)
+                    except Exception:
+                        pass
+                script.import_srt(
+                    srt_path,
+                    'Subtitles',
+                    style_reference=style_template,
+                    clip_settings=cc.ClipSettings(transform_y=trans_y)
+                )
+                report("Đã hoàn tất nạp phụ đề (fallback)!", 0.86)
         except Exception as e:
             report(f"Lỗi nạp phụ đề: {e}", 0.86)
 
