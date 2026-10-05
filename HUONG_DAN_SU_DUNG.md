@@ -44,7 +44,7 @@ Tại mục **"Mẫu"** trên thanh điều hướng, chọn phong cách mong mu
 | Tính năng | Mô tả chi tiết |
 | :--- | :--- |
 | **Smart Pacing AI** | Tự động khớp độ dài hiển thị của từng ảnh theo đúng từng câu thoại trong file phụ đề SRT. |
-| **Phụ đề nảy hộp chữ nhật (Word Bounce Box)** | Chữ nảy bật lên sinh động trong khung hình chữ nhật bao quanh cả từ (Highlight Box), voice đọc tới đâu chữ nổi lên tới đó chuẩn phong cách viral TikTok / Shorts. |
+| **8 Phong Cách Phụ Đề Creator** | Bộ sưu tập phụ đề xu hướng được dùng nhiều nhất hiện nay:<br>• **🔥 TikTok Viral**: Hộp đen chữ vàng nảy từng từ theo nhịp voice.<br>• **⚡ Alex Hormozi**: Chữ vàng nảy lò xo từng từ, viền đen dày dặn.<br>• **🎬 MrBeast Pop**: Cả câu nảy lò xo mạnh mẽ, kích thích thị giác.<br>• **🚨 Breaking News**: Hộp đỏ chữ trắng kịch tính, bản tin cảnh báo.<br>• **💎 Tech & Finance**: Hộp xanh navy chữ cyan công nghệ, tài chính.<br>• **✨ Cinematic Clean**: Chữ trắng nảy mượt theo câu điện ảnh, vlog, podcast.<br>• **🎤 Karaoke Reveal**: Chữ đổi màu theo giọng đọc audio.<br>• **📺 Cổ điển**: Phụ đề trắng viền đen chuẩn YouTube, tĩnh chuyên nghiệp. |
 | **Canvas Blur** | Tự động làm mờ hậu cảnh để lấp đầy khung hình khi ảnh ngang đưa vào video dọc (hoặc ngược lại), không lo bị sọc đen. |
 | **Audio Ducking** | Nhạc nền tự động hạ âm lượng vừa phải khi có giọng đọc voice và tự đẩy lên nhẹ khi hết câu. |
 | **Xóa Watermark Gemini AI** | Tự động quét và xóa sạch 100% logo dấu sao 4 cánh của Google Gemini / Imagen trên ảnh minh họa. |

@@ -853,15 +853,15 @@ def index_page():
 
               <div class="form-row">
                 <label>Hiệu ứng & Khung hộp:</label>
-                <select id="sub_anim" style="flex: 1;">
-                  <option value="word_bounce_box">Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)</option>
-                  <option value="sentence_bounce_box">Chữ nảy hộp chữ nhật theo câu (Sentence Bounce Box)</option>
-                  <option value="bounce">Nảy chữ lên (Bounce Pop không hộp)</option>
-                  <option value="karaoke">Chạy từng chữ (Karaoke Reveal)</option>
-                  <option value="playful">Nhịp điệu vui nhộn (Playful Bounce)</option>
-                  <option value="slide up">Trượt mượt lên (Slide Up)</option>
-                  <option value="slide right">Quét từ trái sang (Slide Right)</option>
-                  <option value="none">Tĩnh (Không animation)</option>
+                <select id="sub_anim" style="flex: 1;" onchange="onSubAnimChange(this.value)">
+                  <option value="tiktok_viral">🔥 TikTok Viral (Hộp đen chữ vàng nảy từng từ)</option>
+                  <option value="hormozi">⚡ Alex Hormozi (Chữ vàng nảy lò xo từng từ)</option>
+                  <option value="mrbeast">🎬 MrBeast Pop (Chữ nảy lò xo theo câu)</option>
+                  <option value="breaking_news">🚨 Breaking News (Hộp đỏ chữ trắng kịch tính)</option>
+                  <option value="tech_finance">💎 Tech & Finance (Hộp xanh đậm chữ Cyan)</option>
+                  <option value="cinematic">✨ Cinematic Clean (Chữ trắng nảy mượt theo câu)</option>
+                  <option value="karaoke">🎤 Karaoke Reveal (Chữ đổi màu theo giọng đọc)</option>
+                  <option value="classic">📺 Cổ điển (Phụ đề trắng viền đen chuẩn YouTube)</option>
                 </select>
                 <select id="sub_box" style="width: 140px; flex: none;">
                   <option value="black">Hộp Đen tương phản</option>
@@ -1238,13 +1238,52 @@ def index_page():
       log(`[Action] ${state ? 'Đã chọn tất cả' : 'Đã bỏ chọn tất cả'} chuyển động keyframe.`);
     }
 
+    function onSubAnimChange(val) {
+      const colEl = document.getElementById('sub_color');
+      const boxEl = document.getElementById('sub_box');
+      const sizeEl = document.getElementById('sub_size');
+      if (!colEl || !boxEl || !sizeEl) return;
+      if (val === 'tiktok_viral') {
+        colEl.value = 'yellow';
+        boxEl.value = 'black';
+        sizeEl.value = '10.5';
+      } else if (val === 'hormozi') {
+        colEl.value = 'yellow';
+        boxEl.value = 'none';
+        sizeEl.value = '10.5';
+      } else if (val === 'mrbeast') {
+        colEl.value = 'yellow';
+        boxEl.value = 'none';
+        sizeEl.value = '9.0';
+      } else if (val === 'breaking_news') {
+        colEl.value = 'white';
+        boxEl.value = 'red';
+        sizeEl.value = '10.5';
+      } else if (val === 'tech_finance') {
+        colEl.value = 'cyan';
+        boxEl.value = 'dark_blue';
+        sizeEl.value = '10.5';
+      } else if (val === 'cinematic') {
+        colEl.value = 'white';
+        boxEl.value = 'none';
+        sizeEl.value = '8.5';
+      } else if (val === 'karaoke') {
+        colEl.value = 'yellow';
+        boxEl.value = 'none';
+        sizeEl.value = '9.0';
+      } else if (val === 'classic') {
+        colEl.value = 'white';
+        boxEl.value = 'none';
+        sizeEl.value = '8.5';
+      }
+    }
+
     function applyPreset(preset) {
       if (preset === 'tiktok') {
         document.getElementById('aspect_ratio').value = '9:16';
         document.getElementById('cb_subs').checked = true;
-        document.getElementById('sub_color').value = 'yellow';
-        document.getElementById('sub_anim').value = 'bounce';
-        document.getElementById('sub_size').value = '9.5';
+        document.getElementById('sub_anim').value = 'tiktok_viral';
+        onSubAnimChange('tiktok_viral');
         document.getElementById('sub_pos').value = 'bottom';
         document.getElementById('transition_sel').value = 'flip zoom';
         document.getElementById('trans_dur').value = '0.4';
@@ -1272,9 +1311,8 @@ def index_page():
       } else if (preset === 'cinematic') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
-        document.getElementById('sub_color').value = 'white';
-        document.getElementById('sub_anim').value = 'slide up';
-        document.getElementById('sub_size').value = '8.5';
+        document.getElementById('sub_anim').value = 'cinematic';
+        onSubAnimChange('cinematic');
         document.getElementById('sub_pos').value = 'bottom';
         document.getElementById('transition_sel').value = 'dissolve';
         document.getElementById('trans_dur').value = '0.8';
@@ -1302,9 +1340,8 @@ def index_page():
       } else if (preset === 'finance') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
-        document.getElementById('sub_color').value = 'green';
-        document.getElementById('sub_anim').value = 'karaoke';
-        document.getElementById('sub_size').value = '8.5';
+        document.getElementById('sub_anim').value = 'tech_finance';
+        onSubAnimChange('tech_finance');
         document.getElementById('sub_pos').value = 'bottom';
         document.getElementById('transition_sel').value = 'corner slide';
         document.getElementById('trans_dur').value = '0.5';
@@ -1331,8 +1368,8 @@ def index_page():
       } else if (preset === 'minimal') {
         document.getElementById('aspect_ratio').value = '16:9';
         document.getElementById('cb_subs').checked = true;
-        document.getElementById('sub_color').value = 'white';
-        document.getElementById('sub_anim').value = 'none';
+        document.getElementById('sub_anim').value = 'classic';
+        onSubAnimChange('classic');
         document.getElementById('transition_sel').value = 'none';
         document.getElementById('clip_intro_sel').value = 'none';
         document.getElementById('video_eff_sel').value = 'none';

@@ -139,8 +139,8 @@ class AutoCapCutApp(ctk.CTk):
         self.subtitles_var = tk.BooleanVar(value=True)
         self.subtitle_color_var = tk.StringVar(value="Vàng Nổi Bật (TikTok / Viral)")
         self.subtitle_box_var = tk.StringVar(value="Hộp Đen tương phản (Black Box)")
-        self.sub_anim_var = tk.StringVar(value="Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)")
-        self.sub_size_var = tk.StringVar(value="9.5")
+        self.sub_anim_var = tk.StringVar(value="🔥 TikTok Viral (Hộp đen chữ vàng nảy từng từ)")
+        self.sub_size_var = tk.StringVar(value="10.5")
         self.sub_pos_var = tk.StringVar(value="Dưới cùng (Chuẩn Shorts/Reels)")
 
         self.sfx_var = tk.BooleanVar(value=True)
@@ -783,18 +783,19 @@ class AutoCapCutApp(ctk.CTk):
 
         ctk.CTkLabel(sub_row2, text="Hiệu ứng:", font=("Segoe UI", 11), text_color=self.c_sub, width=65, anchor="w").pack(side="left")
         sub_anim_opts = [
-            "Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)",
-            "Chữ nảy hộp chữ nhật theo câu (Sentence Bounce Box)",
-            "Nảy chữ lên (Bounce Pop không hộp)",
-            "Chạy từng chữ (Karaoke Reveal)",
-            "Nhịp điệu vui nhộn (Playful Bounce)",
-            "Trượt mượt lên (Slide Up)",
-            "Quét từ trái sang (Slide Right)",
-            "Tĩnh (Không animation)"
+            "🔥 TikTok Viral (Hộp đen chữ vàng nảy từng từ)",
+            "⚡ Alex Hormozi (Chữ vàng nảy lò xo từng từ)",
+            "🎬 MrBeast Pop (Chữ nảy lò xo theo câu)",
+            "🚨 Breaking News (Hộp đỏ chữ trắng kịch tính)",
+            "💎 Tech & Finance (Hộp xanh đậm chữ Cyan)",
+            "✨ Cinematic Clean (Chữ trắng nảy mượt theo câu)",
+            "🎤 Karaoke Reveal (Chữ đổi màu theo giọng đọc)",
+            "📺 Cổ điển (Phụ đề trắng viền đen chuẩn YouTube)"
         ]
         ctk.CTkComboBox(
             sub_row2, variable=self.sub_anim_var, values=sub_anim_opts, height=28, corner_radius=6,
-            fg_color=self.c_input, border_color=self.c_input_border
+            fg_color=self.c_input, border_color=self.c_input_border,
+            command=self._on_sub_style_changed
         ).pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         ctk.CTkLabel(sub_row2, text="Khung hộp:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
@@ -1197,14 +1198,50 @@ class AutoCapCutApp(ctk.CTk):
         self.m_pan_right_var.set(state)
         self._log(f"[Action] {'Đã chọn tất cả' if state else 'Đã bỏ chọn tất cả'} chuyển động keyframe.")
 
+    def _on_sub_style_changed(self, choice: str):
+        """Auto-configure color, box, stroke, and font size when preset changes."""
+        raw = (choice or "").lower()
+        if "tiktok" in raw or "viral" in raw:
+            self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
+            self.subtitle_box_var.set("Hộp Đen tương phản (Black Box)")
+            self.sub_size_var.set("10.5")
+        elif "hormozi" in raw:
+            self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_size_var.set("10.5")
+        elif "mrbeast" in raw:
+            self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_size_var.set("9.0")
+        elif "breaking" in raw or "news" in raw or "đỏ" in raw:
+            self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
+            self.subtitle_box_var.set("Hộp Đỏ nổi bật (Red Box)")
+            self.sub_size_var.set("10.5")
+        elif "tech" in raw or "finance" in raw or "xanh" in raw:
+            self.subtitle_color_var.set("Xanh Công Nghệ (Cyan Modern)")
+            self.subtitle_box_var.set("Hộp Xanh đậm (Deep Blue Box)")
+            self.sub_size_var.set("10.5")
+        elif "cinematic" in raw or "clean" in raw:
+            self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_size_var.set("8.5")
+        elif "karaoke" in raw:
+            self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_size_var.set("9.0")
+        elif "cổ điển" in raw or "classic" in raw:
+            self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_size_var.set("8.5")
+
     def _apply_preset(self, choice: str):
         if "TikTok" in choice or "Shorts" in choice:
             self.aspect_ratio_var.set("9:16 (Dọc - TikTok, Reels, Shorts)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
             self.subtitle_box_var.set("Hộp Đen tương phản (Black Box)")
-            self.sub_anim_var.set("Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)")
-            self.sub_size_var.set("9.5")
+            self.sub_anim_var.set("🔥 TikTok Viral (Hộp đen chữ vàng nảy từng từ)")
+            self.sub_size_var.set("10.5")
             self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
             self.transition_var.set("Lật thu phóng (Flip Zoom)")
             self.trans_dur_var.set("0.4")
@@ -1234,7 +1271,8 @@ class AutoCapCutApp(ctk.CTk):
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
-            self.sub_anim_var.set("Trượt mượt lên (Slide Up)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_anim_var.set("✨ Cinematic Clean (Chữ trắng nảy mượt theo câu)")
             self.sub_size_var.set("8.5")
             self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
             self.transition_var.set("Mờ chồng (Dissolve)")
@@ -1264,9 +1302,10 @@ class AutoCapCutApp(ctk.CTk):
         elif "Tài chính" in choice or "Bản tin" in choice:
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
-            self.subtitle_color_var.set("Xanh Lá Tài Chính (Finance Green)")
-            self.sub_anim_var.set("Chạy từng chữ (Karaoke Reveal)")
-            self.sub_size_var.set("8.5")
+            self.subtitle_color_var.set("Xanh Công Nghệ (Cyan Modern)")
+            self.subtitle_box_var.set("Hộp Xanh đậm (Deep Blue Box)")
+            self.sub_anim_var.set("💎 Tech & Finance (Hộp xanh đậm chữ Cyan)")
+            self.sub_size_var.set("10.5")
             self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
             self.transition_var.set("Trượt góc (Corner Slide)")
             self.trans_dur_var.set("0.5")
@@ -1295,7 +1334,9 @@ class AutoCapCutApp(ctk.CTk):
             self.aspect_ratio_var.set("16:9 (Ngang - YouTube, Facebook)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Trắng Truyền Thống (Classic White)")
-            self.sub_anim_var.set("Tĩnh (Không animation)")
+            self.subtitle_box_var.set("Không hộp nền (Trong suốt)")
+            self.sub_anim_var.set("📺 Cổ điển (Phụ đề trắng viền đen chuẩn YouTube)")
+            self.sub_size_var.set("8.5")
             self.transition_var.set("Không transition")
             self.clip_intro_var.set("Không animation")
             self.video_effect_var.set("Không dùng hiệu ứng")

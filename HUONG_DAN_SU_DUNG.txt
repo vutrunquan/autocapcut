@@ -52,6 +52,16 @@ III. CÁC TÍNH NĂNG TỰ ĐỘNG NỔI BẬT
 4. Tự động xóa Watermark Gemini AI:
    Nếu dùng ảnh tạo từ Google Gemini / Imagen có logo sao 4 cánh ở góc, phần mềm tự động xóa sạch 100% không để lại tì vết.
 
+5. 8 Phong cách phụ đề xu hướng được dùng nhiều nhất:
+   - TikTok Viral: Hộp đen chữ vàng nảy từng từ theo nhịp voice (siêu hút view).
+   - Alex Hormozi: Chữ vàng nảy lò xo từng từ, viền đen dày dặn nổi bật.
+   - MrBeast Pop: Chữ nảy lò xo theo cả câu kích thích thị giác, dễ đọc.
+   - Breaking News: Hộp đỏ chữ trắng kịch tính, phong cách bản tin khẩn cấp.
+   - Tech & Finance: Hộp xanh navy chữ cyan công nghệ, tài chính hiện đại.
+   - Cinematic Clean: Chữ trắng nảy mượt theo câu điện ảnh, vlog, podcast.
+   - Karaoke Reveal: Chữ đổi màu chạy mượt theo tiến độ giọng đọc.
+   - Cổ điển: Phụ đề trắng viền đen chuẩn YouTube, tĩnh chuyên nghiệp.
+
 
 IV. CHẾ ĐỘ DÙNG THỬ & KÍCH HOẠT BẢN QUYỀN
 --------------------------------------------------------------------------------

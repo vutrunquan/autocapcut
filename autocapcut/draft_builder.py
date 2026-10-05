@@ -17,7 +17,7 @@ import os
 import sys
 import shutil
 import random
-from typing import List, Dict, Any, Optional, Callable, Union
+from typing import List, Dict, Any, Optional, Callable, Union, Tuple
 import pycapcut as cc
 from .utils import register_draft_in_root_meta, get_audio_duration_ms
 from .image_loader import remove_gemini_watermark_from_image, batch_remove_gemini_watermarks
@@ -221,6 +221,203 @@ SUBTITLE_BOX_COLORS = {
     "không hộp nền": None,
     "không hộp nền (trong suốt)": None,
 }
+
+
+def parse_sub_color_tuple(val: Optional[str]) -> Tuple[float, float, float]:
+    """Parse color string into RGB tuple (0.0 - 1.0)."""
+    if not val:
+        return SUBTITLE_COLORS["yellow"]
+    s = str(val).strip().lower()
+    if any(k in s for k in ("trắng", "white")):
+        return SUBTITLE_COLORS["white"]
+    if any(k in s for k in ("cyan", "công nghệ", "xanh công")):
+        return SUBTITLE_COLORS["cyan"]
+    if any(k in s for k in ("green", "lá", "tài chính")):
+        return SUBTITLE_COLORS["green"]
+    if any(k in s for k in ("đỏ", "red", "ruby")):
+        return SUBTITLE_COLORS["red"]
+    if any(k in s for k in ("tím", "purple", "neon")):
+        return SUBTITLE_COLORS["purple"]
+    if any(k in s for k in ("vàng", "yellow")):
+        return SUBTITLE_COLORS["yellow"]
+    return SUBTITLE_COLORS.get(s, SUBTITLE_COLORS["yellow"])
+
+
+def parse_sub_box_hex(val: Optional[str]) -> Optional[str]:
+    """Parse box background color into Hex string or None."""
+    if not val:
+        return None
+    s = str(val).strip().lower()
+    if any(k in s for k in ("none", "không", "trong suốt")):
+        return None
+    if any(k in s for k in ("đen", "black")):
+        return "#000000"
+    if any(k in s for k in ("đỏ", "red")):
+        return "#dc2626"
+    if any(k in s for k in ("vàng", "yellow")):
+        return "#facc15"
+    if any(k in s for k in ("xanh", "blue", "navy")):
+        return "#1e3a8a"
+    if any(k in s for k in ("tím", "purple")):
+        return "#7c3aed"
+    if any(k in s for k in ("trắng", "white")):
+        return "#ffffff"
+    return SUBTITLE_BOX_COLORS.get(s)
+
+
+def resolve_subtitle_style_preset(
+    subtitle_animation: str,
+    subtitle_style: Optional[str] = None,
+    subtitle_box_color: Optional[str] = None,
+    subtitle_border_color: Optional[str] = None,
+    subtitle_border_width: float = 45.0,
+    subtitle_font_size: float = 8.5
+) -> Dict[str, Any]:
+    """
+    Resolve the subtitle preset into concrete rendering attributes:
+    - 8 creator-grade presets covering TikTok, Hormozi, MrBeast, Breaking News, Tech, Cinematic, Karaoke, Classic.
+    - Honors user overrides if specific color/box/stroke parameters are passed.
+    """
+    raw_anim = (subtitle_animation or "").strip().lower()
+
+    if any(k in raw_anim for k in ("tiktok", "viral", "hộp đen chữ vàng", "word_bounce_box")):
+        preset_name = "TikTok Viral"
+        is_wbw = True
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "yellow"
+        def_box_hex = "#000000"
+        def_stroke = None
+        def_size = 10.5
+    elif any(k in raw_anim for k in ("hormozi", "chữ vàng nảy lò xo", "alex")):
+        preset_name = "Alex Hormozi"
+        is_wbw = True
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "yellow"
+        def_box_hex = None
+        def_stroke = (0.0, 0.0, 0.0)
+        def_size = 10.5
+    elif any(k in raw_anim for k in ("mrbeast", "nảy lò xo theo câu", "sentence_bounce")):
+        preset_name = "MrBeast Pop"
+        is_wbw = False
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "yellow"
+        def_box_hex = None
+        def_stroke = (0.0, 0.0, 0.0)
+        def_size = 9.0
+    elif any(k in raw_anim for k in ("breaking", "news", "hộp đỏ")):
+        preset_name = "Breaking News"
+        is_wbw = True
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "white"
+        def_box_hex = "#dc2626"
+        def_stroke = None
+        def_size = 10.5
+    elif any(k in raw_anim for k in ("tech", "finance", "hộp xanh")):
+        preset_name = "Tech & Finance"
+        is_wbw = True
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "cyan"
+        def_box_hex = "#1e3a8a"
+        def_stroke = None
+        def_size = 10.5
+    elif any(k in raw_anim for k in ("cinematic", "clean", "nảy mượt theo câu")):
+        preset_name = "Cinematic Clean"
+        is_wbw = False
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "white"
+        def_box_hex = None
+        def_stroke = (0.0, 0.0, 0.0)
+        def_size = 8.5
+    elif any(k in raw_anim for k in ("karaoke", "chạy từng chữ")):
+        preset_name = "Karaoke Reveal"
+        is_wbw = False
+        is_bounce = False
+        is_karaoke = True
+        def_color_key = "yellow"
+        def_box_hex = None
+        def_stroke = (0.0, 0.0, 0.0)
+        def_size = 9.0
+    elif any(k in raw_anim for k in ("cổ điển", "classic", "tĩnh", "none", "chuẩn youtube")):
+        preset_name = "Classic Subtitles"
+        is_wbw = False
+        is_bounce = False
+        is_karaoke = False
+        def_color_key = "white"
+        def_box_hex = None
+        def_stroke = (0.0, 0.0, 0.0)
+        def_size = 8.5
+    else:
+        # Default fallback to TikTok Viral
+        preset_name = "TikTok Viral"
+        is_wbw = True
+        is_bounce = True
+        is_karaoke = False
+        def_color_key = "yellow"
+        def_box_hex = "#000000"
+        def_stroke = None
+        def_size = 10.5
+
+    # Color resolution
+    if subtitle_style and subtitle_style.strip().lower() not in ("auto", "tự động", ""):
+        color_rgb = parse_sub_color_tuple(subtitle_style)
+    else:
+        color_rgb = SUBTITLE_COLORS[def_color_key]
+
+    # Box background resolution
+    if subtitle_box_color is not None and subtitle_box_color.strip().lower() not in ("auto", "tự động", ""):
+        raw_box_str = subtitle_box_color.strip().lower()
+        if any(k in raw_box_str for k in ("none", "không", "trong suốt")):
+            box_hex = None
+        else:
+            box_hex = parse_sub_box_hex(subtitle_box_color)
+    else:
+        box_hex = def_box_hex
+
+    # Stroke / Border resolution
+    if box_hex:
+        border_obj = None
+    else:
+        if subtitle_border_color and any(k in subtitle_border_color.strip().lower() for k in ("none", "không viền", "không")):
+            border_obj = None
+        elif subtitle_border_color and subtitle_border_color.strip().lower() not in ("auto", "tự động", ""):
+            b_rgb = parse_sub_color_tuple(subtitle_border_color)
+            border_obj = cc.TextBorder(alpha=1.0, color=b_rgb, width=float(subtitle_border_width or 45.0))
+        elif def_stroke:
+            border_obj = cc.TextBorder(alpha=1.0, color=def_stroke, width=float(subtitle_border_width or 45.0))
+        else:
+            border_obj = None
+
+    if box_hex:
+        bg_obj = cc.TextBackground(
+            color=box_hex,
+            style=1,
+            alpha=0.92,
+            round_radius=0.15,
+            height=0.22,
+            width=0.22
+        )
+    else:
+        bg_obj = None
+
+    f_size = float(subtitle_font_size) if subtitle_font_size else def_size
+
+    return {
+        "preset_name": preset_name,
+        "is_word_by_word": is_wbw,
+        "is_bounce": is_bounce,
+        "is_karaoke": is_karaoke,
+        "color_rgb": color_rgb,
+        "box_hex": box_hex,
+        "bg_obj": bg_obj,
+        "border_obj": border_obj,
+        "font_size": f_size,
+    }
 
 
 def apply_spring_bounce_keyframes(seg: cc.TextSegment, dur_us: int):
@@ -795,52 +992,34 @@ def build_capcut_draft(
         if i % 10 == 0 or i == num_scenes - 1:
             report(f"Đã thêm cảnh {i + 1}/{num_scenes} ({os.path.basename(img_p)})", 0.28 + 0.45 * ((i + 1) / num_scenes))
 
-    # 5. SUBTITLE TRACK (With Rectangular Background Box & Bounce Pop Keyframes)
+    # 5. SUBTITLE TRACK (With 8 Viral Creator Styles, Rectangular Box & Bounce Pop Keyframes)
     check_cancelled()
     if import_subtitles and srt_path and os.path.exists(srt_path):
         report("Đang nạp phụ đề phong cách hiện đại...", 0.78)
-        color_rgb = SUBTITLE_COLORS.get(subtitle_style.lower(), SUBTITLE_COLORS['yellow'])
+
+        # Resolve preset configuration (TikTok Viral, Hormozi, MrBeast, Breaking News, Tech, Cinematic, Karaoke, Classic)
+        sub_cfg = resolve_subtitle_style_preset(
+            subtitle_animation=subtitle_animation,
+            subtitle_style=subtitle_style,
+            subtitle_box_color=subtitle_box_color,
+            subtitle_border_color=subtitle_border_color,
+            subtitle_border_width=subtitle_border_width,
+            subtitle_font_size=subtitle_font_size
+        )
+        color_rgb = sub_cfg["color_rgb"]
+        bg_obj = sub_cfg["bg_obj"]
+        border_obj = sub_cfg["border_obj"]
+        is_word_by_word = sub_cfg["is_word_by_word"]
+        is_bounce = sub_cfg["is_bounce"]
+        is_karaoke = sub_cfg["is_karaoke"]
+        f_size = sub_cfg["font_size"]
+
         pos_y_map = {'bottom': -0.75, 'dưới cùng': -0.75, 'center': 0.0, 'chính giữa': 0.0, 'top': 0.75, 'trên cùng': 0.75}
         trans_y = pos_y_map.get(subtitle_position.lower(), -0.75)
-        f_size = max(5.0, min(16.0, float(subtitle_font_size)))
 
-        # Subtitle In-Animation mode detection
+        # Optional intro fallback from TEXT_INTROS_MAP if legacy intro selected
         sub_anim_key = subtitle_animation.strip().lower()
-        is_word_by_word = any(k in sub_anim_key for k in [
-            'word_bounce_box', 'từng từ', 'word-by-word', 'word_by_word', 'karaoke_bounce', 'karaoke bounce'
-        ])
-        is_sentence_bounce = any(k in sub_anim_key for k in [
-            'sentence_bounce_box', 'theo câu', 'bounce', 'nảy chữ lên'
-        ]) and not is_word_by_word
-        is_karaoke = any(k in sub_anim_key for k in ['karaoke', 'chạy từng chữ']) and not is_word_by_word
         text_intro_enum = TEXT_INTROS_MAP.get(sub_anim_key)
-
-        # Rectangular Box Background styling (Khung hình chữ nhật bao quanh cả từ)
-        box_col_key = subtitle_box_color.strip().lower()
-        box_hex = SUBTITLE_BOX_COLORS.get(box_col_key)
-        # Default high-contrast black box for word bounce pop if unspecified
-        if box_hex is None and is_word_by_word and box_col_key not in ["none", "không hộp", "không hộp nền", "không"]:
-            box_hex = "#000000"
-
-        if box_hex:
-            bg_obj = cc.TextBackground(
-                color=box_hex,
-                style=1,
-                alpha=0.92,
-                round_radius=0.15,
-                height=0.22,
-                width=0.22
-            )
-        else:
-            bg_obj = None
-
-        # Character stroke border (default None when rectangular box is active)
-        border_col_key = subtitle_border_color.strip().lower()
-        if border_col_key in ["none", "không viền", "không", "no", ""]:
-            border_obj = None
-        else:
-            border_rgb = SUBTITLE_BORDER_COLORS.get(border_col_key)
-            border_obj = cc.TextBorder(alpha=1.0, color=border_rgb, width=float(subtitle_border_width)) if border_rgb else None
 
         try:
             sub_items = parse_srt(srt_path)
@@ -880,33 +1059,13 @@ def build_capcut_draft(
                                 clip_settings=cc.ClipSettings(transform_y=trans_y)
                             )
                             # Native CapCut elastic spring bounce keyframes (100% visible)
-                            apply_spring_bounce_keyframes(seg, dur_per_word)
+                            if is_bounce:
+                                apply_spring_bounce_keyframes(seg, dur_per_word)
                             script.add_segment(seg, 'Subtitles')
                             total_segments_added += 1
 
-                    elif is_sentence_bounce:
-                        seg = cc.TextSegment(
-                            clean_txt,
-                            cc.Timerange(st_us, dur_us),
-                            style=cc.TextStyle(
-                                size=f_size,
-                                bold=True,
-                                color=color_rgb,
-                                align=1,
-                                auto_wrapping=True,
-                                max_line_width=0.85
-                            ),
-                            background=bg_obj,
-                            border=border_obj,
-                            clip_settings=cc.ClipSettings(transform_y=trans_y)
-                        )
-                        # Native CapCut elastic spring bounce keyframes (100% visible)
-                        apply_spring_bounce_keyframes(seg, dur_us)
-                        script.add_segment(seg, 'Subtitles')
-                        total_segments_added += 1
-
                     else:
-                        # Standard sentence mode with optional intro animation
+                        # Sentence mode (MrBeast Pop, Cinematic Clean, Karaoke Reveal, Classic, etc.)
                         seg = cc.TextSegment(
                             clean_txt,
                             cc.Timerange(st_us, dur_us),
@@ -922,7 +1081,9 @@ def build_capcut_draft(
                             border=border_obj,
                             clip_settings=cc.ClipSettings(transform_y=trans_y)
                         )
-                        if is_karaoke:
+                        if is_bounce:
+                            apply_spring_bounce_keyframes(seg, dur_us)
+                        elif is_karaoke:
                             karaoke_intro = getattr(cc.TextIntro, "卡拉OK", None)
                             if karaoke_intro:
                                 seg.add_animation(karaoke_intro, duration=dur_us)
@@ -933,7 +1094,7 @@ def build_capcut_draft(
                         script.add_segment(seg, 'Subtitles')
                         total_segments_added += 1
 
-                report(f"Đã hoàn tất nạp {total_segments_added} phân đoạn phụ đề nảy hộp chữ nhật!", 0.86)
+                report(f"Đã hoàn tất nạp {total_segments_added} phân đoạn phụ đề ({sub_cfg['preset_name']})!", 0.86)
             else:
                 # Fallback to script.import_srt if parser found no items
                 style_template = cc.TextSegment(
