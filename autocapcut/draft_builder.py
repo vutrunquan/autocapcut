@@ -183,7 +183,64 @@ SUBTITLE_BORDER_COLORS = {
     "đỏ đậm (dark red)": (0.45, 0.05, 0.05),
     "dark_purple": (0.3, 0.05, 0.45),
     "tím đậm (dark purple)": (0.3, 0.05, 0.45),
+    "none": None,
+    "không viền": None,
 }
+
+# Subtitle rectangular background box colors (Hex color)
+SUBTITLE_BOX_COLORS = {
+    "black": "#000000",
+    "đen": "#000000",
+    "hộp đen": "#000000",
+    "hộp đen (black box)": "#000000",
+    "hộp đen tương phản (black box)": "#000000",
+    "hộp đen tương phản (black)": "#000000",
+    "red": "#dc2626",
+    "đỏ": "#dc2626",
+    "hộp đỏ": "#dc2626",
+    "hộp đỏ nổi bật (red box)": "#dc2626",
+    "hộp đỏ đậm (dark red)": "#dc2626",
+    "yellow": "#facc15",
+    "vàng": "#facc15",
+    "hộp vàng": "#facc15",
+    "hộp vàng rực rỡ (yellow box)": "#facc15",
+    "dark_blue": "#1e3a8a",
+    "xanh đậm": "#1e3a8a",
+    "hộp xanh đậm (deep blue box)": "#1e3a8a",
+    "hộp xanh đậm (deep blue)": "#1e3a8a",
+    "purple": "#7c3aed",
+    "tím": "#7c3aed",
+    "hộp tím neon (purple box)": "#7c3aed",
+    "hộp tím đậm (dark purple)": "#7c3aed",
+    "white": "#ffffff",
+    "trắng": "#ffffff",
+    "hộp trắng": "#ffffff",
+    "hộp trắng sáng (white)": "#ffffff",
+    "none": None,
+    "không hộp": None,
+    "không hộp nền": None,
+    "không hộp nền (trong suốt)": None,
+}
+
+
+def apply_spring_bounce_keyframes(seg: cc.TextSegment, dur_us: int):
+    """Apply physical elastic spring bounce pop keyframes to a TextSegment (100% native CapCut)."""
+    try:
+        seg.uniform_scale = False
+        t_overshoot = min(120000, max(40000, dur_us // 4))
+        t_settle = min(220000, max(70000, dur_us // 2))
+        t_end = min(300000, max(90000, dur_us * 3 // 4))
+
+        seg.add_keyframe(cc.KeyframeProperty.scale_x, 0, 0.60)
+        seg.add_keyframe(cc.KeyframeProperty.scale_y, 0, 0.60)
+        seg.add_keyframe(cc.KeyframeProperty.scale_x, t_overshoot, 1.25)
+        seg.add_keyframe(cc.KeyframeProperty.scale_y, t_overshoot, 1.25)
+        seg.add_keyframe(cc.KeyframeProperty.scale_x, t_settle, 0.95)
+        seg.add_keyframe(cc.KeyframeProperty.scale_y, t_settle, 0.95)
+        seg.add_keyframe(cc.KeyframeProperty.scale_x, t_end, 1.0)
+        seg.add_keyframe(cc.KeyframeProperty.scale_y, t_end, 1.0)
+    except Exception:
+        pass
 
 
 def normalize_camera_motion(raw_motion: Optional[str]) -> str:
@@ -314,11 +371,12 @@ def build_capcut_draft(
     # Subtitles & Typography
     import_subtitles: bool = True,
     subtitle_style: str = "yellow",
-    subtitle_animation: str = "karaoke_bounce",
+    subtitle_animation: str = "word_bounce_box",
     subtitle_font_size: float = 8.5,
     subtitle_position: str = "bottom",  # 'bottom', 'center', 'top'
-    subtitle_border_color: str = "black",
-    subtitle_border_width: float = 50.0,
+    subtitle_box_color: str = "black",   # Khung hình chữ nhật bao quanh cả từ
+    subtitle_border_color: str = "none", # Viền nét quanh từng chữ cái
+    subtitle_border_width: float = 45.0,
     # Audio Suite
     enable_sfx: bool = True,
     sfx_name: str = "random",           # 'random', 'whoosh', 'swoosh', 'pop', 'ding'
@@ -737,7 +795,7 @@ def build_capcut_draft(
         if i % 10 == 0 or i == num_scenes - 1:
             report(f"Đã thêm cảnh {i + 1}/{num_scenes} ({os.path.basename(img_p)})", 0.28 + 0.45 * ((i + 1) / num_scenes))
 
-    # 5. SUBTITLE TRACK (With Animation, Color Palettes & Stroke)
+    # 5. SUBTITLE TRACK (With Rectangular Background Box & Bounce Pop Keyframes)
     check_cancelled()
     if import_subtitles and srt_path and os.path.exists(srt_path):
         report("Đang nạp phụ đề phong cách hiện đại...", 0.78)
@@ -746,28 +804,43 @@ def build_capcut_draft(
         trans_y = pos_y_map.get(subtitle_position.lower(), -0.75)
         f_size = max(5.0, min(16.0, float(subtitle_font_size)))
 
-        # Subtitle In-Animation detection
+        # Subtitle In-Animation mode detection
         sub_anim_key = subtitle_animation.strip().lower()
-        is_karaoke_bounce = sub_anim_key in [
-            'karaoke_bounce', 'chữ nảy viền nổi theo giọng (karaoke bounce)',
-            'chữ nảy viền nổi theo giọng', 'karaoke bounce', 'word_by_word'
-        ]
-        is_karaoke = sub_anim_key in [
-            'karaoke', 'chạy từng chữ (karaoke reveal)', 'chạy từng chữ'
-        ]
+        is_word_by_word = any(k in sub_anim_key for k in [
+            'word_bounce_box', 'từng từ', 'word-by-word', 'word_by_word', 'karaoke_bounce', 'karaoke bounce'
+        ])
+        is_sentence_bounce = any(k in sub_anim_key for k in [
+            'sentence_bounce_box', 'theo câu', 'bounce', 'nảy chữ lên'
+        ]) and not is_word_by_word
+        is_karaoke = any(k in sub_anim_key for k in ['karaoke', 'chạy từng chữ']) and not is_word_by_word
         text_intro_enum = TEXT_INTROS_MAP.get(sub_anim_key)
 
-        # Border / Stroke styling
-        border_col_key = subtitle_border_color.strip().lower()
-        if border_col_key in ["none", "không viền", "no"]:
-            if is_karaoke_bounce:
-                # Karaoke bounce highlights contrasting border around the text
-                border_obj = cc.TextBorder(alpha=1.0, color=(0.0, 0.0, 0.0), width=float(subtitle_border_width))
-            else:
-                border_obj = None
+        # Rectangular Box Background styling (Khung hình chữ nhật bao quanh cả từ)
+        box_col_key = subtitle_box_color.strip().lower()
+        box_hex = SUBTITLE_BOX_COLORS.get(box_col_key)
+        # Default high-contrast black box for word bounce pop if unspecified
+        if box_hex is None and is_word_by_word and box_col_key not in ["none", "không hộp", "không hộp nền", "không"]:
+            box_hex = "#000000"
+
+        if box_hex:
+            bg_obj = cc.TextBackground(
+                color=box_hex,
+                style=1,
+                alpha=0.92,
+                round_radius=0.15,
+                height=0.22,
+                width=0.22
+            )
         else:
-            border_rgb = SUBTITLE_BORDER_COLORS.get(border_col_key, (0.0, 0.0, 0.0))
-            border_obj = cc.TextBorder(alpha=1.0, color=border_rgb, width=float(subtitle_border_width))
+            bg_obj = None
+
+        # Character stroke border (default None when rectangular box is active)
+        border_col_key = subtitle_border_color.strip().lower()
+        if border_col_key in ["none", "không viền", "không", "no", ""]:
+            border_obj = None
+        else:
+            border_rgb = SUBTITLE_BORDER_COLORS.get(border_col_key)
+            border_obj = cc.TextBorder(alpha=1.0, color=border_rgb, width=float(subtitle_border_width)) if border_rgb else None
 
         try:
             sub_items = parse_srt(srt_path)
@@ -775,6 +848,7 @@ def build_capcut_draft(
                 if 'Subtitles' not in script.tracks:
                     script.add_track(cc.TrackType.text, 'Subtitles', relative_index=999)
 
+                total_segments_added = 0
                 for item in sub_items:
                     clean_txt = item.get('text', '').strip()
                     if not clean_txt:
@@ -782,45 +856,91 @@ def build_capcut_draft(
                     st_us = int(item['start_ms'] * 1000)
                     dur_us = max(100000, int(item['duration_ms'] * 1000))
 
-                    seg = cc.TextSegment(
-                        clean_txt,
-                        cc.Timerange(st_us, dur_us),
-                        style=cc.TextStyle(
-                            size=f_size,
-                            bold=True,
-                            color=color_rgb,
-                            align=1,
-                            auto_wrapping=True,
-                            max_line_width=0.85
-                        ),
-                        border=border_obj,
-                        clip_settings=cc.ClipSettings(transform_y=trans_y)
-                    )
+                    if is_word_by_word:
+                        words = clean_txt.split()
+                        if not words:
+                            continue
+                        dur_per_word = max(80000, dur_us // len(words))
+                        # Punchy slightly larger font for single words in box
+                        w_f_size = max(f_size, 10.5)
 
-                    if is_karaoke_bounce:
-                        # Words pop up and emerge across the full sentence speech duration
-                        bounce_intro = getattr(cc.TextIntro, "逐字冒出", None) or getattr(cc.TextIntro, "向上弹入", None)
-                        if bounce_intro:
-                            seg.add_animation(bounce_intro, duration=dur_us)
-                    elif is_karaoke:
-                        karaoke_intro = getattr(cc.TextIntro, "卡拉OK", None)
-                        if karaoke_intro:
-                            seg.add_animation(karaoke_intro, duration=dur_us)
-                    elif text_intro_enum:
-                        # Entrance animations (Bounce Pop 向上弹入, Playful 可爱悦动, Slide Up, etc.)
-                        # Visible duration of 450ms (or full dur_us if short), eliminating the 1ms clamp bug!
-                        anim_dur = min(dur_us, 450000)
-                        seg.add_animation(text_intro_enum, duration=anim_dur)
+                        for w_idx, w in enumerate(words):
+                            w_st = st_us + w_idx * dur_per_word
+                            seg = cc.TextSegment(
+                                w,
+                                cc.Timerange(w_st, dur_per_word),
+                                style=cc.TextStyle(
+                                    size=w_f_size,
+                                    bold=True,
+                                    color=color_rgb,
+                                    align=1
+                                ),
+                                background=bg_obj,
+                                border=border_obj,
+                                clip_settings=cc.ClipSettings(transform_y=trans_y)
+                            )
+                            # Native CapCut elastic spring bounce keyframes (100% visible)
+                            apply_spring_bounce_keyframes(seg, dur_per_word)
+                            script.add_segment(seg, 'Subtitles')
+                            total_segments_added += 1
 
-                    script.add_segment(seg, 'Subtitles')
+                    elif is_sentence_bounce:
+                        seg = cc.TextSegment(
+                            clean_txt,
+                            cc.Timerange(st_us, dur_us),
+                            style=cc.TextStyle(
+                                size=f_size,
+                                bold=True,
+                                color=color_rgb,
+                                align=1,
+                                auto_wrapping=True,
+                                max_line_width=0.85
+                            ),
+                            background=bg_obj,
+                            border=border_obj,
+                            clip_settings=cc.ClipSettings(transform_y=trans_y)
+                        )
+                        # Native CapCut elastic spring bounce keyframes (100% visible)
+                        apply_spring_bounce_keyframes(seg, dur_us)
+                        script.add_segment(seg, 'Subtitles')
+                        total_segments_added += 1
 
-                report(f"Đã hoàn tất nạp {len(sub_items)} câu phụ đề có hiệu ứng hoạt ảnh!", 0.86)
+                    else:
+                        # Standard sentence mode with optional intro animation
+                        seg = cc.TextSegment(
+                            clean_txt,
+                            cc.Timerange(st_us, dur_us),
+                            style=cc.TextStyle(
+                                size=f_size,
+                                bold=True,
+                                color=color_rgb,
+                                align=1,
+                                auto_wrapping=True,
+                                max_line_width=0.85
+                            ),
+                            background=bg_obj,
+                            border=border_obj,
+                            clip_settings=cc.ClipSettings(transform_y=trans_y)
+                        )
+                        if is_karaoke:
+                            karaoke_intro = getattr(cc.TextIntro, "卡拉OK", None)
+                            if karaoke_intro:
+                                seg.add_animation(karaoke_intro, duration=dur_us)
+                        elif text_intro_enum:
+                            anim_dur = min(dur_us, 450000)
+                            seg.add_animation(text_intro_enum, duration=anim_dur)
+
+                        script.add_segment(seg, 'Subtitles')
+                        total_segments_added += 1
+
+                report(f"Đã hoàn tất nạp {total_segments_added} phân đoạn phụ đề nảy hộp chữ nhật!", 0.86)
             else:
                 # Fallback to script.import_srt if parser found no items
                 style_template = cc.TextSegment(
                     "Template",
                     cc.trange(0, 5000000),
                     style=cc.TextStyle(size=f_size, bold=True, color=color_rgb, align=1, auto_wrapping=True, max_line_width=0.85),
+                    background=bg_obj,
                     border=border_obj
                 )
                 if text_intro_enum:

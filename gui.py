@@ -138,9 +138,9 @@ class AutoCapCutApp(ctk.CTk):
         # Subtitles & Audio Suite
         self.subtitles_var = tk.BooleanVar(value=True)
         self.subtitle_color_var = tk.StringVar(value="Vàng Nổi Bật (TikTok / Viral)")
-        self.subtitle_stroke_var = tk.StringVar(value="Đen tương phản (Black)")
-        self.sub_anim_var = tk.StringVar(value="Chữ nảy viền nổi theo giọng (Karaoke Bounce)")
-        self.sub_size_var = tk.StringVar(value="8.5")
+        self.subtitle_box_var = tk.StringVar(value="Hộp Đen tương phản (Black Box)")
+        self.sub_anim_var = tk.StringVar(value="Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)")
+        self.sub_size_var = tk.StringVar(value="9.5")
         self.sub_pos_var = tk.StringVar(value="Dưới cùng (Chuẩn Shorts/Reels)")
 
         self.sfx_var = tk.BooleanVar(value=True)
@@ -783,8 +783,9 @@ class AutoCapCutApp(ctk.CTk):
 
         ctk.CTkLabel(sub_row2, text="Hiệu ứng:", font=("Segoe UI", 11), text_color=self.c_sub, width=65, anchor="w").pack(side="left")
         sub_anim_opts = [
-            "Chữ nảy viền nổi theo giọng (Karaoke Bounce)",
-            "Nảy chữ lên (Bounce Pop)",
+            "Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)",
+            "Chữ nảy hộp chữ nhật theo câu (Sentence Bounce Box)",
+            "Nảy chữ lên (Bounce Pop không hộp)",
             "Chạy từng chữ (Karaoke Reveal)",
             "Nhịp điệu vui nhộn (Playful Bounce)",
             "Trượt mượt lên (Slide Up)",
@@ -796,13 +797,17 @@ class AutoCapCutApp(ctk.CTk):
             fg_color=self.c_input, border_color=self.c_input_border
         ).pack(side="left", fill="x", expand=True, padx=(0, 8))
 
-        ctk.CTkLabel(sub_row2, text="Viền:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
-        stroke_opts = [
-            "Đen tương phản (Black)", "Trắng sáng (White)", "Đỏ đậm (Dark Red)",
-            "Xanh đậm (Deep Blue)", "Tím đậm (Dark Purple)", "Không viền"
+        ctk.CTkLabel(sub_row2, text="Khung hộp:", font=("Segoe UI", 11), text_color=self.c_sub).pack(side="left", padx=(0, 4))
+        box_opts = [
+            "Hộp Đen tương phản (Black Box)",
+            "Hộp Đỏ nổi bật (Red Box)",
+            "Hộp Vàng rực rỡ (Yellow Box)",
+            "Hộp Xanh đậm (Deep Blue Box)",
+            "Hộp Tím Neon (Purple Box)",
+            "Không hộp nền (Trong suốt)"
         ]
         ctk.CTkComboBox(
-            sub_row2, variable=self.subtitle_stroke_var, values=stroke_opts, width=165, height=28, corner_radius=6,
+            sub_row2, variable=self.subtitle_box_var, values=box_opts, width=175, height=28, corner_radius=6,
             fg_color=self.c_input, border_color=self.c_input_border
         ).pack(side="left")
 
@@ -1197,8 +1202,8 @@ class AutoCapCutApp(ctk.CTk):
             self.aspect_ratio_var.set("9:16 (Dọc - TikTok, Reels, Shorts)")
             self.subtitles_var.set(True)
             self.subtitle_color_var.set("Vàng Nổi Bật (TikTok / Viral)")
-            self.subtitle_stroke_var.set("Đen tương phản (Black)")
-            self.sub_anim_var.set("Chữ nảy viền nổi theo giọng (Karaoke Bounce)")
+            self.subtitle_box_var.set("Hộp Đen tương phản (Black Box)")
+            self.sub_anim_var.set("Chữ nảy hộp chữ nhật từng từ (Word Bounce Box)")
             self.sub_size_var.set("9.5")
             self.sub_pos_var.set("Dưới cùng (Chuẩn Shorts/Reels)")
             self.transition_var.set("Lật thu phóng (Flip Zoom)")
@@ -2065,18 +2070,20 @@ class AutoCapCutApp(ctk.CTk):
         elif "Tím" in self.subtitle_color_var.get() or "Purple" in self.subtitle_color_var.get():
             sub_col = "purple"
 
-        sub_stroke = "black"
-        raw_stroke = self.subtitle_stroke_var.get()
-        if "Trắng" in raw_stroke or "White" in raw_stroke:
-            sub_stroke = "white"
-        elif "Đỏ" in raw_stroke or "Red" in raw_stroke:
-            sub_stroke = "dark_red"
-        elif "Xanh" in raw_stroke or "Blue" in raw_stroke:
-            sub_stroke = "dark_blue"
-        elif "Tím" in raw_stroke or "Purple" in raw_stroke:
-            sub_stroke = "dark_purple"
-        elif "Không" in raw_stroke or "None" in raw_stroke:
-            sub_stroke = "none"
+        sub_box = "black"
+        raw_box = self.subtitle_box_var.get()
+        if "Đỏ" in raw_box or "Red" in raw_box:
+            sub_box = "red"
+        elif "Vàng" in raw_box or "Yellow" in raw_box:
+            sub_box = "yellow"
+        elif "Xanh" in raw_box or "Blue" in raw_box:
+            sub_box = "dark_blue"
+        elif "Tím" in raw_box or "Purple" in raw_box:
+            sub_box = "purple"
+        elif "Không" in raw_box or "None" in raw_box:
+            sub_box = "none"
+        elif "Trắng" in raw_box or "White" in raw_box:
+            sub_box = "white"
 
         sfx_vol = float(self.sfx_vol_var.get() or 50) / 100.0
         bgm_vol = float(self.bgm_vol_var.get() or 15) / 100.0
@@ -2115,7 +2122,7 @@ class AutoCapCutApp(ctk.CTk):
                 cam_motion, zoom_scale, keyframe_config,
                 aspect_ratio, self.smart_pacing_var.get(), self.blur_var.get(),
                 self.sfx_var.get(), sfx_name, sfx_vol, bgm_vol, self.ducking_var.get(), self.fade_var.get(),
-                self.cta_sub_var.get(), sub_col, sub_stroke, sub_anim, sub_size, sub_pos,
+                self.cta_sub_var.get(), sub_col, sub_box, sub_anim, sub_size, sub_pos,
                 self.watermark_var.get(), self.subtitles_var.get()
             ),
             daemon=True
@@ -2140,7 +2147,7 @@ class AutoCapCutApp(ctk.CTk):
         cam_motion, zoom_scale, keyframe_config,
         aspect_ratio, smart_pacing, canvas_blur,
         enable_sfx, sfx_name, sfx_volume, bgm_volume, audio_ducking, audio_fade,
-        enable_cta, sub_col, sub_stroke, sub_anim, sub_size, sub_pos,
+        enable_cta, sub_col, sub_box, sub_anim, sub_size, sub_pos,
         remove_wm, import_subs
     ):
         def on_progress(msg, pct):
@@ -2173,7 +2180,8 @@ class AutoCapCutApp(ctk.CTk):
                 canvas_blur=canvas_blur,
                 import_subtitles=import_subs,
                 subtitle_style=sub_col,
-                subtitle_border_color=sub_stroke,
+                subtitle_box_color=sub_box,
+                subtitle_border_color="none",
                 subtitle_animation=sub_anim,
                 subtitle_font_size=sub_size,
                 subtitle_position=sub_pos,

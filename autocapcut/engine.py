@@ -59,11 +59,12 @@ def run_autocapcut(
     # Subtitles
     import_subtitles: bool = True,
     subtitle_style: str = "yellow",
-    subtitle_animation: str = "karaoke_bounce",
+    subtitle_animation: str = "word_bounce_box",
     subtitle_font_size: float = 8.5,
     subtitle_position: str = "bottom",
-    subtitle_border_color: str = "black",
-    subtitle_border_width: float = 50.0,
+    subtitle_box_color: str = "black",
+    subtitle_border_color: str = "none",
+    subtitle_border_width: float = 45.0,
     # Audio Suite
     enable_sfx: bool = True,
     sfx_name: str = "random",
@@ -219,6 +220,7 @@ def run_autocapcut(
         subtitle_animation=subtitle_animation,
         subtitle_font_size=subtitle_font_size,
         subtitle_position=subtitle_position,
+        subtitle_box_color=subtitle_box_color,
         subtitle_border_color=subtitle_border_color,
         subtitle_border_width=subtitle_border_width,
         # Audio
