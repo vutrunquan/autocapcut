@@ -94,13 +94,16 @@ def api_check_update():
 def get_defaults():
     draft_root = get_default_capcut_draft_path()
     sample_dirs = [
-        r"C:\Users\vutru\OneDrive\Desktop\New folder (2)",
+        os.path.join(os.environ.get('USERPROFILE', ''), 'OneDrive', 'Desktop'),
+        os.path.expanduser("~/OneDrive/Desktop"),
+        os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop'),
         os.path.expanduser("~/Desktop"),
+        os.path.expanduser("~/Downloads"),
         os.path.expanduser("~/Movies")
     ]
     sample_dir = ""
     for sd in sample_dirs:
-        if os.path.isdir(sd):
+        if sd and os.path.isdir(sd):
             sample_dir = sd
             break
 
@@ -114,21 +117,24 @@ def get_defaults():
         "bgm_path": ""
     }
     if sample_dir and os.path.exists(sample_dir):
-        files = os.listdir(sample_dir)
-        for f in files:
-            p = os.path.join(sample_dir, f)
-            if f.lower().endswith(".srt") and not defaults["srt_path"]:
-                defaults["srt_path"] = p
-            elif f.lower().endswith(".txt") and not defaults["script_content"]:
-                try:
-                    with open(p, "r", encoding="utf-8-sig", errors="replace") as fo:
-                        defaults["script_content"] = fo.read()
-                except Exception:
-                    pass
-            elif f.lower().endswith((".wav", ".mp3", ".m4a")) and not defaults["voice_path"]:
-                defaults["voice_path"] = p
-            elif os.path.isdir(p) and not defaults["images_dir"]:
-                defaults["images_dir"] = p
+        try:
+            files = os.listdir(sample_dir)
+            for f in files:
+                p = os.path.join(sample_dir, f)
+                if f.lower().endswith(".srt") and not defaults["srt_path"]:
+                    defaults["srt_path"] = p
+                elif f.lower().endswith(".txt") and not defaults["script_content"]:
+                    try:
+                        with open(p, "r", encoding="utf-8-sig", errors="replace") as fo:
+                            defaults["script_content"] = fo.read()
+                    except Exception:
+                        pass
+                elif f.lower().endswith((".wav", ".mp3", ".m4a")) and not defaults["voice_path"]:
+                    defaults["voice_path"] = p
+                elif os.path.isdir(p) and not os.path.islink(p) and not defaults["images_dir"]:
+                    defaults["images_dir"] = p
+        except Exception:
+            pass
     return defaults
 
 

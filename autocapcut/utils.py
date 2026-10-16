@@ -178,9 +178,11 @@ def launch_capcut_app(draft_path: Optional[str] = None) -> bool:
         lnk_candidates = [
             os.path.expanduser(r'~/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/CapCut/CapCut.lnk'),
             os.path.expanduser(r'~/Desktop/CapCut.lnk'),
+            os.path.expanduser(r'~/OneDrive/Desktop/CapCut.lnk'),
             r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\CapCut\CapCut.lnk',
             os.path.expanduser(r'~/AppData/Roaming/Microsoft/Windows/Start Menu/Programs/JianyingPro/JianyingPro.lnk'),
             os.path.expanduser(r'~/Desktop/JianyingPro.lnk'),
+            os.path.expanduser(r'~/OneDrive/Desktop/JianyingPro.lnk'),
             r'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\JianyingPro\JianyingPro.lnk',
         ]
         for lnk in lnk_candidates:

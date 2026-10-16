@@ -193,14 +193,17 @@ class AutoCapCutApp(ctk.CTk):
         self.pending_update_data = None
 
         sample_dirs = [
-            r"C:\Users\vutru\OneDrive\Desktop\New folder (2)",
+            os.path.join(os.environ.get('USERPROFILE', ''), 'OneDrive', 'Desktop'),
+            os.path.expanduser("~/OneDrive/Desktop"),
+            os.path.join(os.environ.get('USERPROFILE', ''), 'Desktop'),
             os.path.expanduser("~/Desktop"),
+            os.path.expanduser("~/Downloads"),
             os.path.expanduser("~/Movies"),
             os.path.expanduser("~")
         ]
         self.default_init_dir = os.path.expanduser("~")
         for sd in sample_dirs:
-            if os.path.isdir(sd):
+            if sd and os.path.isdir(sd):
                 self.default_init_dir = sd
                 break
 
@@ -1444,43 +1447,73 @@ class AutoCapCutApp(ctk.CTk):
             self.bgm_preset_var.set(f"File: {first_name}")
 
     def _auto_detect_from_folder(self, folder: str):
-        if not os.path.isdir(folder):
+        try:
+            if not folder or not os.path.isdir(folder):
+                return
+            # Do not scan user root home folder directly (contains Windows system junctions like Application Data)
+            user_home = os.path.expanduser("~")
+            if os.path.abspath(folder).lower() == os.path.abspath(user_home).lower():
+                return
+            files = os.listdir(folder)
+        except Exception:
             return
-        files = os.listdir(folder)
-        if not self.srt_file_var.get():
-            srts = [os.path.join(folder, f) for f in files if f.lower().endswith('.srt')]
-            if srts:
-                self.srt_file_var.set(srts[0])
 
-        curr_text = self.scenes_textbox.get("1.0", "end").strip()
-        if not curr_text or curr_text == SCENES_PLACEHOLDER.strip():
-            txts = [os.path.join(folder, f) for f in files if f.lower().endswith('.txt')]
-            if txts:
-                try:
-                    with open(txts[0], 'r', encoding='utf-8-sig', errors='replace') as fo:
-                        self.scenes_textbox.delete("1.0", "end")
-                        self.scenes_textbox.insert("1.0", fo.read())
-                        self._update_scenes_count()
-                except Exception:
-                    pass
+        try:
+            if not self.srt_file_var.get():
+                srts = [os.path.join(folder, f) for f in files if f.lower().endswith('.srt')]
+                if srts:
+                    self.srt_file_var.set(srts[0])
 
-        if not self.media_folder_var.get():
-            subdirs = [os.path.join(folder, d) for d in files if os.path.isdir(os.path.join(folder, d))]
-            for sd in subdirs:
-                has_imgs = any(f.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp', '.mp4'] for f in os.listdir(sd)[:5])
-                if has_imgs:
-                    self.media_folder_var.set(sd)
-                    break
+            curr_text = self.scenes_textbox.get("1.0", "end").strip()
+            if not curr_text or curr_text == SCENES_PLACEHOLDER.strip():
+                txts = [os.path.join(folder, f) for f in files if f.lower().endswith('.txt')]
+                if txts:
+                    try:
+                        with open(txts[0], 'r', encoding='utf-8-sig', errors='replace') as fo:
+                            self.scenes_textbox.delete("1.0", "end")
+                            self.scenes_textbox.insert("1.0", fo.read())
+                            self._update_scenes_count()
+                    except Exception:
+                        pass
+
+            if not self.media_folder_var.get():
+                subdirs = []
+                for d in files:
+                    full_p = os.path.join(folder, d)
+                    try:
+                        if os.path.isdir(full_p) and not os.path.islink(full_p):
+                            subdirs.append(full_p)
+                    except Exception:
+                        continue
+                for sd in subdirs:
+                    try:
+                        sd_files = os.listdir(sd)[:15]
+                        has_imgs = any(f.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.webp', '.mp4'] for f in sd_files)
+                        if has_imgs:
+                            self.media_folder_var.set(sd)
+                            break
+                    except Exception:
+                        continue
+        except Exception:
+            pass
 
     def _auto_detect_sample_files(self):
-        if os.path.isdir(self.default_init_dir):
-            self._auto_detect_from_folder(self.default_init_dir)
-            files = os.listdir(self.default_init_dir)
-            voices = [os.path.join(self.default_init_dir, f) for f in files if f.lower().endswith(('.wav', '.mp3'))]
-            if voices and not self.audio_files_var.get():
-                self.audio_files_var.set(voices[0])
-            self._update_scenes_count()
-            self._log("[Info] Đã tự động nạp các tệp mẫu sẵn có từ Desktop.")
+        try:
+            user_home = os.path.expanduser("~")
+            if os.path.isdir(self.default_init_dir) and os.path.abspath(self.default_init_dir).lower() != os.path.abspath(user_home).lower():
+                self._auto_detect_from_folder(self.default_init_dir)
+                try:
+                    files = os.listdir(self.default_init_dir)
+                except Exception:
+                    files = []
+                voices = [os.path.join(self.default_init_dir, f) for f in files if f.lower().endswith(('.wav', '.mp3'))]
+                if voices and not self.audio_files_var.get():
+                    self.audio_files_var.set(voices[0])
+                self._update_scenes_count()
+                if self.srt_file_var.get() or self.audio_files_var.get() or self.media_folder_var.get():
+                    self._log("[Info] Đã tự động nạp các tệp mẫu sẵn có từ thư mục làm việc.")
+        except Exception:
+            pass
 
     def _log(self, text: str):
         self.console_textbox.insert("end", text + "\n")
